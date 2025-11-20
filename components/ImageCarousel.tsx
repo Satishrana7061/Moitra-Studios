@@ -29,7 +29,7 @@ const ImageCarousel: React.FC = () => {
                     <img 
                         src={getImagePath(img)}
                         alt={`Rajneeti Game Screenshot ${index + 1}`}
-                        className="h-full w-full object-cover opacity-40"
+                        className="h-full w-full object-contain opacity-100"
                         loading="lazy"
                     />
                 </div>
@@ -42,7 +42,7 @@ const ImageCarousel: React.FC = () => {
                     <img 
                         src={getImagePath(img)}
                         alt={`Rajneeti Game Screenshot ${index + 1}`}
-                        className="h-full w-full object-cover opacity-40"
+                        className="h-full w-full object-contain opacity-100"
                         loading="lazy"
                     />
                 </div>

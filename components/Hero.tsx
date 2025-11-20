@@ -15,9 +15,9 @@ const Hero: React.FC = () => {
         {/* Horizontal Scrolling Carousel */}
         <ImageCarousel />
         
-        {/* Vignette & Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-lokBlue-950/90 via-lokBlue-950/60 to-lokBlue-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_100%)] opacity-80" />
+        {/* Vignette & Overlay for text readability - Reduced opacity for visibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-lokBlue-950/70 via-lokBlue-950/30 to-lokBlue-950/90" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_100%)] opacity-40" />
       </div>
 
       {/* 2. Content Layer */}
@@ -25,17 +25,17 @@ const Hero: React.FC = () => {
         
         {/* Main Headline - Massive & Serif */}
         <h1 className="text-5xl md:text-8xl lg:text-9xl font-cinzel font-black text-white mb-6 leading-none tracking-tight drop-shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          POWER IS <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-b from-lokGold-400 to-lokGold-600">
+          RAJNEETI <br />
+          {/* <span className="text-transparent bg-clip-text bg-gradient-to-b from-lokGold-400 to-lokGold-600">
             YOURS
-          </span>
+          </span> */}
         </h1>
         
         {/* Subheadline */}
-        <p className="text-lg md:text-2xl text-slate-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        {/* <p className="text-lg md:text-2xl text-slate-400 mb-12 max-w-2xl mx-auto font-light leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
           Build alliances. Manipulate markets. <strong className="text-slate-200 font-bold">Control the narrative.</strong><br/>
           The next generation of political strategy for mobile is here.
-        </p>
+        </p> */}
 
         {/* CTA Buttons - Sharp & Technical */}
         <div className="flex flex-col sm:flex-row gap-6 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>

@@ -25,11 +25,11 @@ const ImageCarousel: React.FC = () => {
         {/* First Set */}
         <div className="flex h-full shrink-0">
             {IMAGES.map((img, index) => (
-                <div key={`original-${index}`} className="h-full w-[80vw] sm:w-[60vw] md:w-[40vw] lg:w-[30vw] shrink-0 px-1">
+                <div key={`original-${index}`} className="h-full w-[120vh] shrink-0 px-0">
                     <img 
                         src={getImagePath(img)}
                         alt={`Rajneeti Game Screenshot ${index + 1}`}
-                        className="h-full w-full object-contain opacity-100"
+                        className="h-full w-full object-cover opacity-100"
                         loading="lazy"
                     />
                 </div>
@@ -38,11 +38,11 @@ const ImageCarousel: React.FC = () => {
         {/* Duplicate Set for seamless loop */}
         <div className="flex h-full shrink-0">
             {IMAGES.map((img, index) => (
-                <div key={`duplicate-${index}`} className="h-full w-[80vw] sm:w-[60vw] md:w-[40vw] lg:w-[30vw] shrink-0 px-1">
+                <div key={`duplicate-${index}`} className="h-full w-[120vh] shrink-0 px-0">
                     <img 
                         src={getImagePath(img)}
                         alt={`Rajneeti Game Screenshot ${index + 1}`}
-                        className="h-full w-full object-contain opacity-100"
+                        className="h-full w-full object-cover opacity-100"
                         loading="lazy"
                     />
                 </div>

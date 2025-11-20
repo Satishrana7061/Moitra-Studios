@@ -59,9 +59,19 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #d97706;
       }
+      @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .animate-marquee {
+        animation: marquee 60s linear infinite;
+      }
+      .animate-marquee:hover {
+        animation-play-state: paused;
+      }
     </style>
 
-  <script type="module" crossorigin src="/Moitra-Studios/assets/index-Dm-Xe-kG.js"></script>
+  <script type="module" crossorigin src="/Moitra-Studios/assets/index-C2VbsuHL.js"></script>
 </head>
   <body class="bg-lokBlue-950 text-slate-200 selection:bg-lokGold-500 selection:text-lokBlue-950">
     <div id="root"></div>

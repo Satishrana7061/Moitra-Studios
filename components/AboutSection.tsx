@@ -71,9 +71,9 @@ const AboutSection: React.FC = () => {
             <div className="absolute inset-0 bg-lokGold-500 rounded-2xl transform rotate-3 opacity-20"></div>
             {/* Updated Image: A modern, cinematic gaming/developer setup with purple/blue lighting */}
             <img 
-              src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop" 
-              alt="Studio Workspace" 
-              className="relative rounded-2xl shadow-2xl border border-slate-700 w-full grayscale-[30%] hover:grayscale-0 transition-all duration-700"
+              src={`${import.meta.env.BASE_URL}images/rajneeti/Rajneeti-Game-Match-Making-Screen.png`} 
+              alt="Rajneeti Game Map" 
+              className="relative rounded-2xl shadow-2xl border border-slate-700 w-full grayscale-[0%] hover:grayscale-0 transition-all duration-700"
             />
             <div className="absolute bottom-8 left-8 bg-lokBlue-900/90 backdrop-blur p-4 rounded-lg border border-slate-600 shadow-xl">
                <div className="text-4xl font-bold text-white">10k+</div>

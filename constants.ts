@@ -19,7 +19,7 @@ export const GAMES_DATA: Game[] = [
     status: 'Live',
     playStoreLink: 'https://play.google.com',
     tags: ['Strategy', 'Simulation', 'Politics'],
-    trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ', 
+    trailerUrl: 'https://www.youtube.com/embed/f-eZm87K9_g', 
   },
   {
     id: 'geopolitics',

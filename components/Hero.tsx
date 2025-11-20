@@ -2,6 +2,7 @@
 import React from 'react';
 import { SectionId } from '../types';
 import { Play } from 'lucide-react';
+import ImageCarousel from './ImageCarousel';
 
 const Hero: React.FC = () => {
   return (
@@ -11,15 +12,12 @@ const Hero: React.FC = () => {
     >
       {/* 1. Cinematic Background Layer */}
       <div className="absolute inset-0 z-0">
-        {/* Updated to a high-quality 'Dark Strategy/War Room' Map image */}
-        <img 
-            src="https://images.unsplash.com/photo-1542259681-d262d966526b?q=80&w=2669&auto=format&fit=crop" 
-            alt="Strategy Background" 
-            className="w-full h-full object-cover opacity-40 scale-105 animate-[subtle-zoom_20s_infinite_alternate]"
-        />
+        {/* Horizontal Scrolling Carousel */}
+        <ImageCarousel />
+        
         {/* Vignette & Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-b from-lokBlue-950/80 via-lokBlue-950/40 to-lokBlue-950" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_100%)]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-lokBlue-950/90 via-lokBlue-950/60 to-lokBlue-950" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,#020617_100%)] opacity-80" />
       </div>
 
       {/* 2. Content Layer */}

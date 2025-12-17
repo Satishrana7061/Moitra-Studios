@@ -30,11 +30,8 @@ const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           <p className="text-slate-600 text-sm mb-2">
             &copy; {new Date().getFullYear()} {STUDIO_INFO.name}. All rights reserved.
           </p>
-          <p className="text-slate-700 text-xs uppercase tracking-wider mb-1">
+          <p className="text-slate-700 text-xs uppercase tracking-wider">
             Owned & Operated by {STUDIO_INFO.legalName}
-          </p>
-          <p className="text-slate-700 text-xs">
-            {STUDIO_INFO.address}
           </p>
         </div>
       </div>

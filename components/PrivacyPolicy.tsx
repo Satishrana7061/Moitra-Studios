@@ -113,19 +113,27 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                             </div>
                             
                             <div className="flex items-start gap-3">
-                                <Building2 className="text-slate-500 w-5 h-5 mt-0.5" />
-                                <div>
-                                    <span className="block text-xs text-slate-500 uppercase tracking-widest">Registered Entity</span>
-                                    <p className="text-white">{STUDIO_INFO.legalName}</p>
-                                    <p className="text-slate-400 text-sm mt-1 max-w-xs">
-                                        {STUDIO_INFO.address}
-                                    </p>
-                                </div>
-                            </div>
+                                 <Building2 className="text-slate-500 w-5 h-5 mt-0.5" />
+                                 <div>
+                                     <span className="block text-xs text-slate-500 uppercase tracking-widest">Registered Entity</span>
+                                     <p className="text-white">{STUDIO_INFO.legalName}</p>
+                                 </div>
+                             </div>
                         </div>
                     </div>
                 </div>
 
+            </div>
+
+            {/* Privacy Policy URL Link */}
+            <div className="mt-12 pt-8 border-t border-slate-800 text-center">
+              <p className="text-slate-500 text-xs uppercase tracking-widest mb-3">Privacy Policy</p>
+              <a 
+                href="/privacy" 
+                className="text-lokGold-500 hover:text-lokGold-400 text-sm font-mono break-all transition-colors"
+              >
+                {typeof window !== 'undefined' ? `${window.location.origin}/privacy` : '/privacy'}
+              </a>
             </div>
         </div>
       </div>

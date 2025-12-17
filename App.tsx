@@ -9,28 +9,28 @@ import Footer from './components/Footer';
 import PrivacyPolicy from './components/PrivacyPolicy';
 
 const App: React.FC = () => {
-  // Sync page state with URL path
+  // Use hash for routing to ensure compatibility with GitHub Pages
   const [currentPage, setCurrentPage] = useState(() => {
-    const path = window.location.pathname;
-    return path === '/privacy-policy' ? 'privacy' : 'home';
+    const hash = window.location.hash;
+    return hash === '#privacy-policy' ? 'privacy' : 'home';
   });
 
   useEffect(() => {
-    const handlePopState = () => {
-      const path = window.location.pathname;
-      setCurrentPage(path === '/privacy-policy' ? 'privacy' : 'home');
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      setCurrentPage(hash === '#privacy-policy' ? 'privacy' : 'home');
     };
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   const navigateTo = (page: string) => {
     if (page === 'privacy') {
-      window.history.pushState({}, '', '/privacy-policy');
+      window.location.hash = 'privacy-policy';
       setCurrentPage('privacy');
     } else {
-      window.history.pushState({}, '', '/');
+      window.location.hash = '';
       setCurrentPage('home');
     }
     window.scrollTo(0, 0);

@@ -99,7 +99,7 @@ const GamesSection: React.FC = () => {
 
               <div className={`relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
                 
-                {/* Visual Side (Improved Hero Image) */}
+                {/* Visual Side */}
                 <div className={`lg:col-span-7 relative ${index % 2 !== 0 ? 'lg:order-2' : ''}`}>
                   <div className="relative group/image overflow-hidden rounded-sm bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-all duration-700 hover:border-lokGold-500/20">
                     <div className="aspect-[16/9] relative overflow-hidden">
@@ -108,22 +108,16 @@ const GamesSection: React.FC = () => {
                         alt={game.title} 
                         className="w-full h-full object-cover transform scale-100 group-hover/image:scale-105 transition-transform duration-1000 ease-out brightness-75 group-hover/image:brightness-100"
                       />
-                      
-                      {/* Scanline Effect Overlay */}
                       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] z-10 bg-[length:100%_4px] opacity-20"></div>
-                      
-                      {/* Vignette */}
                       <div className="absolute inset-0 bg-gradient-to-t from-lokBlue-950 via-transparent to-transparent opacity-60"></div>
                     </div>
 
-                    {/* Enhanced Trailer Button */}
                     {game.trailerUrl && (
                       <button 
                         onClick={() => setActiveTrailer(game.trailerUrl!)}
                         className="absolute inset-0 flex items-center justify-center group/play"
                       >
                         <div className="relative">
-                          {/* Pulsing Ring */}
                           <div className="absolute -inset-4 border border-lokGold-500/50 rounded-full animate-ping opacity-0 group-hover/play:opacity-40 transition-opacity"></div>
                           <div className="w-24 h-24 flex items-center justify-center rounded-full border border-white/20 bg-black/40 backdrop-blur-md group-hover/play:bg-lokGold-600 group-hover/play:border-lokGold-500 transition-all duration-500 transform group-hover/play:scale-110 shadow-2xl">
                             <Play className="w-10 h-10 text-white ml-1.5 fill-current" />
@@ -136,9 +130,9 @@ const GamesSection: React.FC = () => {
                     )}
                   </div>
                   
-                  {/* Floating ID Label */}
+                  {/* Digital ID Label */}
                   <div className={`absolute -top-4 ${index % 2 !== 0 ? '-right-4' : '-left-4'} px-4 py-2 bg-lokBlue-950 border border-slate-800 text-[10px] font-mono text-slate-500 uppercase tracking-widest z-20`}>
-                    OP_CODE: {game.id.toUpperCase()}_734
+                    UNIT_ID: {game.id.toUpperCase()}_SRC
                   </div>
                 </div>
 
@@ -172,7 +166,7 @@ const GamesSection: React.FC = () => {
                         className="group relative flex items-center gap-3 bg-white text-black px-10 py-5 font-black uppercase tracking-widest overflow-hidden transition-all hover:bg-lokGold-500"
                       >
                         <Smartphone size={18} className="relative z-10" />
-                        <span className="relative z-10">Deploy Now</span>
+                        <span className="relative z-10 text-base">Play Now</span>
                         <div className="absolute inset-0 bg-black/5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
                       </a>
                     ) : (
@@ -188,7 +182,6 @@ const GamesSection: React.FC = () => {
                           ? 'border-lokGold-500 text-lokGold-500 bg-lokGold-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]' 
                           : 'border-slate-800 text-slate-500 hover:border-lokGold-500/50 hover:text-white'
                       }`}
-                      title={wishlist.has(game.id) ? "Revoke Interest" : "Express Interest"}
                     >
                       <Star 
                         size={22} 
@@ -230,53 +223,30 @@ const GamesSection: React.FC = () => {
               <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lokGold-500"></div>
               <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lokGold-500"></div>
               
-              <button 
-                onClick={() => setShowNotifyModal(null)}
-                className="absolute top-6 right-6 text-slate-600 hover:text-white transition-colors"
-              >
+              <button onClick={() => setShowNotifyModal(null)} className="absolute top-6 right-6 text-slate-600 hover:text-white">
                 <X size={24} />
               </button>
 
               {notifySubmitted ? (
-                 <div className="text-center py-10 animate-fade-in">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-lokGreen-500/10 text-lokGreen-500 mb-6 border border-lokGreen-500/20">
-                       <CheckCircle size={40} className="animate-pulse" />
-                    </div>
+                 <div className="text-center py-10">
+                    <CheckCircle size={40} className="text-lokGreen-500 mx-auto mb-6" />
                     <h3 className="text-3xl font-cinzel text-white mb-4">Transmission Received</h3>
-                    <p className="text-slate-400 font-light leading-relaxed">Your coordinates have been logged. You will receive intel as soon as deployment begins.</p>
+                    <p className="text-slate-400">Your credentials have been logged.</p>
                  </div>
               ) : (
-                 <div className="animate-fade-in">
-                    <div className="flex items-center gap-4 mb-8">
-                       <div className="p-4 bg-lokGold-500/5 border border-lokGold-500/20">
-                          <Bell className="text-lokGold-500" size={32} />
-                       </div>
-                       <div>
-                          <h3 className="text-2xl font-cinzel font-black text-white uppercase tracking-wider leading-none mb-2">Priority Intel</h3>
-                          <p className="text-lokGold-500 text-[10px] font-black tracking-widest uppercase opacity-60">Status: Classified Access</p>
-                       </div>
-                    </div>
-                    
-                    <p className="text-slate-400 mb-8 font-light leading-relaxed text-lg">
-                       This operation is currently in a pre-deployment phase. Log your credentials to be prioritized for launch alerts.
-                    </p>
-
+                 <div>
+                    <Bell className="text-lokGold-500 mb-8" size={32} />
+                    <h3 className="text-2xl font-cinzel font-black text-white uppercase mb-6">Priority Intel</h3>
                     <form onSubmit={handleNotifySubmit} className="space-y-6">
-                       <div className="relative group">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-lokGold-500 transition-colors" size={20} />
-                          <input 
-                            type="email" 
-                            required
-                            placeholder="COMM_IDENTIFIER@SECURE.MAIL"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-black/50 border border-slate-700 rounded-none py-4 pl-12 pr-4 text-white font-mono text-sm focus:border-lokGold-500 focus:outline-none transition-all placeholder:text-slate-800"
-                          />
-                       </div>
-                       <button 
-                          type="submit" 
-                          className="w-full py-5 bg-lokGold-600 hover:bg-lokGold-500 text-black font-black uppercase tracking-[0.2em] transition-all shadow-[0_10px_30px_rgba(217,119,6,0.2)]"
-                       >
+                       <input 
+                         type="email" 
+                         required
+                         placeholder="COMM_IDENTIFIER@SECURE.MAIL"
+                         value={email}
+                         onChange={(e) => setEmail(e.target.value)}
+                         className="w-full bg-black/50 border border-slate-700 p-4 text-white font-mono text-sm focus:border-lokGold-500 outline-none transition-all"
+                       />
+                       <button type="submit" className="w-full py-5 bg-lokGold-600 hover:bg-lokGold-500 text-black font-black uppercase tracking-widest transition-all">
                           Secure Access
                        </button>
                     </form>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { SectionId } from '../types';
-import { Target, Users, Zap, MapPin } from 'lucide-react';
+import { Target, Users, Zap } from 'lucide-react';
 import { STUDIO_INFO } from '../constants';
 
 const AboutSection: React.FC = () => {
@@ -29,10 +29,6 @@ const AboutSection: React.FC = () => {
             <div className="mb-8 p-4 border-l-2 border-slate-700 bg-slate-800/30">
                <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Owned & Operated By</p>
                <p className="text-slate-300 font-semibold">{STUDIO_INFO.legalName}</p>
-               <div className="flex items-start gap-2 mt-2 text-slate-400 text-sm">
-                  <MapPin size={16} className="mt-0.5 flex-shrink-0" />
-                  <span>{STUDIO_INFO.address}</span>
-               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -69,11 +65,10 @@ const AboutSection: React.FC = () => {
           {/* Visual */}
           <div className="relative">
             <div className="absolute inset-0 bg-lokGold-500 rounded-2xl transform rotate-3 opacity-20"></div>
-            {/* Updated Image: A modern, cinematic gaming/developer setup with purple/blue lighting */}
             <img 
-              src={`${import.meta.env.BASE_URL}images/rajneeti/Rajneeti-Game-Match-Making-Screen.png`} 
-              alt="Rajneeti Game Map" 
-              className="relative rounded-2xl shadow-2xl border border-slate-700 w-full grayscale-[0%] hover:grayscale-0 transition-all duration-700"
+              src="https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=2670&auto=format&fit=crop" 
+              alt="Studio Workspace" 
+              className="relative rounded-2xl shadow-2xl border border-slate-700 w-full grayscale-[30%] hover:grayscale-0 transition-all duration-700"
             />
             <div className="absolute bottom-8 left-8 bg-lokBlue-900/90 backdrop-blur p-4 rounded-lg border border-slate-600 shadow-xl">
                <div className="text-4xl font-bold text-white">10k+</div>

@@ -1,5 +1,5 @@
-import React from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import GamesSection from './components/GamesSection';
@@ -9,28 +9,51 @@ import Footer from './components/Footer';
 import PrivacyPolicy from './components/PrivacyPolicy';
 
 const App: React.FC = () => {
-  const navigate = useNavigate();
+  // Sync page state with URL path
+  const [currentPage, setCurrentPage] = useState(() => {
+    const path = window.location.pathname;
+    return path === '/privacy-policy' ? 'privacy' : 'home';
+  });
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      setCurrentPage(path === '/privacy-policy' ? 'privacy' : 'home');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const navigateTo = (page: string) => {
+    if (page === 'privacy') {
+      window.history.pushState({}, '', '/privacy-policy');
+      setCurrentPage('privacy');
+    } else {
+      window.history.pushState({}, '', '/');
+      setCurrentPage('home');
+    }
+    window.scrollTo(0, 0);
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-lokBlue-900">
-      <Navbar onNavigate={(page: string) => navigate(page === 'privacy' ? '/privacy' : '/')} />
+      <Navbar onNavigate={navigateTo} />
       
       <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={
-            <>
-              <Hero />
-              <GamesSection />
-              {/* Royal Advisor Removed */}
-              <AboutSection />
-              <ContactSection />
-            </>
-          } />
-          <Route path="/privacy" element={<PrivacyPolicy onBack={() => navigate('/')} />} />
-        </Routes>
+        {currentPage === 'home' ? (
+          <>
+            <Hero />
+            <GamesSection />
+            <AboutSection />
+            <ContactSection />
+          </>
+        ) : (
+          <PrivacyPolicy onBack={() => navigateTo('home')} />
+        )}
       </main>
 
-      <Footer onNavigate={(page: string) => navigate(page === 'privacy' ? '/privacy' : '/')} />
+      <Footer onNavigate={navigateTo} />
     </div>
   );
 };

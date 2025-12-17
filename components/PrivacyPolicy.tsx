@@ -15,7 +15,6 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
 
   return (
     <section className="pt-32 pb-24 min-h-screen bg-lokBlue-950 relative">
-      {/* Background Elements */}
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -56,7 +55,7 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                         </p>
                         <ul className="list-disc pl-5 space-y-2 text-slate-400">
                             <li><strong>Device Information:</strong> We may collect device model, OS version, and unique device identifiers (advertising ID) for optimization.</li>
-                            <li><strong>Gameplay Data:</strong> Anonymous statistics about how you play (e.g., "Level 5 Completed", "Resource Count") to help us balance the game.</li>
+                            <li><strong>Gameplay Data:</strong> Anonymous statistics about how you play to help us balance the game.</li>
                         </ul>
                     </div>
                 </div>
@@ -70,23 +69,10 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                         <h2 className="text-2xl font-cinzel font-bold text-white mb-4">2. How We Use Data</h2>
                         <p>The limited data we collect is used solely for:</p>
                         <ul className="list-disc pl-5 space-y-2 mt-2 text-slate-400">
-                            <li>Improving game stability and fixing bugs (Crash Analytics).</li>
+                            <li>Improving game stability and fixing bugs.</li>
                             <li>Analyzing player progression to tune difficulty.</li>
-                            <li>Serving relevant advertisements via third-party networks (e.g., Google AdMob, Unity Ads).</li>
+                            <li>Serving advertisements via third-party networks.</li>
                         </ul>
-                    </div>
-                </div>
-
-                {/* Section 3 */}
-                <div>
-                    <h2 className="text-2xl font-cinzel font-bold text-white mb-4">3. Third-Party Services</h2>
-                    <p className="mb-4">
-                        Our apps may use third-party services that may collect information used to identify you. Links to privacy policy of third-party service providers used by the app:
-                    </p>
-                    <div className="flex flex-wrap gap-3">
-                        <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white transition-colors">Google Play Services</a>
-                        <a href="https://support.google.com/admob/answer/6128543?hl=en" target="_blank" rel="noreferrer" className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white transition-colors">AdMob</a>
-                        <a href="https://unity3d.com/legal/privacy-policy" target="_blank" rel="noreferrer" className="px-3 py-1 bg-slate-800 hover:bg-slate-700 rounded text-xs text-white transition-colors">Unity Analytics</a>
                     </div>
                 </div>
 
@@ -113,27 +99,16 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
                             </div>
                             
                             <div className="flex items-start gap-3">
-                                 <Building2 className="text-slate-500 w-5 h-5 mt-0.5" />
-                                 <div>
-                                     <span className="block text-xs text-slate-500 uppercase tracking-widest">Registered Entity</span>
-                                     <p className="text-white">{STUDIO_INFO.legalName}</p>
-                                 </div>
-                             </div>
+                                <Building2 className="text-slate-500 w-5 h-5 mt-0.5" />
+                                <div>
+                                    <span className="block text-xs text-slate-500 uppercase tracking-widest">Registered Entity</span>
+                                    <p className="text-white">{STUDIO_INFO.legalName}</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-            </div>
-
-            {/* Privacy Policy URL Link */}
-            <div className="mt-12 pt-8 border-t border-slate-800 text-center">
-              <p className="text-slate-500 text-xs uppercase tracking-widest mb-3">Privacy Policy</p>
-              <a 
-                href="/privacy" 
-                className="text-lokGold-500 hover:text-lokGold-400 text-sm font-mono break-all transition-colors"
-              >
-                {typeof window !== 'undefined' ? `${window.location.origin}/privacy` : '/privacy'}
-              </a>
             </div>
         </div>
       </div>

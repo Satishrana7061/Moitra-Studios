@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="google-site-verification" content="AEVQoVcBuOkiw0ltUEvKvZe0cbyJCFLD1B0TwtXInwA" />
     <title>Moitra Studios - Grand Strategy Games</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -59,21 +58,20 @@
       ::-webkit-scrollbar-thumb:hover {
         background: #d97706;
       }
-      @keyframes marquee {
-        0% { transform: translateX(0); }
-        100% { transform: translateX(-50%); }
-      }
-      .animate-marquee {
-        animation: marquee 60s linear infinite;
-      }
-      .animate-marquee:hover {
-        animation-play-state: paused;
-      }
     </style>
-
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
+  }
+}
+</script>
 </head>
   <body class="bg-lokBlue-950 text-slate-200 selection:bg-lokGold-500 selection:text-lokBlue-950">
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

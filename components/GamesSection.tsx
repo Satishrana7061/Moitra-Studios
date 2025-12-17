@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { SectionId } from '../types';
 import { GAMES_DATA } from '../constants';
-import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle } from 'lucide-react';
+import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb } from 'lucide-react';
 
 const GamesSection: React.FC = () => {
   const [activeTrailer, setActiveTrailer] = useState<string | null>(null);
@@ -13,18 +13,15 @@ const GamesSection: React.FC = () => {
 
   const handleStarClick = (gameId: string, status: string) => {
     if (wishlist.has(gameId)) {
-      // Remove from wishlist
       const newWishlist = new Set(wishlist);
       newWishlist.delete(gameId);
       setWishlist(newWishlist);
     } else {
-      if (status === 'In Development') {
-        // Trigger modal for unreleased games
+      if (status === 'In Development' || status === 'Concept') {
         setShowNotifyModal(gameId);
         setNotifySubmitted(false);
         setEmail('');
       } else {
-        // Just toggle for live games
         const newWishlist = new Set(wishlist);
         newWishlist.add(gameId);
         setWishlist(newWishlist);
@@ -34,7 +31,6 @@ const GamesSection: React.FC = () => {
 
   const handleNotifySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call
     setTimeout(() => {
       setNotifySubmitted(true);
       if (showNotifyModal) {
@@ -42,21 +38,49 @@ const GamesSection: React.FC = () => {
         newWishlist.add(showNotifyModal);
         setWishlist(newWishlist);
       }
-      // Close modal after short delay
       setTimeout(() => {
         setShowNotifyModal(null);
       }, 2000);
     }, 800);
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Live':
+        return (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-lokGreen-500/10 border border-lokGreen-500/30 rounded-full text-lokGreen-500 text-[10px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lokGreen-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-lokGreen-500"></span>
+            </span>
+            <Activity size={10} />
+            Live Now
+          </div>
+        );
+      case 'In Development':
+        return (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-lokGold-500/10 border border-lokGold-500/30 rounded-full text-lokGold-500 text-[10px] font-black uppercase tracking-[0.15em] shadow-[0_0_15px_rgba(245,158,11,0.1)]">
+            <Construction size={10} />
+            Under Construction
+          </div>
+        );
+      case 'Concept':
+        return (
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-blue-500/10 border border-blue-500/30 rounded-full text-blue-400 text-[10px] font-black uppercase tracking-[0.15em]">
+            <Lightbulb size={10} />
+            Classified Concept
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <section id={SectionId.GAMES} className="py-32 bg-lokBlue-950 relative overflow-hidden">
-       {/* Subtle grid pattern background */}
-       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Section Header */}
         <div className="mb-24 md:flex justify-between items-end border-b border-slate-800 pb-8">
           <div>
             <span className="text-lokGold-500 font-bold tracking-[0.2em] text-sm uppercase mb-2 block">Active Operations</span>
@@ -68,107 +92,110 @@ const GamesSection: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-32">
+        <div className="space-y-40">
           {GAMES_DATA.map((game, index) => (
-            <div 
-              key={game.id} 
-              className="group relative"
-            >
-              {/* Cinematic Background Glow */}
-              <div className="absolute -inset-4 bg-gradient-to-r from-lokGold-600/20 to-purple-900/20 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl"></div>
+            <div key={game.id} className="group relative">
+              <div className="absolute -inset-10 bg-gradient-to-r from-lokGold-600/5 to-transparent blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
-              <div className={`relative grid grid-cols-1 lg:grid-cols-12 gap-8 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
+              <div className={`relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
                 
-                {/* Visual Side (Takes up 7 cols) */}
+                {/* Visual Side (Improved Hero Image) */}
                 <div className={`lg:col-span-7 relative ${index % 2 !== 0 ? 'lg:order-2' : ''}`}>
-                    <div className="relative aspect-video overflow-hidden rounded bg-slate-900 shadow-2xl border border-slate-800 group-hover:border-lokGold-500/30 transition-all duration-500">
-                        <img 
-                            src={game.imageUrl} 
-                            alt={game.title} 
-                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 grayscale-[20%] group-hover:grayscale-0"
-                        />
-                        
-                        {/* Overlay Gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
-
-                        {/* Trailer Button centered */}
-                        {game.trailerUrl && (
-                            <button 
-                                onClick={() => setActiveTrailer(game.trailerUrl!)}
-                                className="absolute inset-0 flex items-center justify-center group/btn"
-                            >
-                                <div className="w-20 h-20 flex items-center justify-center rounded-full border border-white/30 bg-black/30 backdrop-blur-sm group-hover/btn:bg-lokGold-500 group-hover/btn:border-lokGold-500 transition-all duration-300 transform group-hover/btn:scale-110">
-                                    <Play className="w-8 h-8 text-white ml-1 fill-current" />
-                                </div>
-                            </button>
-                        )}
+                  <div className="relative group/image overflow-hidden rounded-sm bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-all duration-700 hover:border-lokGold-500/20">
+                    <div className="aspect-[16/9] relative overflow-hidden">
+                      <img 
+                        src={game.imageUrl} 
+                        alt={game.title} 
+                        className="w-full h-full object-cover transform scale-100 group-hover/image:scale-105 transition-transform duration-1000 ease-out brightness-75 group-hover/image:brightness-100"
+                      />
+                      
+                      {/* Scanline Effect Overlay */}
+                      <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] z-10 bg-[length:100%_4px] opacity-20"></div>
+                      
+                      {/* Vignette */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-lokBlue-950 via-transparent to-transparent opacity-60"></div>
                     </div>
+
+                    {/* Enhanced Trailer Button */}
+                    {game.trailerUrl && (
+                      <button 
+                        onClick={() => setActiveTrailer(game.trailerUrl!)}
+                        className="absolute inset-0 flex items-center justify-center group/play"
+                      >
+                        <div className="relative">
+                          {/* Pulsing Ring */}
+                          <div className="absolute -inset-4 border border-lokGold-500/50 rounded-full animate-ping opacity-0 group-hover/play:opacity-40 transition-opacity"></div>
+                          <div className="w-24 h-24 flex items-center justify-center rounded-full border border-white/20 bg-black/40 backdrop-blur-md group-hover/play:bg-lokGold-600 group-hover/play:border-lokGold-500 transition-all duration-500 transform group-hover/play:scale-110 shadow-2xl">
+                            <Play className="w-10 h-10 text-white ml-1.5 fill-current" />
+                          </div>
+                          <span className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap text-[10px] font-bold tracking-[0.3em] text-white opacity-0 group-hover/play:opacity-100 transition-all group-hover/play:-bottom-8 uppercase">
+                            View Intel
+                          </span>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Floating ID Label */}
+                  <div className={`absolute -top-4 ${index % 2 !== 0 ? '-right-4' : '-left-4'} px-4 py-2 bg-lokBlue-950 border border-slate-800 text-[10px] font-mono text-slate-500 uppercase tracking-widest z-20`}>
+                    OP_CODE: {game.id.toUpperCase()}_734
+                  </div>
                 </div>
 
-                {/* Info Side (Takes up 5 cols) */}
-                <div className={`lg:col-span-5 space-y-8 ${index % 2 !== 0 ? 'lg:order-1 text-right lg:text-right' : 'lg:text-left'}`}>
-                    <div>
-                        <div className={`flex items-center gap-3 mb-4 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
-                             {game.status === 'Live' && (
-                                 <div className="flex items-center gap-1 text-lokGreen-500 text-xs font-bold uppercase tracking-widest">
-                                     <span className="relative flex h-2 w-2 mr-1">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-lokGreen-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-lokGreen-500"></span>
-                                    </span>
-                                     Live Service
-                                 </div>
-                             )}
-                             {game.status !== 'Live' && (
-                                 <span className="text-lokGold-500 text-xs font-bold uppercase tracking-widest border border-lokGold-500/30 px-2 py-1 rounded">In Development</span>
-                             )}
-                        </div>
-                        <h3 className="text-4xl md:text-5xl font-cinzel font-bold text-white mb-2 leading-tight">{game.title}</h3>
-                        <p className="text-xl text-lokGold-500 font-serif italic">"{game.tagline}"</p>
+                {/* Info Side */}
+                <div className={`lg:col-span-5 space-y-8 ${index % 2 !== 0 ? 'lg:order-1 lg:text-right' : 'lg:text-left'}`}>
+                  <div>
+                    <div className={`mb-6 flex ${index % 2 !== 0 ? 'justify-end' : 'justify-start'}`}>
+                      {getStatusBadge(game.status)}
                     </div>
+                    <h3 className="text-4xl md:text-6xl font-cinzel font-black text-white mb-4 leading-none tracking-tight">{game.title}</h3>
+                    <div className={`h-1 w-24 bg-lokGold-600 mb-6 ${index % 2 !== 0 ? 'ml-auto' : ''}`}></div>
+                    <p className="text-xl text-lokGold-500 font-serif italic tracking-wide">"{game.tagline}"</p>
+                  </div>
 
-                    <p className="text-slate-400 text-lg leading-relaxed font-light border-l-2 border-slate-800 pl-6 ml-1">
-                        {game.description}
-                    </p>
+                  <p className={`text-slate-400 text-lg leading-relaxed font-light ${index % 2 !== 0 ? 'pr-0' : 'pl-0'}`}>
+                    {game.description}
+                  </p>
 
-                    <div className={`flex flex-wrap gap-2 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
-                        {game.tags.map(tag => (
-                            <span key={tag} className="px-3 py-1 bg-slate-900 border border-slate-700 text-slate-400 text-xs uppercase tracking-wider rounded-sm">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
+                  <div className={`flex flex-wrap gap-2 pt-2 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
+                    {game.tags.map(tag => (
+                      <span key={tag} className="px-3 py-1 bg-slate-900 border border-slate-800 text-slate-500 text-[10px] font-black uppercase tracking-widest rounded-none hover:border-lokGold-500/40 transition-colors">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
 
-                    <div className={`flex items-center gap-4 pt-4 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
-                        {game.status === 'Live' ? (
-                            <a 
-                                href={game.playStoreLink} 
-                                className="flex items-center gap-3 bg-white text-black px-8 py-4 font-bold uppercase tracking-widest hover:bg-lokGold-400 transition-colors"
-                            >
-                                <Smartphone size={20} />
-                                <span>Install</span>
-                            </a>
-                        ) : (
-                            <button className="px-8 py-4 border border-slate-600 text-slate-400 font-bold uppercase tracking-widest cursor-not-allowed opacity-50">
-                                Coming Soon
-                            </button>
-                        )}
-                        
-                        {/* Wishlist / Star Button */}
-                        <button 
-                          onClick={() => handleStarClick(game.id, game.status)}
-                          className={`p-4 border transition-all duration-300 group/star ${
-                            wishlist.has(game.id) 
-                              ? 'border-lokGold-500 text-lokGold-500 bg-lokGold-500/10' 
-                              : 'border-slate-700 text-slate-400 hover:border-lokGold-500 hover:text-white'
-                          }`}
-                          title={wishlist.has(game.id) ? "Remove from wishlist" : "Add to wishlist"}
-                        >
-                            <Star 
-                              size={20} 
-                              className={`transition-all duration-300 ${wishlist.has(game.id) ? 'fill-lokGold-500 scale-110' : 'group-hover/star:scale-110'}`} 
-                            />
-                        </button>
-                    </div>
+                  <div className={`flex items-center gap-6 pt-6 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
+                    {game.status === 'Live' ? (
+                      <a 
+                        href={game.playStoreLink} 
+                        className="group relative flex items-center gap-3 bg-white text-black px-10 py-5 font-black uppercase tracking-widest overflow-hidden transition-all hover:bg-lokGold-500"
+                      >
+                        <Smartphone size={18} className="relative z-10" />
+                        <span className="relative z-10">Deploy Now</span>
+                        <div className="absolute inset-0 bg-black/5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                      </a>
+                    ) : (
+                      <button className="px-10 py-5 border border-slate-800 text-slate-600 font-black uppercase tracking-widest cursor-not-allowed text-xs">
+                        Deployment Pending
+                      </button>
+                    )}
+                    
+                    <button 
+                      onClick={() => handleStarClick(game.id, game.status)}
+                      className={`p-5 border transition-all duration-500 group/star ${
+                        wishlist.has(game.id) 
+                          ? 'border-lokGold-500 text-lokGold-500 bg-lokGold-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]' 
+                          : 'border-slate-800 text-slate-500 hover:border-lokGold-500/50 hover:text-white'
+                      }`}
+                      title={wishlist.has(game.id) ? "Revoke Interest" : "Express Interest"}
+                    >
+                      <Star 
+                        size={22} 
+                        className={`transition-all duration-500 ${wishlist.has(game.id) ? 'fill-lokGold-500 scale-125' : 'group-hover/star:scale-110'}`} 
+                      />
+                    </button>
+                  </div>
                 </div>
 
               </div>
@@ -177,19 +204,18 @@ const GamesSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Cinematic Video Modal */}
       {activeTrailer && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl animate-fade-in p-4">
-            <div className="w-full max-w-6xl aspect-video bg-black relative shadow-2xl border border-slate-800">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/98 backdrop-blur-2xl animate-fade-in p-4 lg:p-12">
+            <div className="w-full max-w-7xl aspect-video bg-black relative shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/5">
                 <button 
                     onClick={() => setActiveTrailer(null)}
-                    className="absolute -top-12 right-0 text-slate-400 hover:text-white flex items-center gap-2 text-sm uppercase tracking-widest"
+                    className="absolute -top-16 right-0 text-slate-400 hover:text-white flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] transition-all group"
                 >
-                    Close Trailer <X size={20} />
+                    Close Transmission <X size={20} className="group-hover:rotate-90 transition-transform" />
                 </button>
                 <iframe
-                    src={`${activeTrailer}?autoplay=1&modestbranding=1&rel=0`}
-                    title="Game Trailer"
+                    src={`${activeTrailer}?autoplay=1&modestbranding=1&rel=0&showinfo=0`}
+                    title="Intel Transmission"
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -198,55 +224,60 @@ const GamesSection: React.FC = () => {
         </div>
       )}
 
-      {/* Notification Modal */}
       {showNotifyModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-lokBlue-950/90 backdrop-blur-md animate-fade-in p-4">
-           <div className="bg-lokBlue-900 border border-lokGold-500/30 p-8 max-w-md w-full relative shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-lokBlue-950/95 backdrop-blur-xl animate-fade-in p-6">
+           <div className="bg-lokBlue-900 border border-lokGold-500/20 p-10 max-w-lg w-full relative shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden">
+              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lokGold-500"></div>
+              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lokGold-500"></div>
+              
               <button 
                 onClick={() => setShowNotifyModal(null)}
-                className="absolute top-4 right-4 text-slate-500 hover:text-white"
+                className="absolute top-6 right-6 text-slate-600 hover:text-white transition-colors"
               >
-                <X size={20} />
+                <X size={24} />
               </button>
 
               {notifySubmitted ? (
-                 <div className="text-center py-8 animate-fade-in">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-lokGreen-500/20 text-lokGreen-500 mb-4">
-                       <CheckCircle size={32} />
+                 <div className="text-center py-10 animate-fade-in">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-lokGreen-500/10 text-lokGreen-500 mb-6 border border-lokGreen-500/20">
+                       <CheckCircle size={40} className="animate-pulse" />
                     </div>
-                    <h3 className="text-2xl font-cinzel text-white mb-2">You're on the list.</h3>
-                    <p className="text-slate-400">We will notify you as soon as deployment begins.</p>
+                    <h3 className="text-3xl font-cinzel text-white mb-4">Transmission Received</h3>
+                    <p className="text-slate-400 font-light leading-relaxed">Your coordinates have been logged. You will receive intel as soon as deployment begins.</p>
                  </div>
               ) : (
                  <div className="animate-fade-in">
-                    <div className="flex items-center gap-3 mb-6">
-                       <div className="p-3 bg-lokGold-500/10 rounded-lg">
-                          <Bell className="text-lokGold-500" size={24} />
+                    <div className="flex items-center gap-4 mb-8">
+                       <div className="p-4 bg-lokGold-500/5 border border-lokGold-500/20">
+                          <Bell className="text-lokGold-500" size={32} />
                        </div>
-                       <h3 className="text-xl font-cinzel font-bold text-white">Get Notified</h3>
+                       <div>
+                          <h3 className="text-2xl font-cinzel font-black text-white uppercase tracking-wider leading-none mb-2">Priority Intel</h3>
+                          <p className="text-lokGold-500 text-[10px] font-black tracking-widest uppercase opacity-60">Status: Classified Access</p>
+                       </div>
                     </div>
                     
-                    <p className="text-slate-400 mb-6 text-sm leading-relaxed">
-                       This title is currently in active development. Enter your email to receive a deployment alert when it goes live.
+                    <p className="text-slate-400 mb-8 font-light leading-relaxed text-lg">
+                       This operation is currently in a pre-deployment phase. Log your credentials to be prioritized for launch alerts.
                     </p>
 
-                    <form onSubmit={handleNotifySubmit} className="space-y-4">
-                       <div className="relative">
-                          <Mail className="absolute left-3 top-3.5 text-slate-500" size={18} />
+                    <form onSubmit={handleNotifySubmit} className="space-y-6">
+                       <div className="relative group">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-lokGold-500 transition-colors" size={20} />
                           <input 
                             type="email" 
                             required
-                            placeholder="your@email.com"
+                            placeholder="COMM_IDENTIFIER@SECURE.MAIL"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-black/30 border border-slate-600 rounded py-3 pl-10 pr-4 text-white focus:border-lokGold-500 focus:outline-none transition-colors"
+                            className="w-full bg-black/50 border border-slate-700 rounded-none py-4 pl-12 pr-4 text-white font-mono text-sm focus:border-lokGold-500 focus:outline-none transition-all placeholder:text-slate-800"
                           />
                        </div>
                        <button 
                           type="submit" 
-                          className="w-full py-3 bg-lokGold-600 hover:bg-lokGold-500 text-black font-bold uppercase tracking-wider transition-colors"
+                          className="w-full py-5 bg-lokGold-600 hover:bg-lokGold-500 text-black font-black uppercase tracking-[0.2em] transition-all shadow-[0_10px_30px_rgba(217,119,6,0.2)]"
                        >
-                          Notify Me
+                          Secure Access
                        </button>
                     </form>
                  </div>

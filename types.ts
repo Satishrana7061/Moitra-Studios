@@ -18,6 +18,8 @@ export interface Game {
   appStoreLink?: string;
   tags: string[];
   trailerUrl?: string;
+  highlights?: string[];
+  releaseWindow?: string;
 }
 
 export interface ContactFormState {

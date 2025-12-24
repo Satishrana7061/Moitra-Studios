@@ -23,10 +23,14 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
     setIsMobileMenuOpen(false);
     // Slight delay to allow view change before scrolling if needed
     if (page === 'home') {
+      const isHashLink = href.startsWith('#');
+      if (isHashLink) {
+        window.location.hash = href;
+      }
       setTimeout(() => {
         const element = document.querySelector(href);
         element?.scrollIntoView({ behavior: 'smooth' });
-      }, 100);
+      }, 120);
     }
   };
 

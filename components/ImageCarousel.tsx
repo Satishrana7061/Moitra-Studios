@@ -18,36 +18,34 @@ const ImageCarousel: React.FC = () => {
   return (
     <div className="absolute inset-0 overflow-hidden">
       {/* Carousel Container */}
-      <div className="relative w-full h-full">
-        {/* Scrolling Images - Right to Left */}
-        <div className="absolute inset-0 animate-scroll-left">
-          <div className="flex h-full gap-4">
-            {/* First set of images */}
-            {images.map((image, index) => (
-              <div
-                key={`first-${index}`}
-                className="flex-shrink-0 w-96 h-full"
-              >
-                <img
-                  src={image}
-                  alt={`Game screenshot ${index + 1}`}
-                  className="w-full h-full object-cover opacity-50 hover:opacity-70 transition-opacity duration-300"
-                />
-              </div>
-            ))}
-            {/* Duplicate set for seamless loop */}
-            {images.map((image, index) => (
-              <div
-                key={`second-${index}`}
-                className="flex-shrink-0 w-96 h-full"
-              >
-                <img
-                  src={image}
-                  alt={`Game screenshot ${index + 1}`}
-                  className="w-full h-full object-cover opacity-50 hover:opacity-70 transition-opacity duration-300"
-                />
-              </div>
-            ))}
+      <div className="relative w-full h-full [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
+        {/* Scrolling Images - Right to Left (two lanes for depth) */}
+        <div className="absolute inset-0 flex flex-col gap-6">
+          <div className="animate-scroll-left">
+            <div className="flex h-64 md:h-80 gap-4">
+              {[...images, ...images].map((image, index) => (
+                <div key={`lane1-${index}`} className="flex-shrink-0 w-80 md:w-96 h-full">
+                  <img
+                    src={image}
+                    alt={`Game screenshot ${index + 1}`}
+                    className="w-full h-full object-cover opacity-60 hover:opacity-80 transition-opacity duration-300 rounded"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="animate-scroll-left" style={{ animationDuration: '55s' }}>
+            <div className="flex h-52 md:h-64 gap-4">
+              {[...images.slice().reverse(), ...images.slice().reverse()].map((image, index) => (
+                <div key={`lane2-${index}`} className="flex-shrink-0 w-72 md:w-80 h-full">
+                  <img
+                    src={image}
+                    alt={`Game screenshot ${index + 1}`}
+                    className="w-full h-full object-cover opacity-50 hover:opacity-75 transition-opacity duration-300 rounded"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

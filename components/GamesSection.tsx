@@ -182,20 +182,46 @@ const GamesSection: React.FC = () => {
                     ))}
                   </div>
 
-                  <div className={`flex items-center gap-6 pt-6 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
+                  <div className={`flex flex-wrap items-center gap-4 pt-6 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
                     {game.status === 'Live' ? (
-                      <a 
-                        href={game.playStoreLink} 
-                        className="group relative flex items-center gap-3 bg-white text-black px-10 py-5 font-black uppercase tracking-widest overflow-hidden transition-all hover:bg-lokGold-500"
-                      >
-                        <Smartphone size={18} className="relative z-10" />
-                        <span className="relative z-10 text-base">Play Now</span>
-                        <div className="absolute inset-0 bg-black/5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                      </a>
+                      <>
+                        <a 
+                          href={game.playStoreLink}
+                          className="group relative flex items-center gap-3 bg-white text-black px-6 py-4 font-black uppercase tracking-widest overflow-hidden transition-all hover:bg-lokGold-500"
+                        >
+                          <Smartphone size={18} className="relative z-10" />
+                          <span className="relative z-10 text-sm">Android</span>
+                          <div className="absolute inset-0 bg-black/5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        </a>
+
+                        <div className="flex items-center gap-2">
+                          {game.appStoreLink ? (
+                            <a
+                              href={game.appStoreLink}
+                              className="group relative flex items-center gap-3 px-6 py-4 font-black uppercase tracking-widest overflow-hidden transition-all bg-white text-black hover:bg-lokGold-500"
+                            >
+                              <Apple size={18} className="relative z-10" />
+                              <span className="relative z-10 text-sm">iOS</span>
+                              <div className="absolute inset-0 bg-black/5 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                            </a>
+                          ) : (
+                            <div className="flex flex-col items-start gap-1">
+                              <div className="relative flex items-center gap-3 px-6 py-4 font-black uppercase tracking-widest bg-slate-900 text-slate-600 border border-slate-700 cursor-not-allowed">
+                                <Apple size={18} />
+                                <span className="text-sm">iOS</span>
+                              </div>
+                              <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Coming Soon</span>
+                            </div>
+                          )}
+                        </div>
+                      </>
                     ) : (
-                      <button className="px-10 py-5 border border-slate-800 text-slate-600 font-black uppercase tracking-widest cursor-not-allowed text-xs">
-                        Deployment Pending
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button className="px-10 py-5 border border-slate-800 text-slate-600 font-black uppercase tracking-widest cursor-not-allowed text-xs">
+                          Deployment Pending
+                        </button>
+                        <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Android & iOS</span>
+                      </div>
                     )}
                     
                     <button 

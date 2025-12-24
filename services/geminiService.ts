@@ -45,6 +45,9 @@ Offer gameplay or decision advice first, no fluff.`,
     return text || "The scrolls are quiet, My Liege. Try another query.";
   } catch (error) {
     console.error("Error fetching advice:", error);
+    if (error instanceof Error && error.message.includes("API Key missing")) {
+      return "Add VITE_OPENAI_API_KEY to .env.local so the Oracle can respond.";
+    }
     return "The courier was intercepted, My Liege. I cannot reach the archives (API Error).";
   }
 };

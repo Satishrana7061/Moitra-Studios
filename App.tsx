@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import GamesSection from './components/GamesSection';
 import AboutSection from './components/AboutSection';
+import StrategyTipGenerator from './components/StrategyTipGenerator';
 import ContactSection from './components/ContactSection';
 import Footer from './components/Footer';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -45,6 +46,7 @@ const App: React.FC = () => {
           <>
             <Hero />
             <GamesSection />
+            <StrategyTipGenerator />
             <AboutSection />
             <ContactSection />
           </>

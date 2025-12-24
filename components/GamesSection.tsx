@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { SectionId } from '../types';
 import { GAMES_DATA } from '../constants';
-import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb } from 'lucide-react';
+import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb, CalendarClock } from 'lucide-react';
 
 const GamesSection: React.FC = () => {
   const [activeTrailer, setActiveTrailer] = useState<string | null>(null);
@@ -147,9 +147,32 @@ const GamesSection: React.FC = () => {
                     <p className="text-xl text-lokGold-500 font-serif italic tracking-wide">"{game.tagline}"</p>
                   </div>
 
-                  <p className={`text-slate-400 text-lg leading-relaxed font-light ${index % 2 !== 0 ? 'pr-0' : 'pl-0'}`}>
-                    {game.description}
-                  </p>
+                  <div className={`space-y-4 ${index % 2 !== 0 ? 'pr-0' : 'pl-0'}`}>
+                    <p className="text-slate-300 text-lg leading-relaxed font-light">
+                      {game.description}
+                    </p>
+
+                    {game.highlights && (
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-400">
+                        {game.highlights.map((point) => (
+                          <li 
+                            key={point}
+                            className="flex items-start gap-2 bg-slate-900/50 border border-slate-800 px-3 py-2 rounded-sm"
+                          >
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-lokGold-500"></span>
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    {game.releaseWindow && (
+                      <div className="flex items-center gap-3 text-sm uppercase tracking-[0.15em] text-slate-400 bg-slate-900/60 border border-slate-800 px-4 py-3 w-fit">
+                        <CalendarClock size={16} className="text-lokGold-500" />
+                        {game.releaseWindow}
+                      </div>
+                    )}
+                  </div>
 
                   <div className={`flex flex-wrap gap-2 pt-2 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
                     {game.tags.map(tag => (

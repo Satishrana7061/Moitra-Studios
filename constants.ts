@@ -2,10 +2,11 @@
 import { Game } from './types';
 
 export const NAV_LINKS = [
-  { label: 'Home', href: '/', page: 'home' },
-  { label: 'Games', href: '/#games', page: 'home' },
-  { label: 'About', href: '/#about', page: 'home' },
-  { label: 'Contact', href: '/#contact', page: 'home' },
+  { label: 'Home', href: '#home', page: 'home' },
+  { label: 'Games', href: '#games', page: 'home' },
+  { label: 'Advisor', href: '#advisor', page: 'home' },
+  { label: 'About', href: '#about', page: 'home' },
+  { label: 'Contact', href: '#contact', page: 'home' },
 ];
 
 export const GAMES_DATA: Game[] = [
@@ -18,6 +19,12 @@ export const GAMES_DATA: Game[] = [
     status: 'Live',
     playStoreLink: 'https://play.google.com',
     tags: ['Strategy', 'Simulation', 'Politics'],
+    highlights: [
+      'Deep 4X-style political simulation tailored for 10 minute sessions',
+      'Faction AI that reacts to your media moves and coalition building',
+      'Live events and seasonal stories shaped by player decisions',
+    ],
+    releaseWindow: 'Live on Android; iOS build in discovery.',
     trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ', 
   },
   {
@@ -28,6 +35,12 @@ export const GAMES_DATA: Game[] = [
     imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop',
     status: 'In Development',
     tags: ['RTS', 'Global', 'Warfare'],
+    highlights: [
+      'Dynamic world economy with trade routes that can be sabotaged or secured',
+      'Back-channel diplomacy and treaty tooling built for co-op or betrayal',
+      'Seasonal operations with rotating map modifiers and asymmetric win states',
+    ],
+    releaseWindow: 'Alpha briefing drops this winter; closed tests follow.',
     trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ', 
   },
 ];

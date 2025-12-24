@@ -44,11 +44,11 @@ const StrategyTipGenerator: React.FC = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-cinzel font-bold text-white">THE ORACLE</h2>
-                                    <p className="text-lokGold-600 text-xs uppercase tracking-widest">Advisor AI Core</p>
+                                    <p className="text-lokGold-600 text-xs uppercase tracking-widest">Advisor AI Core (GPT-5.1)</p>
                                 </div>
                             </div>
                             <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                                Consult the archives of history. Our Gemini-powered advisor synthesizes strategies from thousands of historic battles and political maneuvers.
+                                Consult the archives of history. Our GPT-5.1 advisor synthesizes strategies from thousands of historic battles and political maneuvers.
                             </p>
                         </div>
                         <div className="hidden md:block opacity-50">

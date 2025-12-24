@@ -13,7 +13,7 @@ const ImageCarousel: React.FC = () => {
     '/Rajneeti-Game-Headquarter-Builder-Screen.jpg',
     '/Rajneeti-Game-Daily-Reward-Screen.png',
     '/Lalu-Parsad-Yadav-Candidate-Details-Screen.jpg',
-  ];
+  ]; 
 
   return (
     <div className="absolute inset-0 overflow-hidden">

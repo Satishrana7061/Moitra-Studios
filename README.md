@@ -15,6 +15,6 @@ View your app in AI Studio: https://ai.studio/apps/drive/1YIYVGuGAqcpZjYf00vt-ws
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the `VITE_OPENAI_API_KEY` in `.env.local` to your OpenAI key (GPT‑5.1). If you use a project-scoped key, also set `VITE_OPENAI_PROJECT_ID`.
 3. Run the app:
    `npm run dev`

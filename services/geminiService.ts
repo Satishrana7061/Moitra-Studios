@@ -1,23 +1,21 @@
-const getApiConfig = () => {
+const getApiKey = () => {
   const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-  const projectId = import.meta.env.VITE_OPENAI_PROJECT_ID;
   if (!apiKey) {
     console.error("VITE_OPENAI_API_KEY is missing from environment variables.");
     throw new Error("API Key missing");
   }
-  return { apiKey, projectId };
+  return apiKey;
 };
 
 export const generateStrategicAdvice = async (userQuery: string): Promise<string> => {
   try {
-    const { apiKey, projectId } = getApiConfig();
+    const apiKey = getApiKey();
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
-        ...(projectId ? { "OpenAI-Project": projectId } : {}),
       },
       body: JSON.stringify({
         model: "gpt-5.1",
@@ -38,12 +36,8 @@ Offer gameplay or decision advice first, no fluff.`,
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("OpenAI response error:", errorText);
-      if (response.status === 401) {
-        return "Missing or invalid API key. Add VITE_OPENAI_API_KEY (and VITE_OPENAI_PROJECT_ID if required) to .env.local.";
-      }
-      return "The courier was intercepted, My Liege. I cannot reach the archives (API Error).";
+      console.error("OpenAI response error:", await response.text());
+      throw new Error("OpenAI request failed");
     }
 
     const data = await response.json();

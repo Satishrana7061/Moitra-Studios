@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { SectionId } from '../types';
 import { GAMES_DATA } from '../constants';
-import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb, CalendarClock, Apple } from 'lucide-react';
+import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb, CalendarClock } from 'lucide-react';
 
 const GamesSection: React.FC = () => {
   const [activeTrailer, setActiveTrailer] = useState<string | null>(null);

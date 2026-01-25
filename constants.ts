@@ -2,11 +2,9 @@
 import { Game } from './types';
 
 export const NAV_LINKS = [
-  { label: 'Home', href: '#home', page: 'home' },
-  { label: 'Games', href: '#games', page: 'home' },
-  { label: 'Advisor', href: '#advisor', page: 'home' },
-  { label: 'About', href: '#about', page: 'home' },
-  { label: 'Contact', href: '#contact', page: 'home' },
+  { label: 'Home', href: '/home', page: 'home' },
+  { label: 'Privacy Policy', href: '/privacy-policy', page: 'privacy' },
+  { label: 'Contact Us', href: '/contact-us', page: 'contact' },
 ];
 
 export const GAMES_DATA: Game[] = [
@@ -14,35 +12,35 @@ export const GAMES_DATA: Game[] = [
     id: 'rajneeti',
     title: 'Rajneeti: Grand Strategy',
     tagline: 'Master the Art of Indian Politics',
-    description: 'Navigate the treacherous waters of political strategy. Build alliances, manage resources, and outwit opponents to claim the ultimate seat of power in this deep, turn-based strategy simulation.',
-    imageUrl: 'https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?q=80&w=2574&auto=format&fit=crop',
+    description: 'A deep, turn-based political simulation where you navigate the treacherous waters of Indian democracy. Build your party, manage campaign funds, and outmaneuver rivals to claim power.',
+    imageUrl: '/Rajneeti-Game-Main-Screen.png',
     status: 'Live',
     playStoreLink: 'https://play.google.com/store/apps/details?id=com.rajneeti',
     appStoreLink: undefined,
     tags: ['Strategy', 'Simulation', 'Politics'],
     highlights: [
-      'Deep 4X-style political simulation tailored for 10 minute sessions',
-      'Faction AI that reacts to your media moves and coalition building',
-      'Live events and seasonal stories shaped by player decisions',
+      'Strategic voter segmentation and booth-level management',
+      'Complex coalition mechanics and back-channel negotiations',
+      'Realistic economic and social policy impact simulation',
     ],
     releaseWindow: 'Live on Android; iOS build in discovery.',
-    trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ', 
+    trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ',
   },
   {
     id: 'geopolitics',
     title: 'GeoPolitics: World Stage',
     tagline: 'Diplomacy or War?',
-    description: 'Expand your influence across a dynamic global map. Manage economy, military, and diplomatic relations in a real-time grand strategy experience designed for mobile.',
-    imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop',
+    description: 'Expand your influence on the global stage. Manage complex trade routes, build military alliances, and use covert operations to maintain your nation\'s sovereignty in a changing world.',
+    imageUrl: '/public/Rajneeti-Game-War-Card-Screen.jpg',
     status: 'In Development',
     tags: ['RTS', 'Global', 'Warfare'],
     highlights: [
-      'Dynamic world economy with trade routes that can be sabotaged or secured',
-      'Back-channel diplomacy and treaty tooling built for co-op or betrayal',
-      'Seasonal operations with rotating map modifiers and asymmetric win states',
+      'Real-time global trade and resource management systems',
+      'Deep diplomatic tree with asymmetric win conditions',
+      'Modern warfare simulation including cyber and economic fronts',
     ],
     releaseWindow: 'Alpha briefing drops this winter; closed tests follow.',
-    trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ', 
+    trailerUrl: 'https://www.youtube.com/embed/LXb3EKWsInQ',
   },
 ];
 

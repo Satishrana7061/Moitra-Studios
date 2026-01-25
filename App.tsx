@@ -1,61 +1,44 @@
-
 import React, { useState, useEffect } from 'react';
+import RajneetiMap from './components/RajneetiMap';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
-import GamesSection from './components/GamesSection';
-import AboutSection from './components/AboutSection';
-import StrategyTipGenerator from './components/StrategyTipGenerator';
-import ContactSection from './components/ContactSection';
-import Footer from './components/Footer';
 import PrivacyPolicy from './components/PrivacyPolicy';
+import ContactSection from './components/ContactSection';
 
 const App: React.FC = () => {
-  // Use hash for routing to ensure compatibility with GitHub Pages
-  const [currentPage, setCurrentPage] = useState(() => {
-    const hash = window.location.hash;
-    return hash === '#privacy-policy' ? 'privacy' : 'home';
-  });
+  const [currentPage, setCurrentPage] = useState('home');
 
   useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      setCurrentPage(hash === '#privacy-policy' ? 'privacy' : 'home');
+    // Handle browser back/forward navigation
+    const handlePopState = () => {
+      const path = window.location.pathname;
+      if (path === '/privacy-policy') setCurrentPage('privacy');
+      else if (path === '/contact-us') setCurrentPage('contact');
+      else setCurrentPage('home');
     };
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  const navigateTo = (page: string) => {
-    if (page === 'privacy') {
-      window.location.hash = 'privacy-policy';
-      setCurrentPage('privacy');
-    } else {
-      window.location.hash = '';
-      setCurrentPage('home');
+  const renderContent = () => {
+    switch (currentPage) {
+      case 'privacy':
+        return <PrivacyPolicy onBack={() => setCurrentPage('home')} />;
+      case 'contact':
+        return <ContactSection />;
+      default:
+        return <RajneetiMap />;
     }
-    window.scrollTo(0, 0);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-lokBlue-900">
-      <Navbar onNavigate={navigateTo} />
-      
-      <main className="flex-grow">
-        {currentPage === 'home' ? (
-          <>
-            <Hero />
-            <GamesSection />
-            <StrategyTipGenerator />
-            <AboutSection />
-            <ContactSection />
-          </>
-        ) : (
-          <PrivacyPolicy onBack={() => navigateTo('home')} />
-        )}
+    <div className="h-screen w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden uppercase">
+      <div className={currentPage === 'home' ? 'absolute top-0 left-0 w-full z-50' : 'relative w-full z-50'}>
+        <Navbar onNavigate={(page) => setCurrentPage(page)} />
+      </div>
+      <main className="flex-1 relative overflow-hidden">
+        {renderContent()}
       </main>
-
-      <Footer onNavigate={navigateTo} />
     </div>
   );
 };

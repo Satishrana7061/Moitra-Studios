@@ -1,119 +1,148 @@
 
 import React, { useEffect } from 'react';
-import { Shield, Lock, Database, Mail, ArrowLeft, Building2 } from 'lucide-react';
+import { Shield, Lock, Database, Mail, Building2 } from 'lucide-react';
 import { STUDIO_INFO } from '../constants';
 
 interface PrivacyPolicyProps {
-  onBack: () => void;
+    onBack: () => void;
 }
 
 const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
-  
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
-  return (
-    <section className="pt-32 pb-24 min-h-screen bg-lokBlue-950 relative">
-      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
-      
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        <button 
-          onClick={onBack}
-          className="mb-8 flex items-center gap-2 text-lokGold-500 hover:text-white transition-colors text-sm uppercase tracking-widest font-bold"
-        >
-          <ArrowLeft size={16} /> Back to Home
-        </button>
+    useEffect(() => {
+        // Initial scroll to top of internal container if needed
+    }, []);
 
-        <div className="bg-lokBlue-900/50 border border-slate-800 rounded-xl p-8 md:p-12 backdrop-blur-sm">
-            
-            <div className="border-b border-slate-800 pb-8 mb-10 text-center">
-                <Shield className="w-16 h-16 text-lokGold-500 mx-auto mb-6" />
-                <h1 className="text-4xl md:text-5xl font-cinzel font-bold text-white mb-4">Privacy Policy</h1>
-                <p className="text-slate-400 text-sm uppercase tracking-widest">Last Updated: October 2023</p>
-            </div>
+    return (
+        <section className="h-full w-full flex flex-col bg-lokBlue-950 relative font-sans overflow-hidden uppercase">
+            {/* Stationary Background Grid */}
+            <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#FF6B00 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
 
-            <div className="space-y-12 text-slate-300 leading-relaxed">
-                
-                {/* Introduction */}
-                <div>
-                    <p className="text-lg">
-                        At <strong>{STUDIO_INFO.name}</strong> (legally registered as <strong>{STUDIO_INFO.legalName}</strong>), we value your trust. This Privacy Policy explains how we collect, use, and protect your information when you use our mobile applications (including "Rajneeti") and our website. By using our services, you agree to the practices described below.
-                    </p>
+            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 relative z-10 pt-4 pb-8 overflow-hidden">
+                {/* Stationary Header Section - Fixed at top of this container */}
+                <div className="flex flex-col items-center mb-4 border-b-2 border-black/20 pb-4 flex-shrink-0">
+                    <Shield className="w-8 h-8 text-gameOrange mb-2 drop-shadow-[0_0_10px_rgba(255,107,0,0.3)]" />
+                    <h1 className="text-xl md:text-2xl font-cinzel font-black text-white mb-1 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] uppercase tracking-wider text-center">Privacy Policy</h1>
+                    <p className="text-gameOrange/60 text-[7px] uppercase tracking-[0.4em] font-black italic">Last Updated: October 2023</p>
                 </div>
 
-                {/* Section 1 */}
-                <div className="flex gap-6">
-                    <div className="hidden md:block bg-slate-800/50 p-4 rounded-lg h-fit">
-                        <Database className="text-lokGreen-500 w-6 h-6" />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-cinzel font-bold text-white mb-4">1. Information We Collect</h2>
-                        <p className="mb-4">
-                            We adhere to a strict "Minimal Data" philosophy. We do not collect Personally Identifiable Information (PII) such as your name, address, or phone number unless you voluntarily provide it via customer support emails.
-                        </p>
-                        <ul className="list-disc pl-5 space-y-2 text-slate-400">
-                            <li><strong>Device Information:</strong> We may collect device model, OS version, and unique device identifiers (advertising ID) for optimization.</li>
-                            <li><strong>Gameplay Data:</strong> Anonymous statistics about how you play to help us balance the game.</li>
-                        </ul>
-                    </div>
-                </div>
+                {/* Scrollable Content Section */}
+                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar min-h-0">
+                    <div className="bg-lokBlue-900/40 border-[2px] border-black shadow-[8px_8px_0px_rgba(0,0,0,0.5)] p-5 md:p-6 backdrop-blur-md space-y-6 text-slate-300 leading-relaxed font-medium text-[13px]">
 
-                {/* Section 2 */}
-                <div className="flex gap-6">
-                    <div className="hidden md:block bg-slate-800/50 p-4 rounded-lg h-fit">
-                        <Lock className="text-blue-500 w-6 h-6" />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-cinzel font-bold text-white mb-4">2. How We Use Data</h2>
-                        <p>The limited data we collect is used solely for:</p>
-                        <ul className="list-disc pl-5 space-y-2 mt-2 text-slate-400">
-                            <li>Improving game stability and fixing bugs.</li>
-                            <li>Analyzing player progression to tune difficulty.</li>
-                            <li>Serving advertisements via third-party networks.</li>
-                        </ul>
-                    </div>
-                </div>
+                        <div>
+                            <p className="text-sm border-l-4 border-gameOrange pl-4 italic text-slate-100">
+                                At <strong>{STUDIO_INFO.name}</strong>, we are committed to protecting your privacy. This policy explains how we handle information for the "Rajneeti" mobile application and our website.
+                            </p>
+                        </div>
 
-                {/* Section 4 */}
-                <div className="flex gap-6">
-                    <div className="hidden md:block bg-slate-800/50 p-4 rounded-lg h-fit">
-                        <Mail className="text-lokGold-500 w-6 h-6" />
-                    </div>
-                    <div>
-                        <h2 className="text-2xl font-cinzel font-bold text-white mb-4">4. Contact Us</h2>
-                        <p>
-                            If you have any questions or suggestions about our Privacy Policy, do not hesitate to contact us.
-                        </p>
-                        
-                        <div className="mt-6 space-y-4 bg-slate-800/30 p-6 rounded-lg border border-slate-700">
-                            <div className="flex items-start gap-3">
-                                <Mail className="text-slate-500 w-5 h-5 mt-0.5" />
-                                <div>
-                                    <span className="block text-xs text-slate-500 uppercase tracking-widest">Email</span>
-                                    <a href={`mailto:${STUDIO_INFO.email}`} className="text-white hover:text-lokGold-400 transition-colors">
-                                        {STUDIO_INFO.email}
-                                    </a>
-                                </div>
+                        {/* Section 1 */}
+                        <div className="flex gap-4">
+                            <div className="hidden md:block bg-gameDarkBlue border-2 border-black p-2 h-fit shadow-[4px_4px_0px_rgba(0,0,0,1)] flex-shrink-0">
+                                <Database className="text-gameGreen w-4 h-4" />
                             </div>
-                            
-                            <div className="flex items-start gap-3">
-                                <Building2 className="text-slate-500 w-5 h-5 mt-0.5" />
-                                <div>
-                                    <span className="block text-xs text-slate-500 uppercase tracking-widest">Registered Entity</span>
-                                    <p className="text-white">{STUDIO_INFO.legalName}</p>
+                            <div>
+                                <h2 className="text-md font-cinzel font-black text-white mb-2 uppercase tracking-wide drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">1. Information We Collect</h2>
+                                <p className="mb-2 text-[12px]">
+                                    We collect very limited information. We do not collect personal identifiers like your name or email unless you contact our support team.
+                                </p>
+                                <ul className="space-y-2 text-slate-400 text-[11px]">
+                                    <li className="flex gap-2">
+                                        <span className="text-gameOrange font-bold text-[8px]">▶</span>
+                                        <div><strong>Device Information:</strong> We may collect device model and OS version to improve performance.</div>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <span className="text-gameOrange font-bold text-[8px]">▶</span>
+                                        <div><strong>Usage Data:</strong> Anonymous statistics on how you interact with the game.</div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Section 2 */}
+                        <div className="flex gap-4">
+                            <div className="hidden md:block bg-gameDarkBlue border-2 border-black p-2 h-fit shadow-[4px_4px_0px_rgba(0,0,0,1)] flex-shrink-0">
+                                <Lock className="text-gameBlue w-4 h-4" />
+                            </div>
+                            <div>
+                                <h2 className="text-md font-cinzel font-black text-white mb-2 uppercase tracking-wide drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">2. How We Use Information</h2>
+                                <p className="mb-2 text-slate-300 text-[12px]">The data we collect is used only for:</p>
+                                <ul className="space-y-2 text-slate-400 text-[11px]">
+                                    <li className="flex gap-2">
+                                        <span className="text-gameBlue font-bold text-[8px]">▶</span>
+                                        <div>Fixing bugs and improving application stability.</div>
+                                    </li>
+                                    <li className="flex gap-2">
+                                        <span className="text-gameBlue font-bold text-[8px]">▶</span>
+                                        <div>Optimizing game balance and regional difficulty.</div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        {/* Section 3 - Added more content to ensure scrolling */}
+                        <div className="flex gap-4">
+                            <div className="hidden md:block bg-gameDarkBlue border-2 border-black p-2 h-fit shadow-[4px_4px_0px_rgba(0,0,0,1)] flex-shrink-0">
+                                <Shield className="text-gameOrange w-4 h-4" />
+                            </div>
+                            <div>
+                                <h2 className="text-md font-cinzel font-black text-white mb-2 uppercase tracking-wide drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">3. Data Security</h2>
+                                <p className="mb-2 text-slate-100 text-[12px]">
+                                    We implement industry-standard security measures to protect the limited data we collect.
+                                </p>
+                                <p className="text-slate-400 text-[11px]">
+                                    Your data integrity is our priority. We use encrypted transit for all data transmissions between our applications and servers.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Section 4 */}
+                        <div className="flex gap-4">
+                            <div className="hidden md:block bg-gameDarkBlue border-2 border-black p-2 h-fit shadow-[4px_4px_0px_rgba(0,0,0,1)] flex-shrink-0">
+                                <Mail className="text-gameYellow w-4 h-4" />
+                            </div>
+                            <div>
+                                <h2 className="text-md font-cinzel font-black text-white mb-2 uppercase tracking-wide drop-shadow-[1px_1px_0px_rgba(0,0,0,1)]">4. Contact Us</h2>
+                                <p className="mb-4 italic text-[12px] text-slate-400">
+                                    If you have any questions about this Privacy Policy, please reach out to us.
+                                </p>
+
+                                <div className="bg-black/40 p-3 border-2 border-black shadow-[inset_0_0_20px_rgba(0,0,0,0.4)]">
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <div className="p-1.5 bg-gameDarkBlue border border-white/10">
+                                            <Mail className="text-gameOrange w-3 h-3" />
+                                        </div>
+                                        <div>
+                                            <span className="block text-[7px] text-gameOrange/60 uppercase tracking-[0.2em] font-black">Support Email</span>
+                                            <a href={`mailto:${STUDIO_INFO.email}`} className="text-sm font-cinzel font-bold text-white hover:text-gameYellow transition-colors lowercase">
+                                                {STUDIO_INFO.email}
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-1.5 bg-gameDarkBlue border border-white/10">
+                                            <Building2 className="text-gameBlue w-3 h-3" />
+                                        </div>
+                                        <div>
+                                            <span className="block text-[7px] text-gameBlue/60 uppercase tracking-[0.2em] font-black">Company Name</span>
+                                            <p className="text-xs font-cinzel font-bold text-white uppercase">{STUDIO_INFO.legalName}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
             </div>
-        </div>
-      </div>
-    </section>
-  );
+
+            <style>{`
+                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #FF6B00; border-radius: 2px; }
+            `}</style>
+        </section>
+    );
 };
 
 export default PrivacyPolicy;

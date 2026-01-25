@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { SectionId } from '../types';
 import { GAMES_DATA } from '../constants';
-import { Smartphone, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb, CalendarClock } from 'lucide-react';
+import { Smartphone, Apple, Play, X, Star, Bell, Mail, CheckCircle, Activity, Construction, Lightbulb, CalendarClock } from 'lucide-react';
 
 const GamesSection: React.FC = () => {
   const [activeTrailer, setActiveTrailer] = useState<string | null>(null);
@@ -79,7 +79,7 @@ const GamesSection: React.FC = () => {
   return (
     <section id={SectionId.GAMES} className="py-32 bg-lokBlue-950 relative overflow-hidden">
       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(#fbbf24 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="mb-24 md:flex justify-between items-end border-b border-slate-800 pb-8">
           <div>
@@ -87,7 +87,7 @@ const GamesSection: React.FC = () => {
             <h2 className="text-5xl md:text-6xl font-cinzel font-bold text-white">GAMES LIBRARY</h2>
           </div>
           <p className="text-slate-400 max-w-md mt-6 md:mt-0 text-right text-sm leading-relaxed">
-            Deep simulations designed for the mobile strategist.<br/>
+            Deep simulations designed for the mobile strategist.<br />
             No shortcuts. Only consequences.
           </p>
         </div>
@@ -98,22 +98,26 @@ const GamesSection: React.FC = () => {
               <div className="absolute -inset-10 bg-gradient-to-r from-lokGold-600/5 to-transparent blur-[100px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
               <div className={`relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}>
-                
+
                 {/* Visual Side */}
                 <div className={`lg:col-span-7 relative ${index % 2 !== 0 ? 'lg:order-2' : ''}`}>
                   <div className="relative group/image overflow-hidden rounded-sm bg-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-all duration-700 hover:border-lokGold-500/20">
                     <div className="aspect-[16/9] relative overflow-hidden">
-                      <img 
-                        src={game.imageUrl} 
-                        alt={game.title} 
-                        className="w-full h-full object-cover transform scale-100 group-hover/image:scale-105 transition-transform duration-1000 ease-out brightness-75 group-hover/image:brightness-100"
+                      <img
+                        src={game.imageUrl}
+                        alt={game.title}
+                        className="w-full h-full object-cover transform scale-100 group-hover/image:scale-105 transition-transform duration-1000 ease-out brightness-[0.8] group-hover/image:brightness-100"
                       />
+                      {/* Grid Overlay */}
+                      <div className="absolute inset-0 opacity-[0.15] pointer-events-none z-10" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+
+                      {/* Scanline effect */}
                       <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] z-10 bg-[length:100%_4px] opacity-20"></div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-lokBlue-950 via-transparent to-transparent opacity-60"></div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-lokBlue-950 via-transparent to-transparent opacity-80"></div>
                     </div>
 
                     {game.trailerUrl && (
-                      <button 
+                      <button
                         onClick={() => setActiveTrailer(game.trailerUrl!)}
                         className="absolute inset-0 flex items-center justify-center group/play"
                       >
@@ -129,7 +133,7 @@ const GamesSection: React.FC = () => {
                       </button>
                     )}
                   </div>
-                  
+
                   {/* Digital ID Label */}
                   <div className={`absolute -top-4 ${index % 2 !== 0 ? '-right-4' : '-left-4'} px-4 py-2 bg-lokBlue-950 border border-slate-800 text-[10px] font-mono text-slate-500 uppercase tracking-widest z-20`}>
                     UNIT_ID: {game.id.toUpperCase()}_SRC
@@ -155,7 +159,7 @@ const GamesSection: React.FC = () => {
                     {game.highlights && (
                       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-slate-400">
                         {game.highlights.map((point) => (
-                          <li 
+                          <li
                             key={point}
                             className="flex items-start gap-2 bg-slate-900/50 border border-slate-800 px-3 py-2 rounded-sm"
                           >
@@ -185,7 +189,7 @@ const GamesSection: React.FC = () => {
                   <div className={`flex flex-wrap items-center gap-4 pt-6 ${index % 2 !== 0 ? 'justify-end' : ''}`}>
                     {game.status === 'Live' ? (
                       <>
-                        <a 
+                        <a
                           href={game.playStoreLink}
                           className="group relative flex items-center gap-3 bg-white text-black px-6 py-4 font-black uppercase tracking-widest overflow-hidden transition-all hover:bg-lokGold-500"
                         >
@@ -223,18 +227,17 @@ const GamesSection: React.FC = () => {
                         <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Android & iOS</span>
                       </div>
                     )}
-                    
-                    <button 
+
+                    <button
                       onClick={() => handleStarClick(game.id, game.status)}
-                      className={`p-5 border transition-all duration-500 group/star ${
-                        wishlist.has(game.id) 
-                          ? 'border-lokGold-500 text-lokGold-500 bg-lokGold-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]' 
-                          : 'border-slate-800 text-slate-500 hover:border-lokGold-500/50 hover:text-white'
-                      }`}
+                      className={`p-5 border transition-all duration-500 group/star ${wishlist.has(game.id)
+                        ? 'border-lokGold-500 text-lokGold-500 bg-lokGold-500/5 shadow-[0_0_30px_rgba(245,158,11,0.1)]'
+                        : 'border-slate-800 text-slate-500 hover:border-lokGold-500/50 hover:text-white'
+                        }`}
                     >
-                      <Star 
-                        size={22} 
-                        className={`transition-all duration-500 ${wishlist.has(game.id) ? 'fill-lokGold-500 scale-125' : 'group-hover/star:scale-110'}`} 
+                      <Star
+                        size={22}
+                        className={`transition-all duration-500 ${wishlist.has(game.id) ? 'fill-lokGold-500 scale-125' : 'group-hover/star:scale-110'}`}
                       />
                     </button>
                   </div>
@@ -248,60 +251,60 @@ const GamesSection: React.FC = () => {
 
       {activeTrailer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/98 backdrop-blur-2xl animate-fade-in p-4 lg:p-12">
-            <div className="w-full max-w-7xl aspect-video bg-black relative shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/5">
-                <button 
-                    onClick={() => setActiveTrailer(null)}
-                    className="absolute -top-16 right-0 text-slate-400 hover:text-white flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] transition-all group"
-                >
-                    Close Transmission <X size={20} className="group-hover:rotate-90 transition-transform" />
-                </button>
-                <iframe
-                    src={`${activeTrailer}?autoplay=1&modestbranding=1&rel=0&showinfo=0`}
-                    title="Intel Transmission"
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                ></iframe>
-            </div>
+          <div className="w-full max-w-7xl aspect-video bg-black relative shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/5">
+            <button
+              onClick={() => setActiveTrailer(null)}
+              className="absolute -top-16 right-0 text-slate-400 hover:text-white flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] transition-all group"
+            >
+              Close Transmission <X size={20} className="group-hover:rotate-90 transition-transform" />
+            </button>
+            <iframe
+              src={`${activeTrailer}?autoplay=1&modestbranding=1&rel=0&showinfo=0`}
+              title="Intel Transmission"
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
       )}
 
       {showNotifyModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-lokBlue-950/95 backdrop-blur-xl animate-fade-in p-6">
-           <div className="bg-lokBlue-900 border border-lokGold-500/20 p-10 max-w-lg w-full relative shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden">
-              <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lokGold-500"></div>
-              <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lokGold-500"></div>
-              
-              <button onClick={() => setShowNotifyModal(null)} className="absolute top-6 right-6 text-slate-600 hover:text-white">
-                <X size={24} />
-              </button>
+          <div className="bg-lokBlue-900 border border-lokGold-500/20 p-10 max-w-lg w-full relative shadow-[0_50px_100px_rgba(0,0,0,0.8)] overflow-hidden">
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-lokGold-500"></div>
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-lokGold-500"></div>
 
-              {notifySubmitted ? (
-                 <div className="text-center py-10">
-                    <CheckCircle size={40} className="text-lokGreen-500 mx-auto mb-6" />
-                    <h3 className="text-3xl font-cinzel text-white mb-4">Transmission Received</h3>
-                    <p className="text-slate-400">Your credentials have been logged.</p>
-                 </div>
-              ) : (
-                 <div>
-                    <Bell className="text-lokGold-500 mb-8" size={32} />
-                    <h3 className="text-2xl font-cinzel font-black text-white uppercase mb-6">Priority Intel</h3>
-                    <form onSubmit={handleNotifySubmit} className="space-y-6">
-                       <input 
-                         type="email" 
-                         required
-                         placeholder="COMM_IDENTIFIER@SECURE.MAIL"
-                         value={email}
-                         onChange={(e) => setEmail(e.target.value)}
-                         className="w-full bg-black/50 border border-slate-700 p-4 text-white font-mono text-sm focus:border-lokGold-500 outline-none transition-all"
-                       />
-                       <button type="submit" className="w-full py-5 bg-lokGold-600 hover:bg-lokGold-500 text-black font-black uppercase tracking-widest transition-all">
-                          Secure Access
-                       </button>
-                    </form>
-                 </div>
-              )}
-           </div>
+            <button onClick={() => setShowNotifyModal(null)} className="absolute top-6 right-6 text-slate-600 hover:text-white">
+              <X size={24} />
+            </button>
+
+            {notifySubmitted ? (
+              <div className="text-center py-10">
+                <CheckCircle size={40} className="text-lokGreen-500 mx-auto mb-6" />
+                <h3 className="text-3xl font-cinzel text-white mb-4">Transmission Received</h3>
+                <p className="text-slate-400">Your credentials have been logged.</p>
+              </div>
+            ) : (
+              <div>
+                <Bell className="text-lokGold-500 mb-8" size={32} />
+                <h3 className="text-2xl font-cinzel font-black text-white uppercase mb-6">Priority Intel</h3>
+                <form onSubmit={handleNotifySubmit} className="space-y-6">
+                  <input
+                    type="email"
+                    required
+                    placeholder="COMM_IDENTIFIER@SECURE.MAIL"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full bg-black/50 border border-slate-700 p-4 text-white font-mono text-sm focus:border-lokGold-500 outline-none transition-all"
+                  />
+                  <button type="submit" className="w-full py-5 bg-lokGold-600 hover:bg-lokGold-500 text-black font-black uppercase tracking-widest transition-all">
+                    Secure Access
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </section>

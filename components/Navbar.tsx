@@ -10,69 +10,78 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
   const handleNavClick = (page: string, href: string) => {
     onNavigate(page);
     setIsMobileMenuOpen(false);
-    // Slight delay to allow view change before scrolling if needed
-    if (page === 'home') {
-      const isHashLink = href.startsWith('#');
-      if (isHashLink) {
-        window.location.hash = href;
-      }
-      setTimeout(() => {
-        const element = document.querySelector(href);
-        element?.scrollIntoView({ behavior: 'smooth' });
-      }, 120);
-    }
+
+    // Update URL using History API for clean paths
+    window.history.pushState({}, '', href);
+    // Dispatch a custom event so other components can listen for navigation changes
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
+
+  useEffect(() => {
+    // Handle initial path load
+    const path = window.location.pathname;
+    // Handle root path / defaulting to home but maintaining URL
+    if (path === '/' || path === '/home') {
+      onNavigate('home');
+      if (path === '/') window.history.replaceState({}, '', '/home');
+    }
+    else if (path === '/privacy-policy') onNavigate('privacy');
+    else if (path === '/contact-us') onNavigate('contact');
+    else onNavigate('home');
+  }, []);
 
   return (
     <nav
-      className={`fixed w-full z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-lokBlue-950/90 backdrop-blur-md border-b border-white/5 py-2 shadow-lg' 
-          : 'bg-transparent py-6'
-      }`}
+      className={`relative w-full z-50 transition-all duration-500 ${isScrolled
+        ? 'bg-lokBlue-950/90 backdrop-blur-md border-b border-white/5 py-2 shadow-lg'
+        : 'bg-transparent py-4'
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-12">
           {/* Logo */}
-          <div 
-            className="flex-shrink-0 flex items-center gap-3 cursor-pointer group" 
-            onClick={() => handleNavClick('home', '#home')}
+          <div
+            className="flex-shrink-0 flex items-center gap-3 cursor-pointer group"
+            onClick={() => handleNavClick('home', '/home')}
           >
             {/* Custom Moitra Logo SVG */}
             <div className="relative w-10 h-10 flex items-center justify-center">
-                <div className="absolute inset-0 bg-lokGold-500/20 rotate-45 transform transition-transform group-hover:rotate-90 duration-500 border border-lokGold-500/30"></div>
-                <svg 
-                  viewBox="0 0 24 24" 
-                  fill="currentColor" 
-                  className="w-8 h-8 text-lokGold-500 relative z-10 drop-shadow-[0_0_5px_rgba(245,158,11,0.5)]"
-                >
-                   <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3"/>
-                   <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
-                </svg>
+              <div className="absolute inset-0 bg-gameOrange/20 rotate-45 transform transition-transform group-hover:rotate-90 duration-500 border border-gameOrange/30"></div>
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-8 h-8 text-gameOrange relative z-10 drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]"
+              >
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3" />
+                <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
+              </svg>
             </div>
 
             <div className="flex flex-col">
               <span className="font-cinzel font-bold text-xl tracking-[0.2em] text-white leading-none group-hover:text-lokGold-200 transition-colors">
                 MOITRA
               </span>
-              <span className="text-[0.6rem] uppercase tracking-[0.4em] text-lokGold-500 group-hover:text-lokGold-400 transition-colors pl-0.5">
+              <span className="text-[0.6rem] uppercase tracking-[0.4em] text-gameOrange group-hover:text-gameYellow transition-colors pl-0.5">
                 Studios
               </span>
             </div>
           </div>
 
           {/* Desktop Menu */}
+          <div className="hidden md:flex items-center absolute left-1/2 -translate-x-1/2">
+            <div className="origin-top animate-hinge-swing group-hover:pause">
+              <img
+                src="SplashTitle.png"
+                alt="RAJNEETI"
+                className="h-10 md:h-12 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)] transition-transform hover:scale-110"
+              />
+            </div>
+          </div>
+
+          {/* Desktop Links */}
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-12">
               {NAV_LINKS.map((link) => (
@@ -82,7 +91,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
                   className="relative text-slate-400 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
                 >
                   {link.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-lokGold-500 transition-all duration-300 group-hover:w-full" />
+                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
                 </button>
               ))}
             </div>

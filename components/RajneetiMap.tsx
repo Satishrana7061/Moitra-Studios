@@ -115,6 +115,7 @@ const RajneetiMap: React.FC = () => {
     };
 
     const handleStateClick = (e: React.MouseEvent, stateId: string) => {
+        e.stopPropagation(); // Prevent click from bubbling to background
         setClickPos({ x: e.clientX, y: e.clientY });
         setSelectedState(selectedState === stateId ? null : stateId);
     };
@@ -126,7 +127,10 @@ const RajneetiMap: React.FC = () => {
     }
 
     return (
-        <div className="relative w-full h-full flex flex-col items-center justify-center bg-transparent overflow-hidden select-none">
+        <div
+            className="relative w-full h-full flex flex-col items-center justify-center bg-transparent overflow-hidden select-none"
+            onClick={() => selectedState && setSelectedState(null)} // Click outside to close
+        >
             {/* Transparent layer to maintain layout without dimming */}
             <div className="absolute inset-0 z-0 bg-transparent"></div>
 
@@ -205,12 +209,12 @@ const RajneetiMap: React.FC = () => {
                             <div className="w-20 h-20 bg-white border-[3px] border-black shadow-[4px_4px_0px_rgba(0,0,0,1)] overflow-hidden rounded-full transform-gpu perspective-1200 rotate-x-4">
                                 <div className="h-full w-full overflow-hidden bg-slate-200">
                                     <img
-                                        key={currentIntel.avatar || "Avaters/NARENDRA MODI (PM).png"}
-                                        src={currentIntel.avatar || "Avaters/NARENDRA MODI (PM).png"}
+                                        key={currentIntel.avatar || "/Avaters/NARENDRA MODI (PM).png"}
+                                        src={currentIntel.avatar ? (currentIntel.avatar.startsWith('/') ? currentIntel.avatar : `/${currentIntel.avatar}`) : "/Avaters/NARENDRA MODI (PM).png"}
                                         alt={selectedState}
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                            (e.target as HTMLImageElement).src = "Avaters/NARENDRA MODI (PM).png";
+                                            (e.target as HTMLImageElement).src = "/Avaters/NARENDRA MODI (PM).png";
                                         }}
                                     />
                                 </div>
@@ -222,71 +226,122 @@ const RajneetiMap: React.FC = () => {
                 {/* Main persistent Intel Card */}
                 {selectedState && (
                     <div className="absolute right-8 top-1/2 -translate-y-1/2 animate-card-slide z-40">
-                        <div className="w-[320px] h-[420px] relative flex flex-col items-center p-8">
-                            {/* Close Icon for Popup */}
-                            <button
-                                onClick={() => setSelectedState(null)}
-                                className="absolute top-2 right-6 z-30 text-white/50 hover:text-white transition-colors p-2"
-                            >
-                                <X size={18} />
-                            </button>
-
+                        {/* Box Container - Reduced size to avoid map overlap */}
+                        <div className="w-[360px] h-[480px] relative flex flex-col items-center p-8">
                             {/* Popup.png Background Layer */}
                             <div
                                 className="absolute inset-0 z-0 bg-no-repeat bg-[length:100%_100%] bg-center drop-shadow-[0_20px_40px_rgba(0,0,0,0.9)]"
                                 style={{ backgroundImage: "url('Popup.png')" }}
                             ></div>
 
-                            {/* Content Layer */}
-                            <div className="relative z-20 w-full h-full flex flex-col items-center">
-                                {/* State Name */}
-                                <div className="h-[45px] flex items-center justify-center mt-[-24px] px-4 w-[240px]">
-                                    <h2 className="text-[8.5px] md:text-[9.5px] font-cinzel font-black text-white tracking-tight drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] text-center leading-none uppercase truncate">
+                            {/* Content Layer - Highly Polished, Inside Box, No External Button */}
+                            <div className="relative z-20 w-full h-full flex flex-col px-8 text-white font-sans">
+
+                                {/* 1. HEADER (Perfectly Centered) */}
+                                <div className="text-center">
+                                    <h2 className="font-cinzel font-black uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight mb-12 text-xs -mt-1.5">
                                         {selectedState}
                                     </h2>
-                                </div>
-
-                                {/* Stats Grid */}
-                                <div className="w-full grid grid-cols-2 gap-2 px-4 mt-4">
-                                    <div className="bg-white/95 border-[2px] border-black p-1.5 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">
-                                        <div className="text-[6px] text-slate-500 uppercase font-black">Voters</div>
-                                        <div className="text-xs font-cinzel font-black text-gameDarkBlue">{currentIntel.voters}</div>
-                                    </div>
-                                    <div className="bg-white/95 border-[2px] border-black p-1.5 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">
-                                        <div className="text-[6px] text-slate-500 uppercase font-black">Ruling</div>
-                                        <div className="text-xs font-cinzel font-black text-gameOrange">{currentIntel.rulingParty}</div>
-                                    </div>
-                                    <div className="bg-white/95 border-[2px] border-black p-1.5 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">
-                                        <div className="text-[6px] text-slate-500 uppercase font-black">GDP</div>
-                                        <div className="text-xs font-cinzel font-black text-gameGreen">${currentIntel.gdp}</div>
-                                    </div>
-                                    <div className="bg-gameBlue border-[2px] border-black p-1.5 rounded-lg shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">
-                                        <div className="text-[6px] text-white/70 uppercase font-black">Status</div>
-                                        <div className="text-xs font-cinzel font-black text-white">ACTIVE</div>
+                                    <div className="font-cinzel text-[10px] tracking-[0.2em] uppercase font-bold border-b border-yellow-400/40 pb-7 mx-auto w-3/4" style={{ color: '#FFD700', textShadow: '0 0 12px #FFD700' }}>
+                                        {currentIntel.strategicTitle}
                                     </div>
                                 </div>
 
-                                {/* Play Store Button removed as per request to keep it clean */}
+                                {/* 2. STATS ROW (Role | Difficulty | Impact) */}
+                                <div className="grid grid-cols-3 gap-3 mb-8 text-center">
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-[10px] uppercase tracking-widest font-bold mb-1.5" style={{ color: '#FF6B00', textShadow: '0 0 8px #FF6B00' }}>Role</span>
+                                        <span className="text-[10px] font-bold uppercase leading-tight font-cinzel tracking-wider" style={{ color: '#FFAB76' }}>{currentIntel.role}</span>
+                                    </div>
+                                    <div className="flex flex-col items-center px-1 border-l border-r border-white/10">
+                                        <span className="text-[10px] uppercase tracking-widest font-bold mb-1.5" style={{ color: '#9D4EDD', textShadow: '0 0 8px #9D4EDD' }}>Difficulty</span>
+                                        <div className="flex gap-1 mt-1.5">
+                                            {[...Array(5)].map((_, i) => (
+                                                <div key={i} className={`w-2 h-2 rotate-45 ${i < (currentIntel.difficulty || 1) ? 'bg-fuchsia-500 shadow-[0_0_6px_#d946ef]' : 'bg-slate-600'}`} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-center">
+                                        <span className="text-[10px] uppercase tracking-widest font-bold mb-1.5" style={{ color: '#00BEFF', textShadow: '0 0 8px #00BEFF' }}>Impact</span>
+                                        <span className="text-[10px] font-bold uppercase leading-tight font-cinzel tracking-wider" style={{ color: '#7DD3FC' }}>{currentIntel.impact}</span>
+                                    </div>
+                                </div>
+
+                                {/* 3. METERS (Circular Sci-Fi Style) */}
+                                <div className="flex justify-between items-center mb-auto px-4">
+                                    {[
+                                        { label: "Mood", val: currentIntel.powerMeters?.neighborhoodMood, color: "#22d3ee", shadow: "shadow-cyan-500" },
+                                        { label: "Media", val: currentIntel.powerMeters?.mediaInfluence, color: "#fb923c", shadow: "shadow-orange-500" },
+                                        { label: "Alliance", val: currentIntel.powerMeters?.alliancePower, color: "#34d399", shadow: "shadow-emerald-500" }
+                                    ].map((meter, idx) => {
+                                        const radius = 26;
+                                        const circumference = 2 * Math.PI * radius;
+                                        const strokeDashoffset = circumference - (((meter.val || 50) / 100) * circumference);
+
+                                        return (
+                                            <div key={idx} className="flex flex-col items-center group">
+                                                <div className="relative w-[60px] h-[60px] flex items-center justify-center">
+                                                    {/* Outer Ring Decoration */}
+                                                    <div className="absolute inset-0 rounded-full border border-white/5 group-hover:border-white/20 transition-colors"></div>
+
+                                                    {/* SVG Circle */}
+                                                    <svg className="w-full h-full -rotate-90 transform" viewBox="0 0 70 70">
+                                                        {/* Track */}
+                                                        <circle cx="35" cy="35" r={radius} stroke="#1e293b" strokeWidth="3.5" fill="none" />
+                                                        {/* Progress */}
+                                                        <circle
+                                                            cx="35" cy="35" r={radius}
+                                                            stroke={meter.color}
+                                                            strokeWidth="3.5"
+                                                            fill="none"
+                                                            strokeDasharray={circumference}
+                                                            strokeDashoffset={strokeDashoffset}
+                                                            strokeLinecap="round"
+                                                            className="drop-shadow-[0_0_2px_currentColor] transition-all duration-1000 ease-out"
+                                                        />
+                                                    </svg>
+
+                                                    {/* Inner icon/dot */}
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <div className={`w-1.5 h-1.5 rounded-full ${meter.shadow.replace('shadow-', 'bg-')} bg-opacity-80 animate-pulse`}></div>
+                                                    </div>
+                                                </div>
+                                                <span className="text-[9px] uppercase tracking-widest text-cyan-300/80 font-bold group-hover:text-cyan-200 transition-colors drop-shadow-[0_0_3px_rgba(34,211,238,0.4)]">
+                                                    {meter.label}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                {/* 4. FLAVOR TEXT (Bottom, subtle) */}
+                                <div className="mb-7 px-3 opacity-80 text-center">
+                                    <p className="text-xs text-sky-100 italic font-serif leading-relaxed drop-shadow-[0_0_4px_rgba(186,230,253,0.3)] mt-7">
+                                        "{currentIntel.flavorText}"
+                                    </p>
+                                </div>
+
+                                {/* 5. CTA BUTTON (Prominent at bottom) */}
+                                <div className="mt-3 pb-5 w-full">
+                                    <a
+                                        href="https://play.google.com/store/apps/details?id=com.rajneeti"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block group"
+                                    >
+                                        <div className="relative bg-gradient-to-b from-gray-900 to-black border border-white/20 hover:border-orange-500/60 transition-all rounded py-4 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.6)] group-hover:shadow-[0_4px_15px_rgba(234,88,12,0.2)]">
+                                            <span className="text-white font-cinzel font-black tracking-[0.2em] text-xs relative z-10 group-hover:scale-105 transition-transform">
+                                                ENTER THE CAMPAIGN
+                                            </span>
+                                            {/* Decorative diamond on right */}
+                                            <div className="absolute right-4 w-2 h-2 bg-white/20 rotate-45 group-hover:bg-orange-500 transition-colors"></div>
+                                        </div>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 )}
-
-                {/* Bottom Center PERSISTENT Global Play Button - Smaller and lower */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center">
-                    <a
-                        href="https://play.google.com/store/apps/details?id=com.rajneeti"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-center transform hover:scale-110 active:scale-95 transition-all drop-shadow-[0_8px_15px_rgba(0,0,0,0.5)]"
-                    >
-                        <img
-                            src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
-                            alt="Join Phase 2 on Android"
-                            className="h-[38px] md:h-[42px]"
-                        />
-                    </a>
-                </div>
             </div>
 
             <style>{`

@@ -6,7 +6,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
 
   return {
-    base: "/Moitra-Studios/",   // 👈 ADD THIS LINE (VERY IMPORTANT)
+    base: "/",
 
     server: {
       port: 3000,

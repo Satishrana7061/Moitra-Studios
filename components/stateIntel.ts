@@ -1,366 +1,267 @@
-
 export interface StateData {
-    voters: string;
-    rulingParty: string;
-    gdp: string;
-    monument: string;
-    monumentName: string;
+    // Cinematic Header
+    strategicTitle: string;
+
+    // Strategic Summary
+    role: string;
+    difficulty: 1 | 2 | 3 | 4 | 5;
+    impact: string;
+
+    // Power Meters (0-100)
+    powerMeters: {
+        neighborhoodMood: number;
+        mediaInfluence: number;
+        alliancePower: number;
+    };
+
+    // Narrative
     flavorText: string;
-    avatar?: string;
+
+    // Moves
+    strategicMoves: string[];
+
+    // Visuals
+    avatar?: string; // Keeping avatar for now as it adds flavor
 }
 
 export const STATE_INTEL: Record<string, StateData> = {
     "Rajasthan": {
-        voters: "53.0M",
-        rulingParty: "BJP",
-        gdp: "$180B",
-        monument: "https://images.unsplash.com/photo-1590050877119-0df8fa2f59f6?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Hawa Mahal",
-        flavorText: "The Gateway to the West. Control over the desert corridors is vital for logistics.",
+        strategicTitle: "The Desert Fortress",
+        role: "Heritage Stronghold",
+        difficulty: 3,
+        impact: "Regional Pillar",
+        powerMeters: { neighborhoodMood: 65, mediaInfluence: 70, alliancePower: 85 },
+        flavorText: "Tradition runs deep here. Win the clans, and you win the kingdom.",
+        strategicMoves: ["Unite Heritage Factions", "deploy Desert Logistics", "Leverage Cultural Symbolism"],
         avatar: "Avaters/RAJNATH SINGH.png"
     },
     "Uttar Pradesh": {
-        voters: "150.0M",
-        rulingParty: "BJP",
-        gdp: "$310B",
-        monument: "https://images.unsplash.com/photo-1564507592333-c60657eaa0ae?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Taj Mahal",
-        flavorText: "The ultimate prize. He who rules the Doab, rules the heart of the nation.",
+        strategicTitle: "Kingmaker's Throne",
+        role: "National Decider",
+        difficulty: 5,
+        impact: "Game-Ending",
+        powerMeters: { neighborhoodMood: 40, mediaInfluence: 95, alliancePower: 90 },
+        flavorText: "The path to Delhi lies through Lucknow. Total dominance.",
+        strategicMoves: ["Consolidate Caste Blocs", "Launch Mega-Rallies", "Dominating Media Blitz"],
         avatar: "Avaters/YOGI ADITYANATH.png"
     },
     "Maharashtra": {
-        voters: "97.0M",
-        rulingParty: "Mahayuti",
-        gdp: "$430B",
-        monument: "https://images.unsplash.com/photo-1566552881560-0be862a7c445?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Gateway of India",
-        flavorText: "The economic engine. Financial dominance here fuels any nationwide campaign.",
+        strategicTitle: "Treasury of Power",
+        role: "Financial Engine",
+        difficulty: 4,
+        impact: "Economic Hub",
+        powerMeters: { neighborhoodMood: 55, mediaInfluence: 80, alliancePower: 60 },
+        flavorText: "Money is power. Control the capital flow to starve your rivals.",
+        strategicMoves: ["Secure Corp. Funding", "Urban Youth Appeal", "Broker Trade Union Deals"],
         avatar: "Avaters/UDDAV THACKREAY.png"
     },
     "West Bengal": {
-        voters: "75.0M",
-        rulingParty: "AITC",
-        gdp: "$210B",
-        monument: "https://images.unsplash.com/photo-1623492701902-47dc207df5dc?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Victoria Memorial",
-        flavorText: "The intellectual bastion. A hub of culture and political firebrand strategy.",
+        strategicTitle: "Redoubt of Rebels",
+        role: "Ideological Core",
+        difficulty: 5,
+        impact: "Narrative Shifter",
+        powerMeters: { neighborhoodMood: 80, mediaInfluence: 75, alliancePower: 40 },
+        flavorText: "A fortress of fiery rhetoric. Only the boldest narratives survive the streets.",
+        strategicMoves: ["Grassroots Mobilization", "Counter-Intel Ops", "Cultural Vanguard Push"],
         avatar: "Avaters/MAMTA BENRJEE.png"
     },
     "Gujarat": {
-        voters: "50.0M",
-        rulingParty: "BJP",
-        gdp: "$320B",
-        monument: "https://images.unsplash.com/photo-1627376378417-640a43878772?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Statue of Unity",
-        flavorText: "The manufacturing powerhouse. Industrial stability ensures long-term victory.",
+        strategicTitle: "Industrial Heart",
+        role: "Commerce Hub",
+        difficulty: 2,
+        impact: "Logistics Key",
+        powerMeters: { neighborhoodMood: 85, mediaInfluence: 60, alliancePower: 95 },
+        flavorText: "Efficiency is the currency. Keep the factories running to secure the base.",
+        strategicMoves: ["Infrastructure Pacts", "Trade Guild Alliance", "Stability Propaganda"],
         avatar: "Avaters/NARENDRA MODI (PM).png"
     },
     "Tamil Nadu": {
-        voters: "63.0M",
-        rulingParty: "DMK",
-        gdp: "$310B",
-        monument: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Shore Temple",
-        flavorText: "The Southern stronghold. A distinct political identity that demands respect.",
+        strategicTitle: "Dravidian Bastion",
+        role: "Cultural Fortress",
+        difficulty: 4,
+        impact: "Southern Anchor",
+        powerMeters: { neighborhoodMood: 90, mediaInfluence: 65, alliancePower: 50 },
+        flavorText: "Identity is power. Speak the language of the people or be silenced.",
+        strategicMoves: ["Cinema Star Endorsement", "Language Pride Rally", "Federal Front Coalition"],
         avatar: "Avaters/M K STALIN.png"
     },
-    "Tamilnadu": {
-        voters: "63.0M",
-        rulingParty: "DMK",
-        gdp: "$310B",
-        monument: "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Shore Temple",
-        flavorText: "The Southern stronghold. A distinct political identity that demands respect.",
+    "Tamilnadu": { // Alias
+        strategicTitle: "Dravidian",
+        role: "Cultural Fortress",
+        difficulty: 4,
+        impact: "Southern Anchor",
+        powerMeters: { neighborhoodMood: 90, mediaInfluence: 65, alliancePower: 50 },
+        flavorText: "Identity is power. Speak the language of the people or be silenced.",
+        strategicMoves: ["Cinema Star Endorsement", "Language Pride Rally", "Federal Front Coalition"],
         avatar: "Avaters/M K STALIN.png"
     },
     "Karnataka": {
-        voters: "54.0M",
-        rulingParty: "INC",
-        gdp: "$340B",
-        monument: "https://images.unsplash.com/photo-1621251390466-9b519018e697?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Hampi Ruins",
-        flavorText: "The technology hub. Control the Silicon Valley of Asia to lead the future.",
+        strategicTitle: "The Silicon State",
+        role: "Tech Nexus",
+        difficulty: 3,
+        impact: "Innovation Hub",
+        powerMeters: { neighborhoodMood: 60, mediaInfluence: 85, alliancePower: 55 },
+        flavorText: "Future-forward politics. Win the digital generation to secure the grid.",
+        strategicMoves: ["Digital Campaign Surge", "Start-up Incubation", "Urban-Rural Bridge"],
         avatar: "Avaters/RAHUL GANDHI.png"
     },
     "Delhi": {
-        voters: "14.7M",
-        rulingParty: "AAP",
-        gdp: "$140B",
-        monument: "https://images.unsplash.com/photo-1587474260584-136574528ed5?q=80&w=400&auto=format&fit=crop",
-        monumentName: "India Gate",
-        flavorText: "The administrative nerve center. No strategy is complete without the Capital.",
+        strategicTitle: "The Seat of Command",
+        role: "Media Center",
+        difficulty: 4,
+        impact: "High Visibility",
+        powerMeters: { neighborhoodMood: 45, mediaInfluence: 100, alliancePower: 30 },
+        flavorText: "The eyes of the world are watching. Every move here echoes historically.",
+        strategicMoves: ["National Press Conf.", "Bureaucracy Override", "Protest Management"],
         avatar: "Avaters/ARVIND KEJRIWAL.png"
     },
     "Punjab": {
-        voters: "21.0M",
-        rulingParty: "AAP",
-        gdp: "$90B",
-        monument: "https://images.unsplash.com/photo-1514222139-b576bb5ce073?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Golden Temple",
-        flavorText: "The breadbasket. Agrarian stability is the bedrock of national security.",
+        strategicTitle: "The Granary Guard",
+        role: "Agrarian Core",
+        difficulty: 3,
+        impact: "Resilience Test",
+        powerMeters: { neighborhoodMood: 75, mediaInfluence: 50, alliancePower: 45 },
+        flavorText: "Roots run deep in the soil. Respect the land to harvest the votes.",
+        strategicMoves: ["Farmer Union Pact", "Border Security Narrative", "Resource Subsidy"],
         avatar: "Avaters/BHAGWANT MANN.png"
     },
     "Kerala": {
-        voters: "27.0M",
-        rulingParty: "LDF",
-        gdp: "$150B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Backwaters Resort",
-        flavorText: "The literacy center. A highly aware electorate requires nuanced maneuvering.",
+        strategicTitle: "Intellectual Coast",
+        role: "Ideology Hub",
+        difficulty: 4,
+        impact: "Policy Lab",
+        powerMeters: { neighborhoodMood: 85, mediaInfluence: 70, alliancePower: 40 },
+        flavorText: "Minds are sharp here. Nuance and policy win over brute force.",
+        strategicMoves: ["Think-Tank Summit", "Social Index Campaign", "Cross-Party Debate"],
         avatar: "Avaters/PINARAYI VIJAYAN.png"
     },
     "Bihar": {
-        voters: "77.0M",
-        rulingParty: "NDA",
-        gdp: "$110B",
-        monument: "https://images.unsplash.com/photo-1594220516597-90c74900a653?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Mahabodhi Temple",
-        flavorText: "The cradle of civilization. Historically, he who holds Pataliputra holds India.",
+        strategicTitle: "Political Crucible",
+        role: "Caste Matrix",
+        difficulty: 5,
+        impact: "Swing State",
+        powerMeters: { neighborhoodMood: 50, mediaInfluence: 60, alliancePower: 95 },
+        flavorText: "Chaos is a ladder. Navigate the shifting alliances to survive.",
+        strategicMoves: ["Grand Coalition", "Social Justice Rally", "Grassroots Network"],
         avatar: "Avaters/NITISH KUMAR.png"
     },
+    // Generic Fallback for others to ensure smooth gameplay (mapped to specific avatars where possible)
     "Madhya Pradesh": {
-        voters: "56.0M",
-        rulingParty: "BJP",
-        gdp: "$170B",
-        monument: "https://images.unsplash.com/photo-1629815049071-7052a9f73562?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Khajuraho Spires",
-        flavorText: "The heart of India. A central pivot that can tip the scales in any direction.",
-        avatar: "Avaters/AMIT SHAH.png"
+        strategicTitle: "The Central Pillar", role: "Swing Heartland", difficulty: 3, impact: "Stabilizer",
+        powerMeters: { neighborhoodMood: 60, mediaInfluence: 55, alliancePower: 70 },
+        flavorText: "Balance is key. Hold the center to stabilize the flanks.", strategicMoves: ["Tribal Outreach", "Central Rally", "Scheme Rollout"], avatar: "Avaters/AMIT SHAH.png"
     },
     "Andhra Pradesh": {
-        voters: "40.0M",
-        rulingParty: "TDP+",
-        gdp: "$190B",
-        monument: "https://images.unsplash.com/photo-1600100397561-433ff484439b?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Tirumala Peak",
-        flavorText: "The riverlands. Agricultural wealth and maritime access make this a vital zone.",
-        avatar: "Avaters/N. CHANDRABABU NAIDU.png"
+        strategicTitle: "The Coastal Power", role: "Alliance Key", difficulty: 3, impact: "Coalition Maker",
+        powerMeters: { neighborhoodMood: 70, mediaInfluence: 65, alliancePower: 80 },
+        flavorText: "Maritime wealth meets political cunning. A vital piece of the puzzle.", strategicMoves: ["Infra-Dev Promise", "Welfare Surge", "Regional Pact"], avatar: "Avaters/N. CHANDRABABU NAIDU.png"
     },
     "Telangana": {
-        voters: "31.0M",
-        rulingParty: "INC",
-        gdp: "$180B",
-        monument: "https://images.unsplash.com/photo-1572431441273-0759f2a2a947?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Charminar Arch",
-        flavorText: "The high-tech plateau. A modern hub that bridges the north-south divide.",
-        avatar: "Avaters/TEJASWI YADAV.png"
+        strategicTitle: "The Rising Plateau", role: "Modern Hub", difficulty: 3, impact: "Tech-Agri Mix",
+        powerMeters: { neighborhoodMood: 65, mediaInfluence: 75, alliancePower: 50 },
+        flavorText: "Old traditions meets new money. A complex code to crack.", strategicMoves: ["Digital Welfare", "Pride Campaign", "City-Village Link"], avatar: "Avaters/TEJASWI YADAV.png"
     },
     "Odisha": {
-        voters: "33.0M",
-        rulingParty: "BJP",
-        gdp: "$100B",
-        monument: "https://images.unsplash.com/photo-1599427303058-f04cfaf0760f?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Konark Wheel",
-        flavorText: "The resource belt. Mineral wealth and strategic ports are essential assets.",
-        avatar: "Avaters/PRASHANT KISHOR.png"
-    },
-    "Assam": {
-        voters: "24.0M",
-        rulingParty: "BJP+",
-        gdp: "$70B",
-        monument: "https://images.unsplash.com/photo-1620579973212-0dae86a073f1?q=80&w=400&auto=format&fit=crop",
-        monumentName: "One-Horned Rhino",
-        flavorText: "The sentinel of the North East. Control the Seven Sisters from this point.",
-        avatar: "Avaters/NIRMALA SITHARAMAN.png"
-    },
-    "Haryana": {
-        voters: "20.0M",
-        rulingParty: "BJP",
-        gdp: "$135B",
-        monument: "https://images.unsplash.com/photo-1593181629936-11c609b8db9b?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Kurukshetra Plains",
-        flavorText: "The logistics hub. Proximity to the capital makes this a critical tactical zone.",
-        avatar: "Avaters/SMRITI IRANI.png"
+        strategicTitle: "The Steel State", role: "Resource Giants", difficulty: 3, impact: "Silent Power",
+        powerMeters: { neighborhoodMood: 80, mediaInfluence: 40, alliancePower: 75 },
+        flavorText: "Quiet strength endures. Consistency builds an unbreakable base.", strategicMoves: ["Disaster Relief Op", "Women's Self-Help", "Heritage Pride"], avatar: "Avaters/PRASHANT KISHOR.png"
     },
     "Jammu and Kashmir": {
-        voters: "9.0M",
-        rulingParty: "JKNC+",
-        gdp: "$25B",
-        monument: "https://images.unsplash.com/photo-1566833925222-f54f71590dd4?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Dal Lake Shikara",
-        flavorText: "The northern crown. Strategic and high-stakes maneuvering is required here.",
-        avatar: "Avaters/PRIYANKA GANDHI.png"
+        strategicTitle: "The Northern Crown", role: "Conflict Zone", difficulty: 5, impact: "Prestige",
+        powerMeters: { neighborhoodMood: 30, mediaInfluence: 90, alliancePower: 40 },
+        flavorText: "High risks, legendary rewards. Proving ground for true leaders.", strategicMoves: ["Peace Initiative", "Development Package", "Youth Engagement"], avatar: "Avaters/PRIYANKA GANDHI.png"
     },
-    "Uttarakhand": {
-        voters: "8.3M",
-        rulingParty: "BJP",
-        gdp: "$40B",
-        monument: "https://images.unsplash.com/photo-1616190411831-2965251648a1?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Kedarnath Peak",
-        flavorText: "The abode of gods. Spiritual centers hold deep influence over the electorate.",
-        avatar: "Avaters/AKHILESH YADAV.png"
-    },
-    "Himachal Pradesh": {
-        voters: "5.5M",
-        rulingParty: "INC",
-        gdp: "$25B",
-        monument: "https://images.unsplash.com/photo-1605142859862-978be7eba909?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Shimla Mall",
-        flavorText: "The mountain fortress. High terrain advantage for defensive strategy.",
-        avatar: "Avaters/MAYAWATI.png"
-    },
-    "Goa": {
-        voters: "1.1M",
-        rulingParty: "BJP",
-        gdp: "$12B",
-        monument: "https://images.unsplash.com/photo-1512341689857-198e7e2f3ca8?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Old Goa Church",
-        flavorText: "The maritime leisure hub. Small in size, but high in cultural soft power.",
-        avatar: "Avaters/PRASHANT KISHOR.png"
-    },
-    "Chhattisgarh": {
-        voters: "20.0M",
-        rulingParty: "BJP",
-        gdp: "$60B",
-        monument: "https://images.unsplash.com/photo-1629815049071-7052a9f73562?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Dantewada Shrine",
-        flavorText: "The resource frontier. Mineral dominance is the key to industrial scaling.",
-        avatar: "Avaters/SMRITI IRANI.png"
-    },
-    "Jharkhand": {
-        voters: "25.0M",
-        rulingParty: "JMM+",
-        gdp: "$50B",
-        monument: "https://images.unsplash.com/photo-1615822606543-91340a6b7201?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Jamshedpur Steel",
-        flavorText: "The industrial bedrock. Iron and coal reserves fuel the national machine.",
-        avatar: "Avaters/LALU PRASAD YADAV.png"
-    },
-    "Sikkim": {
-        voters: "0.4M",
-        rulingParty: "SKM",
-        gdp: "$6B",
-        monument: "https://images.unsplash.com/photo-1582236479702-f209368dcc34?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Kanchenjunga Range",
-        flavorText: "The peak sentinel. Organic leadership and strategic altitude.",
-        avatar: "Avaters/MALLIKARJUN KHARGE.png"
-    },
-    "Ladakh": {
-        voters: "0.3M",
-        rulingParty: "PRESIDENT",
-        gdp: "$3B",
-        monument: "https://images.unsplash.com/photo-1549488344-1f9b8d2bd1f3?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Pangong Lake",
-        flavorText: "The high frontier. Strategic depth in the cold desert.",
-        avatar: "Avaters/AMIT SHAH.png"
-    },
-    "Andaman & Nicobar": {
-        voters: "0.4M",
-        rulingParty: "PRESIDENT",
-        gdp: "$4B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Cellular Tower",
-        flavorText: "The maritime sentinel. Crucial for dominance over the Bay of Bengal.",
-        avatar: "Avaters/NARENDRA MODI (PM).png"
+    // Northeast States
+    "Assam": {
+        strategicTitle: "A Gateway to the East", role: "NE Sentinel", difficulty: 4, impact: "Regional Anchor",
+        powerMeters: { neighborhoodMood: 70, mediaInfluence: 55, alliancePower: 65 },
+        flavorText: "Control Assam to control the Seven Sisters. Win is difficult but not impossible.", strategicMoves: ["Tea Garden Outreach", "Border Security", "Flood Relief"], avatar: "Avaters/AMIT SHAH.png"
     },
     "Arunachal Pradesh": {
-        voters: "1.0M",
-        rulingParty: "BJP",
-        gdp: "$4B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Tawang Monastery",
-        flavorText: "The land of the rising sun. A strategic frontier with deep spiritual roots.",
-        avatar: "Avaters/NIRMALA SITHARAMAN.png"
-    },
-    "Manipur": {
-        voters: "2.0M",
-        rulingParty: "BJP",
-        gdp: "$4B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Kangla Fort",
-        flavorText: "The jewel of India. Cultural richness meets strategic importance.",
-        avatar: "Avaters/SMRITI IRANI.png"
-    },
-    "Meghalaya": {
-        voters: "1.9M",
-        rulingParty: "NPP",
-        gdp: "$5B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Living Root Bridge",
-        flavorText: "The abode of clouds. Wettest place on Earth with unique tactical terrain.",
-        avatar: "Avaters/PRIYANKA GANDHI.png"
-    },
-    "Mizoram": {
-        voters: "0.8M",
-        rulingParty: "ZPM",
-        gdp: "$3B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Vantawng Falls",
-        flavorText: "High literacy and distinct culture. Every vote counts in the hills.",
-        avatar: "Avaters/PRASHANT KISHOR.png"
+        strategicTitle: "The Rising Sun", role: "Border Guard", difficulty: 3, impact: "Strategic Frontier",
+        powerMeters: { neighborhoodMood: 85, mediaInfluence: 35, alliancePower: 70 },
+        flavorText: "First to greet the dawn. A peaceful yet strategic frontier.", strategicMoves: ["Tribal Welfare", "Infrastructure Push", "Cultural Preservation"], avatar: "Avaters/NIRMALA SITHARAMAN.png"
     },
     "Nagaland": {
-        voters: "1.3M",
-        rulingParty: "NDPP",
-        gdp: "$4B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Kohima War Cemetery",
-        flavorText: "The land of festivals. Strategic depth in the North Eastern corridor.",
-        avatar: "Avaters/AMIT SHAH.png"
+        strategicTitle: "Land of the Nagas", role: "Peace Zone", difficulty: 4, impact: "Harmony Key",
+        powerMeters: { neighborhoodMood: 60, mediaInfluence: 40, alliancePower: 55 },
+        flavorText: "A delicate balance between tradition and integration lies here.", strategicMoves: ["Peace Accord", "Youth Employment", "Heritage Tourism"], avatar: "Avaters/RAJNATH SINGH.png"
+    },
+    "Manipur": {
+        strategicTitle: "The Jewel of India", role: "Cultural Hub", difficulty: 5, impact: "Volatile Ground",
+        powerMeters: { neighborhoodMood: 35, mediaInfluence: 80, alliancePower: 30 },
+        flavorText: "Ethnic diversity demands masterful diplomacy. Play safely.", strategicMoves: ["Community Dialogue", "Sports Development", "Cultural Festival"], avatar: "Avaters/SMRITI IRANI.png"
+    },
+    "Mizoram": {
+        strategicTitle: "The Peaceful Valley", role: "Model State", difficulty: 2, impact: "Low Priority",
+        powerMeters: { neighborhoodMood: 90, mediaInfluence: 30, alliancePower: 60 },
+        flavorText: "High literacy, high expectations. Policy over promises.", strategicMoves: ["Education Focus", "Environmental Push", "Border Trade"], avatar: "Avaters/AKHILESH YADAV.png"
     },
     "Tripura": {
-        voters: "2.5M",
-        rulingParty: "BJP",
-        gdp: "$7B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Ujjayanta Palace",
-        flavorText: "A strategic gateway. Balanced political dynamics require precise handling.",
-        avatar: "Avaters/RAJNATH SINGH.png"
+        strategicTitle: "The Tripod State", role: "Swing Territory", difficulty: 3, impact: "Local Influence",
+        powerMeters: { neighborhoodMood: 65, mediaInfluence: 45, alliancePower: 75 },
+        flavorText: "Once red, now shifting. A test of ideological battles here is difficult.", strategicMoves: ["Welfare Schemes", "Youth Startup", "Cross-Border Trade"], avatar: "Avaters/MAYAWATI.png"
     },
-    "Puducherry": {
-        voters: "1.0M",
-        rulingParty: "AINRC",
-        gdp: "$5B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Auroville Dome",
-        flavorText: "French flair in the South. A unique blend of culture and commerce.",
-        avatar: "Avaters/M K STALIN.png"
+    "Meghalaya": {
+        strategicTitle: "The Abode of Clouds", role: "Tribal Heartland", difficulty: 3, impact: "Regional Voice",
+        powerMeters: { neighborhoodMood: 75, mediaInfluence: 50, alliancePower: 55 },
+        flavorText: "Matrilineal wisdom guides these hills. Tradition is the law.", strategicMoves: ["Mining Policy", "Eco-Tourism", "Matrilineal Heritage"], avatar: "Avaters/LALU PRASAD YADAV.png"
     },
-    "Chandigarh": {
-        voters: "0.7M",
-        rulingParty: "AAP",
-        gdp: "$6B",
-        monument: "https://images.unsplash.com/photo-1626245199616-09a296564619?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Rock Garden",
-        flavorText: "The planned city. A modern administrative success story.",
-        avatar: "Avaters/BHAGWANT MANN.png"
+    // Other Missing States
+    "Haryana": {
+        strategicTitle: "Wrestler's Arena", role: "Delhi's Backyard", difficulty: 4, impact: "NCR Control",
+        powerMeters: { neighborhoodMood: 55, mediaInfluence: 70, alliancePower: 60 },
+        flavorText: "Farm meets factory. The khap panchayats and 36 Biradaris hold the keys.", strategicMoves: ["Farmer Appeasement", "Industry Pact", "Sports Push"], avatar: "Avaters/YOGI ADITYANATH.png"
     },
-    // Aliases for common spelling variations
-    "Sikim": {
-        voters: "0.4M",
-        rulingParty: "SKM",
-        gdp: "$6B",
-        monument: "https://images.unsplash.com/photo-1582236479702-f209368dcc34?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Kanchenjunga Range",
-        flavorText: "The peak sentinel. Organic leadership and strategic altitude.",
-        avatar: "Avaters/MALLIKARJUN KHARGE.png"
+    "Uttarakhand": {
+        strategicTitle: "Devbhoomi", role: "Pilgrimage Hub", difficulty: 2, impact: "Spiritual Influence",
+        powerMeters: { neighborhoodMood: 80, mediaInfluence: 45, alliancePower: 85 },
+        flavorText: "The gods of heaven themselves vote here. Faith is politics.", strategicMoves: ["Temple Restoration", "Char Dham Infra", "Disaster Management"], avatar: "Avaters/NARENDRA MODI (PM).png"
     },
-    "Jarkhand": {
-        voters: "25.0M",
-        rulingParty: "JMM+",
-        gdp: "$50B",
-        monument: "https://images.unsplash.com/photo-1615822606543-91340a6b7201?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Jamshedpur Steel",
-        flavorText: "The industrial bedrock. Iron and coal reserves fuel the national machine.",
-        avatar: "Avaters/LALU PRASAD YADAV.png"
+    "Himachal Pradesh": {
+        strategicTitle: "Hill Fortress", role: "Mountain Bastion", difficulty: 3, impact: "Steady Ground",
+        powerMeters: { neighborhoodMood: 75, mediaInfluence: 40, alliancePower: 65 },
+        flavorText: "Apple orchards and army barracks. Silent but substantial.", strategicMoves: ["Horticulture Boost", "Tourism Drive", "Veterans Care"], avatar: "Avaters/RAHUL GANDHI.png"
     },
-    "Himachal Pardesh": {
-        voters: "5.5M",
-        rulingParty: "INC",
-        gdp: "$25B",
-        monument: "https://images.unsplash.com/photo-1605142859862-978be7eba909?q=80&w=400&auto=format&fit=crop",
-        monumentName: "Shimla Mall",
-        flavorText: "The mountain fortress. High terrain advantage for defensive strategy.",
-        avatar: "Avaters/MAYAWATI.png"
+    "Goa": {
+        strategicTitle: "The Coastal Gem", role: "Tourism Capital", difficulty: 2, impact: "Low Stakes",
+        powerMeters: { neighborhoodMood: 85, mediaInfluence: 60, alliancePower: 40 },
+        flavorText: "This state is small but strategic. Where defection is an art form.", strategicMoves: ["Casino Politics", "Beach Clean-up", "Heritage Preservation"], avatar: "Avaters/ARVIND KEJRIWAL.png"
+    },
+    "Chhattisgarh": {
+        strategicTitle: "Red Corridor", role: "Resource Frontier", difficulty: 4, impact: "Security Zone",
+        powerMeters: { neighborhoodMood: 45, mediaInfluence: 50, alliancePower: 70 },
+        flavorText: "Minerals and Maoists. Development vs. disruption.", strategicMoves: ["Tribal Outreach", "Security Ops", "Forest Rights"], avatar: "Avaters/BHAGWANT MANN.png"
+    },
+    "Jharkhand": {
+        strategicTitle: "The Steel Land", role: "Industrial Core", difficulty: 4, impact: "Resource Key",
+        powerMeters: { neighborhoodMood: 50, mediaInfluence: 55, alliancePower: 80 },
+        flavorText: "Iron is forged in coal fires in this state. Tribal vs. corporate.", strategicMoves: ["Mining Reform", "Tribal Welfare", "Industrial Pact"], avatar: "Avaters/TEJASWI YADAV.png"
+    },
+    "Sikkim": {
+        strategicTitle: "The Hidden Kingdom", role: "Organic Paradise", difficulty: 1, impact: "Minimal",
+        powerMeters: { neighborhoodMood: 95, mediaInfluence: 25, alliancePower: 50 },
+        flavorText: "Organic success story. This state is small in size, big in happiness.", strategicMoves: ["Eco-Tourism", "Border Relations", "Youth Skill Development"], avatar: "Avaters/PINARAYI VIJAYAN.png"
+    },
+    "Ladakh": {
+        strategicTitle: "The Cold Frontier", role: "Strategic Border", difficulty: 3, impact: "Defense Priority",
+        powerMeters: { neighborhoodMood: 70, mediaInfluence: 65, alliancePower: 45 },
+        flavorText: "Where glaciers meet geopolitics. High altitude, high stakes.", strategicMoves: ["Road Construction", "Border Village Dev", "Tourism Boom"], avatar: "Avaters/NITISH KUMAR.png"
+    },
+    "Andaman and Nicobar Islands": {
+        strategicTitle: "The Maritime Sentinel", role: "Naval Outpost", difficulty: 2, impact: "Strategic Sea",
+        powerMeters: { neighborhoodMood: 80, mediaInfluence: 30, alliancePower: 55 },
+        flavorText: "Islands of strategic importance. Gateway to the East.", strategicMoves: ["Naval Expansion", "Eco-Tourism", "Tribal Protection"], avatar: "Avaters/PRASHANT KISHOR.png"
     }
 };
 
 export const DEFAULT_STATE_DATA: StateData = {
-    voters: "12.5M",
-    rulingParty: "NEUTRAL",
-    gdp: "$45B",
-    monument: "https://images.unsplash.com/photo-1548013146-72479768bbaa?q=80&w=400&auto=format&fit=crop",
-    monumentName: "Regional Fortress",
-    flavorText: "A key territory in the operational theater. Stability here is paramount for broader success.",
+    strategicTitle: "Strategic Territory",
+    role: "Frontier Zone",
+    difficulty: 2,
+    impact: "Tactical Asset",
+    powerMeters: { neighborhoodMood: 50, mediaInfluence: 50, alliancePower: 50 },
+    flavorText: "A region in flux. Seize the opportunity before your rivals do.",
+    strategicMoves: ["Establish Presence", "Survey Opinion", "Local Recruitment"],
     avatar: "Avaters/MALLIKARJUN KHARGE.png"
 };

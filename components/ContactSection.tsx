@@ -119,13 +119,16 @@ const ContactSection: React.FC = () => {
                       placeholder="HOW CAN WE HELP?"
                     />
                   </div>
-                  <div className="flex justify-end pt-2">
+                  <div className="flex justify-end pt-4">
                     <button
                       type="submit"
-                      className="bg-gameGreen hover:bg-green-400 text-white font-cinzel font-black py-2 px-5 uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-[0_4px_0px_#2d5a2f] active:shadow-none border-[2px] border-black flex items-center justify-center gap-2 group text-[10px]"
+                      className="relative overflow-hidden bg-gradient-to-r from-gameGreen to-emerald-600 hover:from-emerald-500 hover:to-gameGreen text-white font-cinzel font-black py-3 px-10 uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(76,175,80,0.5)] border-[2px] border-white/20 hover:border-white group text-sm"
                     >
-                      <Send size={12} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                      Send Transmission
+                      <span className="absolute inset-0 w-full h-full bg-white/20 -translate-x-full group-hover:animate-shimmer" />
+                      <div className="flex items-center gap-3 relative z-10">
+                        <Send size={16} className="group-hover:rotate-12 transition-transform duration-300" />
+                        SEND
+                      </div>
                     </button>
                   </div>
                 </form>
@@ -139,6 +142,13 @@ const ContactSection: React.FC = () => {
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4CAF50; border-radius: 2px; }
+        
+        @keyframes shimmer {
+          100% { transform: translateX(100%); }
+        }
+        .animate-shimmer {
+          animation: shimmer 1.5s infinite;
+        }
       `}</style>
     </section>
   );

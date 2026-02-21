@@ -1,32 +1,27 @@
 // src/rssFetcher.ts
 import Parser from "rss-parser";
-import { RawNewsItem } from "./types";
+import { RawNewsItem } from "./types.js";
 
 const parser = new Parser();
 
 const RSS_FEEDS = [
-  "https://timesofindia.indiatimes.com/rss.cms",
-  "https://www.ndtv.com/rss",
-  "https://indianexpress.com/rss/",
+  "https://timesofindia.indiatimes.com/rssfeeds/66023901.cms", // TOI - India Politics
+  "https://www.ndtv.com/rss/india",                            // NDTV - India News
+  "https://www.thehindu.com/news/national/feeder/default.rss", // The Hindu - National
+  "https://indianexpress.com/section/india/politics/feed/",    // Indian Express - Politics
 ];
 
 const BANNED_KEYWORDS = [
   "terror",
   "terrorist",
-  "attack",
   "bomb",
   "blast",
   "riot",
-  "religion",
-  "religious",
-  "communal",
   "lynch",
-  "violence",
   "murder",
   "kill",
   "rape",
   "assault",
-  "hate",
 ];
 
 export async function fetchFilteredNews(): Promise<RawNewsItem[]> {

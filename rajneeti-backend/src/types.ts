@@ -15,5 +15,7 @@ export type RajneetiEvent = {
   delta: number; // -5 to +5
   sentiment: "positive" | "negative" | "neutral";
   summary: string;
+  mainPhrase: string;
   shareUrl: string;
+  createdAt: string; // ISO timestamp
 };

@@ -10,5 +10,6 @@ export type RajneetiEvent = {
   score: number;              // +2050 style
   statusLabel: string;        // "poll", "election board"
   summary: string;            // 2–3 lines
+  mainPhrase: string;         // 3-5 words
   shareUrl: string;           // placeholder
 };

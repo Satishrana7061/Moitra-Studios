@@ -1,17 +1,39 @@
 // src/aiProcessor.ts
-import { RawNewsItem, RajneetiEvent } from "./types";
+import { GEMINI_API_KEY } from "./config.js";
+import { RawNewsItem, RajneetiEvent } from "./types.js";
 
-// You will replace this with an actual HTTP call using your chosen AI provider.
+// ── Gemini API Call ─────────────────────────────────────────────
 async function callAIModel(prompt: string): Promise<string> {
-  // Antigravity / your agent will implement this later, e.g.:
-  //  - Perplexity Sonar API
-  //  - Gemini API
-  //  - OpenAI API
-  // For now, throw so we don't accidentally run in prod.
-  throw new Error("callAIModel() not implemented yet");
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "PLACEHOLDER_API_KEY") {
+    throw new Error("GEMINI_API_KEY is not configured");
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 300,
+        temperature: 0.3, // low temp for consistent JSON
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Gemini API error ${res.status}: ${errText}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!text) throw new Error("Empty Gemini response");
+  return text;
 }
 
-// This is the core prompt you can reuse with any LLM.
+// ── Prompt Builder ──────────────────────────────────────────────
 export function buildRajneetiPrompt(
   news: RawNewsItem,
   candidateList: string
@@ -37,13 +59,17 @@ ${candidateList}
 
 TASK:
 1. Decide which ONE candidate and ONE state this article most strongly affects in the game.
+   - EXTREMELY IMPORTANT: Only use names from the GAME DATA list. 
+   - IGNORE journalist names, authors, and news sources (e.g. "Ritu Ghosh", "Sanjay Verma", "NDTV").
+   - If a candidate is not mentioned, use "National Front" or "Regional Front" as per the FALLBACK RULES in GAME DATA.
 2. Assign an impact score "delta" from -5 to +5 (integers only). Positive means a boost, negative means a loss.
 3. Set sentiment: "positive", "negative", or "neutral".
 4. Write a short neutral summary (max 2 sentences) explaining the in-game effect in plain language.
-5. Propose a short kebab-case slug for a shareable URL.
+6. Propose a short kebab-case slug for a shareable URL.
+7. Extract a punchy "mainPhrase" (3-5 words) that captures the core event (e.g., "COMMERCE HUB", "HOUSING REVIVAL", "YOUTH OUTREACH").
 
 OUTPUT:
-Respond with STRICT JSON ONLY, no extra text, in exactly one of these forms:
+Respond with STRICT JSON ONLY, no extra text, no markdown fences, in exactly one of these forms:
 
 If the news should be skipped:
 {
@@ -60,54 +86,74 @@ Otherwise:
   "delta": 4,
   "sentiment": "positive",
   "summary": "Neutral game-style explanation...",
-  "slug": "maharashtra-example-party-campus-reforms-plus-4"
+  "slug": "maharashtra-example-party-campus-reforms-plus-4",
+  "mainPhrase": "MAIN CORE EVENT"
 }
   `.trim();
 }
 
+// ── Process News Items ──────────────────────────────────────────
 export async function processNewsWithAI(
   items: RawNewsItem[],
   candidateList: string
 ): Promise<RajneetiEvent[]> {
   const events: RajneetiEvent[] = [];
 
-  for (const news of items) {
-    const prompt = buildRajneetiPrompt(news, candidateList);
+  // Process up to 10 items per batch to stay within rate limits
+  const batch = items.slice(0, 10);
 
-    // When Antigravity wires this, it will call your chosen AI API here
-    const raw = await callAIModel(prompt);
-
-    let parsed: any;
+  for (const news of batch) {
     try {
-      parsed = JSON.parse(raw);
+      const prompt = buildRajneetiPrompt(news, candidateList);
+      const raw = await callAIModel(prompt);
+
+      // Strip markdown fences if Gemini wraps the JSON
+      const cleaned = raw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+      let parsed: any;
+      try {
+        parsed = JSON.parse(cleaned);
+      } catch {
+        console.error("Failed to parse AI JSON:", cleaned);
+        continue;
+      }
+
+      if (parsed.skip) continue;
+      if (
+        typeof parsed.stateCode !== "string" ||
+        typeof parsed.politicianName !== "string"
+      ) {
+        continue;
+      }
+
+      const id = parsed.slug || `${parsed.stateCode}-${Date.now()}`;
+      const delta = Math.max(-5, Math.min(5, parseInt(parsed.delta) || 0));
+
+      const event: RajneetiEvent = {
+        id,
+        stateCode: parsed.stateCode,
+        stateName: parsed.stateName || "Unknown",
+        politicianName: parsed.politicianName,
+        partyName: parsed.partyName || "Independent",
+        delta,
+        sentiment: parsed.sentiment || "neutral",
+        summary: parsed.summary || news.title,
+        mainPhrase: parsed.mainPhrase || (news.title.slice(0, 20) + "..."),
+        shareUrl: `/rajneeti/${(parsed.stateCode || "in").toLowerCase()}/${id}`,
+        createdAt: new Date().toISOString(),
+      };
+
+      events.push(event);
+      console.log(
+        `  ✅ ${event.stateName} · ${event.politicianName} · ${event.delta > 0 ? "+" : ""}${event.delta}`
+      );
     } catch (err) {
-      console.error("Failed to parse AI JSON", err, raw);
-      continue;
+      console.error(`  ❌ Error processing "${news.title}":`, err);
     }
-
-    if (parsed.skip) continue;
-    if (
-      typeof parsed.stateCode !== "string" ||
-      typeof parsed.politicianName !== "string"
-    ) {
-      continue;
-    }
-
-    const id = parsed.slug || `${parsed.stateCode}-${Date.now()}`;
-
-    const event: RajneetiEvent = {
-      id,
-      stateCode: parsed.stateCode,
-      stateName: parsed.stateName,
-      politicianName: parsed.politicianName,
-      partyName: parsed.partyName,
-      delta: parsed.delta,
-      sentiment: parsed.sentiment,
-      summary: parsed.summary,
-      shareUrl: `/rajneeti/${parsed.stateCode.toLowerCase()}/${parsed.slug}`,
-    };
-
-    events.push(event);
   }
 
   return events;

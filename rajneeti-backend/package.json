@@ -1,0 +1,24 @@
+{
+    "name": "rajneeti-backend",
+    "version": "1.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "tsx watch src/server.ts",
+        "start": "tsx src/server.ts",
+        "build": "tsc"
+    },
+    "dependencies": {
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "rss-parser": "^3.13.0"
+    },
+    "devDependencies": {
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.0",
+        "@types/node": "^22.14.0",
+        "tsx": "^4.19.3",
+        "typescript": "~5.8.2"
+    }
+}

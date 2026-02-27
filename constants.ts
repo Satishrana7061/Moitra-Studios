@@ -31,7 +31,7 @@ export const GAMES_DATA: Game[] = [
     title: 'GeoPolitics: World Stage',
     tagline: 'Diplomacy or War?',
     description: 'Expand your influence on the global stage. Manage complex trade routes, build military alliances, and use covert operations to maintain your nation\'s sovereignty in a changing world.',
-    imageUrl: '/public/Rajneeti-Game-War-Card-Screen.jpg',
+    imageUrl: '/Rajneeti-Game-War-Card-Screen.jpg',
     status: 'In Development',
     tags: ['RTS', 'Global', 'Warfare'],
     highlights: [

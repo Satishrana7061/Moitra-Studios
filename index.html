@@ -5,10 +5,108 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Moitra Studios - Grand Strategy Games</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            lokBlue: { 950: '#020617', 900: '#0f172a', 800: '#1e293b' },
+            lokGold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
+            lokGreen: { 500: '#10b981', 600: '#059669' },
+            gameBlue: '#00BEFF',
+            gameDarkBlue: '#023047',
+            gameOrange: '#FF6B00',
+            gameGreen: '#4CAF50',
+            gameRed: '#E63946',
+            gameYellow: '#FFD700',
+            gamePurple: '#9D4EDD',
+          },
+          fontFamily: {
+            sans: ['Lato', 'sans-serif'],
+            serif: ['Cinzel', 'serif'],
+          },
+          backgroundImage: {
+            'war-room': "url('https://www.transparenttextures.com/patterns/stardust.png')",
+          },
+          animation: {
+            'scroll-left': 'scroll-left 40s linear infinite',
+          },
+          keyframes: {
+            'scroll-left': {
+              '0%': { transform: 'translateX(0)' },
+              '100%': { transform: 'translateX(-50%)' },
+            },
+          },
+        },
+      },
+    };
+  </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lato:wght@300;400;700&display=swap"
     rel="stylesheet">
-</head>
+  <style>
+    body {
+      font-family: 'Lato', sans-serif;
+      scroll-behavior: smooth;
+      background-color: #020617;
+      color: #e2e8f0;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #d97706;
+    }
+
+    @keyframes hinge-swing {
+      0% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+
+      20% {
+        transform: translate(0, 0) rotate(5deg);
+      }
+
+      40% {
+        transform: translate(0, 0) rotate(-3deg);
+      }
+
+      60% {
+        transform: translate(0, 0) rotate(2deg);
+      }
+
+      80% {
+        transform: translate(0, 0) rotate(-1deg);
+      }
+
+      100% {
+        transform: translate(0, 0) rotate(0deg);
+      }
+    }
+
+    .animate-hinge-swing {
+      animation: hinge-swing 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+    }
+  </style>
 </head>
 
 <body class="text-slate-200 selection:bg-gameOrange selection:text-white">

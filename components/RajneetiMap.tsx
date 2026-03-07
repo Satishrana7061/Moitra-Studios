@@ -201,12 +201,10 @@ const RajneetiMap: React.FC = () => {
         <div className={`relative w-full h-full bg-slate-950 select-none flex flex-col ${selectedState ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-hidden'}`}>
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <div className={`relative flex-shrink-0 w-full flex flex-col items-center justify-center transition-all duration-500 ${selectedState ? 'h-[70vh] lg:h-full' : 'h-full'}`}>
-                {/* India Map Background */}
                 <div
                     className="absolute inset-0 z-0 flex items-center justify-center pt-[110px] md:pt-0"
                     onClick={() => {
                         setSelectedState(null);
-                        setSelectedNewsEvent(null);
                     }}
                 >
                     <div className="relative w-full h-full flex items-center justify-center p-4 md:p-8">
@@ -268,192 +266,9 @@ const RajneetiMap: React.FC = () => {
                                 );
                             })()}
                         </svg>
-
-
-                        {/* VOTE IMPACT BADGE (Appears on top of map for ALL screens) */}
-                        {selectedState && selectedNewsEvent && (
-                            <div
-                                className="fixed pointer-events-none z-[150] animate-pop-3d"
-                                style={{
-                                    left: `${clickPos.x}px`,
-                                    top: `${clickPos.y}px`,
-                                    transform: 'translate(-50%, -100%) translateY(-20px)'
-                                }}
-                            >
-                                <div className="relative flex items-center bg-black/95 border border-white/20 rounded-full py-1.5 px-3 md:py-2 md:px-4 shadow-2xl backdrop-blur-md">
-                                    <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border-2 ${getSentimentConfig(selectedNewsEvent.delta).border} mr-2 md:mr-3 bg-slate-800`}>
-                                        <img
-                                            src={getLeaderAvatar(selectedNewsEvent.politicianName, selectedNewsEvent.stateName)}
-                                            className="w-full h-full object-cover"
-                                            alt="Leader"
-                                            onError={(e) => (e.currentTarget.src = "/Avaters/NARENDRA MODI (PM).png")}
-                                        />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">{selectedState}</span>
-                                        <div className="flex items-center gap-1 md:gap-2">
-                                            <span className="text-[10px] md:text-sm font-black text-white uppercase tracking-tight">
-                                                {selectedNewsEvent.mainPhrase}
-                                            </span>
-                                            <span className={`${getSentimentConfig(selectedNewsEvent.delta).bg} ${getSentimentConfig(selectedNewsEvent.delta).text} ${getSentimentConfig(selectedNewsEvent.delta).border} text-[9px] md:text-xs font-black px-1.5 py-0.5 rounded ml-0.5 border`}>
-                                                {Number(selectedNewsEvent.delta) > 0 ? '+' : ''}{selectedNewsEvent.delta}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className="absolute bottom-[-6px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white/20"></div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* FLOATING IMPACT POPUP (Desktop/Large Screen Only) */}
-                        {selectedNewsEvent && (
-                            <div
-                                className="hidden lg:block fixed md:absolute md:left-[310px] lg:left-[340px] left-1/2 md:translate-x-0 -translate-x-1/2 top-1/2 -translate-y-[120%] md:-translate-y-[120%] z-[160] w-[90%] max-w-[340px] bg-[#0f172a]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-3xl p-5 md:p-6 animate-pop-3d"
-                                onClick={stopBubbling}
-                            >
-                                <div className="flex justify-between items-start mb-4">
-                                    <h3 className="text-white text-lg md:text-xl font-bold font-cinzel tracking-tight">Impact Analysis</h3>
-                                    <button
-                                        onClick={() => setSelectedNewsEvent(null)}
-                                        className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white transition-all"
-                                    >
-                                        <X size={18} />
-                                    </button>
-                                </div>
-
-                                <div className="flex items-center gap-4 mb-5">
-                                    {(() => {
-                                        const sc = getSentimentConfig(selectedNewsEvent.delta);
-                                        return (
-                                            <>
-                                                <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 ${sc.border} ${sc.glow} bg-slate-800`}>
-                                                    <img
-                                                        src={getLeaderAvatar(selectedNewsEvent.politicianName, selectedNewsEvent.stateName)}
-                                                        className="w-full h-full object-cover"
-                                                        alt=""
-                                                    />
-                                                </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-white font-bold text-base md:text-lg leading-tight truncate max-w-[180px]">
-                                                        {selectedNewsEvent.stateName}
-                                                    </span>
-                                                    <span className={`${sc.text} font-black text-lg md:text-xl uppercase`}>
-                                                        {Number(selectedNewsEvent.delta) > 0 ? '+' : ''}{selectedNewsEvent.delta}% {selectedNewsEvent.partyName}
-                                                    </span>
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-
-                                <div className="space-y-2.5">
-                                    <h4 className={`${getSentimentConfig(selectedNewsEvent.delta).popupText} font-bold text-[10px] uppercase tracking-[0.2em]`}>Live Summary</h4>
-                                    <p className="text-slate-200 text-sm leading-relaxed font-medium">
-                                        {selectedNewsEvent.summary}
-                                    </p>
-                                </div>
-
-                                <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
-                                    <span className="text-white/30 text-[9px] font-bold uppercase tracking-widest italic font-cinzel">Moitra Intelligence</span>
-                                    <div className="flex gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-white/40 cursor-pointer hover:bg-white/10">
-                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13" /></svg>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
-
-            {/* SECTION 2: Intelligence Card (Scrolls on mobile/ipad, Absolute on desktop) */}
-            {selectedState && (
-                <div
-                    className="relative lg:fixed lg:right-0 lg:top-1/2 lg:-translate-y-1/2 lg:z-[70] w-full lg:w-auto h-auto flex items-center justify-center py-10 lg:py-0 bg-slate-950 lg:bg-transparent"
-                    onClick={stopBubbling}
-                >
-                    <div className="relative w-[360px] h-[480px] animate-card-slide pointer-events-auto">
-                        {/* Card Background Asset */}
-                        <div
-                            className="absolute inset-0 z-0 bg-no-repeat bg-[length:100%_100%] bg-center drop-shadow-[0_20px_50px_rgba(0,0,0,1)]"
-                            style={{ backgroundImage: "url('Popup.png')" }}
-                        ></div>
-
-                        <div className="relative z-20 w-full h-full flex flex-col px-8 text-white pt-8 pb-8">
-                            {/* Close Button (Mostly useful on desktop now, but keep for consistency) */}
-                            <button
-                                onClick={() => setSelectedState(null)}
-                                className="absolute top-10 right-10 p-1.5 rounded-full bg-black/40 hover:bg-black/60 text-white/60 hover:text-white transition-all border border-white/10"
-                            >
-                                <X size={16} />
-                            </button>
-
-                            <div className="text-center mb-12">
-                                <h2 className="font-cinzel font-black uppercase text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight mb-2 text-sm">
-                                    {selectedState}
-                                </h2>
-                                <div className="font-cinzel text-[9px] tracking-[0.25em] uppercase font-bold border-b border-yellow-400/40 pb-5 mx-auto w-4/5" style={{ color: '#FFD700', textShadow: '0 0 12px #FFD700' }}>
-                                    {currentIntel.strategicTitle}
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-3 gap-3 mb-8 text-center">
-                                <div className="flex flex-col items-center">
-                                    <span className="text-[9px] uppercase tracking-widest font-black mb-1.5 text-orange-500">Role</span>
-                                    <span className="text-[9px] font-bold uppercase tracking-wider leading-none">{currentIntel.role}</span>
-                                </div>
-                                <div className="flex flex-col items-center border-l border-r border-white/10 px-1">
-                                    <span className="text-[9px] uppercase tracking-widest font-black mb-1.5 text-purple-400">DIFF</span>
-                                    <div className="flex gap-1 mt-1">
-                                        {[...Array(5)].map((_, i) => (
-                                            <div key={i} className={`w-2 h-2 rotate-45 ${i < (currentIntel.difficulty || 1) ? 'bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]' : 'bg-slate-700'}`} />
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="flex flex-col items-center">
-                                    <span className="text-[9px] uppercase tracking-widest font-black mb-1.5 text-cyan-400">Impact</span>
-                                    <span className="text-[9px] font-bold uppercase tracking-wider leading-none">{currentIntel.impact}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-between items-center mb-auto px-2">
-                                {[
-                                    { label: "Mood", val: currentIntel.powerMeters?.neighborhoodMood, color: "#22d3ee" },
-                                    { label: "Media", val: currentIntel.powerMeters?.mediaInfluence, color: "#fb923c" },
-                                    { label: "Alliance", val: currentIntel.powerMeters?.alliancePower, color: "#34d399" }
-                                ].map((meter, idx) => {
-                                    const radius = 24;
-                                    const circ = 2 * Math.PI * radius;
-                                    const offset = circ - (((meter.val || 50) / 100) * circ);
-                                    return (
-                                        <div key={idx} className="flex flex-col items-center">
-                                            <div className="relative w-16 h-16">
-                                                <svg className="w-full h-full -rotate-90" viewBox="0 0 60 60">
-                                                    <circle cx="30" cy="30" r={radius} stroke="#1e293b" strokeWidth="3" fill="none" />
-                                                    <circle cx="30" cy="30" r={radius} stroke={meter.color} strokeWidth="3" fill="none" strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" />
-                                                </svg>
-                                                <div className="absolute inset-0 flex items-center justify-center text-[11px] font-black">{meter.val}%</div>
-                                            </div>
-                                            <span className="text-[9px] uppercase tracking-tighter mt-1 text-slate-400 font-bold">{meter.label}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-
-                            <p className="text-[11px] text-sky-100 italic font-serif leading-relaxed text-center px-4 mb-6 mt-4">
-                                "{currentIntel.flavorText}"
-                            </p>
-
-                            <a href="https://play.google.com/store/apps/details?id=com.rajneeti" target="_blank" rel="noopener noreferrer" className="block w-full">
-                                <div className="bg-gameOrange hover:bg-orange-600 transition-all duration-300 py-3 text-center rounded font-cinzel font-black text-[10px] tracking-widest text-white shadow-lg active:scale-95">
-                                    ENTER THE CAMPAIGN
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <style>{`
                     @keyframes card-slide { 
@@ -492,7 +307,7 @@ const RajneetiMap: React.FC = () => {
                 </a>
             </div>
 
-            <BreakingNewsTicker onSelectState={handleNewsStateSelect} events={allEvents} />
+            <BreakingNewsTicker events={allEvents} />
         </div>
     );
 };

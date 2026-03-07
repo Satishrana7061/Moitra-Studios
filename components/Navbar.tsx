@@ -1,37 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { NAV_LINKS } from '../constants';
 
-interface NavbarProps {
-  onNavigate: (page: string) => void;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
+const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
-  const handleNavClick = (page: string, href: string) => {
-    onNavigate(page);
+  const handleNavClick = (href: string) => {
+    navigate(href);
     setIsMobileMenuOpen(false);
-
-    // Update URL using History API for clean paths
-    window.history.pushState({}, '', href);
-    // Dispatch a custom event so other components can listen for navigation changes
-    window.dispatchEvent(new PopStateEvent('popstate'));
   };
-
-  useEffect(() => {
-    // Handle initial path load
-    const path = window.location.pathname;
-    // Handle root path / defaulting to home but maintaining URL
-    if (path === '/' || path === '/home') {
-      onNavigate('home');
-      if (path === '/') window.history.replaceState({}, '', '/home');
-    }
-    else if (path === '/privacy-policy') onNavigate('privacy');
-    else if (path === '/contact-us') onNavigate('contact');
-    else onNavigate('home');
-  }, []);
 
   return (
     <nav
@@ -45,7 +25,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
           {/* Logo */}
           <div
             className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
-            onClick={() => handleNavClick('home', '/home')}
+            onClick={() => handleNavClick('/home')}
           >
             {/* Custom Moitra Logo SVG */}
             <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
@@ -83,11 +63,11 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
 
           {/* Desktop Links */}
           <div className="hidden lg:block">
-            <div className="ml-10 flex items-baseline space-x-10 lg:space-x-12">
+            <div className="ml-10 flex items-baseline space-x-6 lg:space-x-8">
               {NAV_LINKS.map((link) => (
                 <button
                   key={link.label}
-                  onClick={() => handleNavClick(link.page, link.href)}
+                  onClick={() => handleNavClick(link.href)}
                   className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
                 >
                   {link.label}
@@ -116,7 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ onNavigate }) => {
             {NAV_LINKS.map((link) => (
               <button
                 key={link.label}
-                onClick={() => handleNavClick(link.page, link.href)}
+                onClick={() => handleNavClick(link.href)}
                 className="w-full text-left text-white hover:text-gameOrange block py-5 text-lg font-black uppercase tracking-[0.2em] border-b border-white/5 transition-all active:scale-95 active:bg-white/5 rounded-xl px-4"
               >
                 {link.label}

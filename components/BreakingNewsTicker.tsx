@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { fetchBreakingNews, BreakingNewsEvent } from "../services/newsService";
-import { ChevronUp, ChevronDown, RefreshCw } from "lucide-react";
+import { ChevronUp, ChevronDown, RefreshCw, Newspaper } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
     onSelectState?: (event: BreakingNewsEvent) => void;
@@ -71,6 +72,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
     const [tickerIdx, setTickerIdx] = useState(0);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false); // Mobile Drawer state
+    const navigate = useNavigate();
 
     const events = propsEvents || localEvents;
 
@@ -104,12 +106,13 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
     const handleCardClick = (e: React.MouseEvent, ev: BreakingNewsEvent) => {
         e.stopPropagation();
-        setSelectedId(ev.id === selectedId ? null : ev.id);
-        onSelectState?.(ev);
-        // On mobile, if expanded, we might want to auto-collapse partially, but for now just select
-        if (window.innerWidth < 768) {
-            // Small delay to let user see selection before potential collapse
+        // Extract the daily_news.json index from the event ID (e.g. "daily_news_auto_2" → 2)
+        let articleIndex = 0;
+        if (ev.id.startsWith('daily_news_auto_')) {
+            const parsed = parseInt(ev.id.replace('daily_news_auto_', ''), 10);
+            if (!isNaN(parsed)) articleIndex = parsed;
         }
+        navigate('/rajneeti-tv-network', { state: { activeIndex: articleIndex } });
     };
 
     const getSentimentConfig = (delta: any, sentiment: string) => {
@@ -128,17 +131,16 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
             {/* ── DESKTOP & iPAD SIDE PANEL ────────────────────────── */}
             <div
-                className={`hidden md:flex absolute left-0 top-[110px] bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-slate-950/95 backdrop-blur-xl border-r border-white/5 shadow-2xl transition-transform duration-500`}
+                className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-slate-950/95 backdrop-blur-xl border-r border-white/5 shadow-2xl transition-transform duration-500`}
             >
                 {/* Header */}
-                <div className="px-5 py-4 border-b border-white/5 flex items-center justify-between bg-slate-900/50">
-                    <div className="flex items-center gap-3">
-                        <span className="px-2 py-0.5 bg-red-600 rounded text-[10px] font-black tracking-tighter text-white uppercase italic">Breaking</span>
-                        <span className="font-cinzel font-bold text-xs tracking-widest text-slate-300 uppercase">News</span>
-                    </div>
+                <div className="pt-7 pb-3 px-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10">
+                    <span className="font-black text-white tracking-widest text-xs lg:text-sm uppercase flex items-center gap-2">
+                        <Newspaper size={16} /> Latest Briefings
+                    </span>
                     <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_#ef4444] animate-[bnPulse_2s_infinite]"></span>
-                        <span className="text-[10px] font-bold text-red-500 tracking-widest">LIVE</span>
+                        <span className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_#ffffff] animate-[bnPulse_2s_infinite]"></span>
+                        <span className="text-[10px] font-bold text-white tracking-[0.2em]">LIVE</span>
                     </div>
                 </div>
 
@@ -149,7 +151,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                             <span className="text-white font-bold">{tickerEvent.stateName}</span>
                             <span className="mx-2 opacity-30 text-white">•</span>
                             <span>{tickerEvent.politicianName}</span>
-                            <span className="ml-2 font-black text-emerald-400">+{tickerEvent.delta}%</span>
+                            <span className={`ml-2 font-black ${tickerEvent.delta < 0 ? 'text-red-400' : 'text-emerald-400'}`}>{tickerEvent.delta > 0 ? '+' : ''}{tickerEvent.delta}</span>
                         </div>
                     </div>
                 )}
@@ -176,14 +178,14 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                 <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 border-2 ${isSelected ? 'border-emerald-500' : 'border-white/10 opacity-70 group-hover:opacity-100 transition-opacity'}`}>
                                     <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="text-[13px] font-bold text-slate-50 leading-snug mb-1.5 line-clamp-3">{ev.summary}</h4>
+                                <div className="flex-1 min-w-0 font-rajdhani">
+                                    <h4 className="text-[13px] font-bold text-slate-50 leading-snug mb-1.5 line-clamp-3">{ev.blogTitle || ev.summary}</h4>
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-1.5 min-w-0">
                                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter shrink-0">{ev.stateName}</span>
                                             <span className="text-[9px] font-medium text-slate-500 truncate italic">by {ev.politicianName}</span>
                                         </div>
-                                        <span className={`text-[10px] font-black ${sc.text} shrink-0`}>{ev.delta > 0 ? '+' : ''}{ev.delta}%</span>
+                                        <span className={`text-[12px] font-black ${sc.text} shrink-0 ${ev.delta > 0 ? 'drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]'}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}</span>
                                     </div>
                                 </div>
                             </button>
@@ -228,13 +230,13 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
                             {/* Animated Ticker in Top Bar */}
                             {!isExpanded && tickerEvent && (
-                                <div className="ticker-animation text-[12px] font-bold text-white truncate pr-4 max-w-[200px] md:max-w-none">
+                                <div className="ticker-animation text-[12px] font-bold text-white truncate pr-4 max-w-[200px] md:max-w-none font-rajdhani">
                                     <span className="bg-emerald-500/10 text-emerald-400 text-[8px] px-1 py-0.5 rounded mr-2 uppercase tracking-tighter">{tickerEvent.stateName}</span>
-                                    <span className="leading-none">{tickerEvent.summary}</span>
+                                    <span className="leading-none">{tickerEvent.blogTitle || tickerEvent.summary}</span>
                                 </div>
                             )}
                             {isExpanded && (
-                                <span className="font-cinzel font-bold text-xs tracking-widest text-slate-300">POLITICAL INTELLIGENCE</span>
+                                <span className="font-rajdhani font-bold text-xs tracking-widest text-slate-300">POLITICAL INTELLIGENCE</span>
                             )}
                         </div>
 
@@ -267,13 +269,13 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                                 <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="text-[14px] font-bold text-white leading-tight line-clamp-2 mb-1.5">{ev.summary}</h4>
+                                                <h4 className="text-[14px] font-bold text-white leading-tight line-clamp-2 mb-1.5">{ev.blogTitle || ev.summary}</h4>
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{ev.stateName}</span>
                                                         <span className="text-[9px] font-medium text-slate-500 italic">via {ev.politicianName}</span>
                                                     </div>
-                                                    <span className={`text-xs font-black ${sc.text}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}%</span>
+                                                    <span className={`text-xs font-black ${sc.text}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}</span>
                                                 </div>
                                             </div>
                                         </button>

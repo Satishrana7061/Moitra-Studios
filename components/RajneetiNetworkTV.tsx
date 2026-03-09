@@ -29,7 +29,7 @@ const RajneetiNetworkTV: React.FC = () => {
         document.title = "Rajneeti TV Network | Rajneeti";
         const fetchDailyNews = async () => {
             try {
-                const response = await fetch(`/daily_news.json?t=${Date.now()}`);
+                const response = await fetch(`${import.meta.env.BASE_URL}daily_news.json?t=${Date.now()}`);
                 const data = await response.json();
                 if (data) {
                     setNewsData(Array.isArray(data) ? data : [data]);

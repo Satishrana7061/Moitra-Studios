@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Gamepad2, Mail } from 'lucide-react';
+import { Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { STUDIO_INFO } from '../constants';
 
@@ -10,13 +10,29 @@ const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
 
-          {/* Brand */}
+          {/* Brand — matching header logo */}
           <div className="flex flex-col items-center md:items-start">
             <div className="flex items-center gap-2 mb-3">
-              <Gamepad2 className="h-5 w-5 text-gameOrange" />
-              <span className="font-cinzel font-bold text-lg text-white uppercase tracking-widest">
-                MOITRA<span className="text-gameOrange">Studios</span>
-              </span>
+              {/* Diamond Logo — same as Navbar */}
+              <div className="relative w-8 h-8 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gameOrange/20 rotate-45 transform border border-gameOrange/30"></div>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-5 h-5 text-gameOrange relative z-10 drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]"
+                >
+                  <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3" />
+                  <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <span className="font-cinzel font-bold text-lg tracking-[0.2em] text-white leading-none">
+                  MOITRA
+                </span>
+                <span className="text-[0.5rem] uppercase tracking-[0.4em] text-gameOrange pl-0.5">
+                  Studios
+                </span>
+              </div>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed text-center md:text-left normal-case">
               Crafting immersive Indian political strategy games. Experience the thrill of election campaigns and political simulations.

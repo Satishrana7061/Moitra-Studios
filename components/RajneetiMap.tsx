@@ -292,7 +292,7 @@ const RajneetiMap: React.FC = () => {
 
             <div className="relative z-10 w-full flex justify-center py-6 mt-auto">
                 <a
-                    href="https://play.google.com/store/apps"
+                    href="https://play.google.com/store/apps/details?id=com.rajneeti"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/10 px-5 py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 group"
@@ -314,52 +314,57 @@ const RajneetiMap: React.FC = () => {
 
 // Helper inside file for now - should be shared or mapped properly
 function getLeaderAvatar(name: string, stateName?: string): string {
-    const map: Record<string, string> = {
-        "Narendra Modi": "/Avaters/NARENDRA MODI (PM).png",
-        "Rahul Gandhi": "/Avaters/RAHUL GANDHI.png",
-        "Arvind Kejriwal": "/Avaters/ARVIND KEJRIWAL.png",
-        "Mamata Banerjee": "/Avaters/MAMTA BENRJEE.png",
-        "Yogi Adityanath": "/Avaters/YOGI ADITYANATH.png",
-        "M.K. Stalin": "/Avaters/M K STALIN.png",
-        "Regional Front": "/Avaters/MAMTA BENRJEE.png",
-        "National Front": "/Avaters/NARENDRA MODI (PM).png",
-        "Akhilesh Yadav": "/Avaters/AKHILESH YADAV.png",
-        "Nitish Kumar": "/Avaters/NITISH KUMAR.png",
-        "Uddhav Thackeray": "/Avaters/UDDAV THACKREAY.png",
-        "Amit Shah": "/Avaters/AMIT SHAH.png",
-        "Priyanka Gandhi": "/Avaters/PRIYANKA GANDHI.png",
-        "Rajnath Singh": "/Avaters/RAJNATH SINGH.png",
-        "Bhagwant Mann": "/Avaters/BHAGWANT MANN.png",
-        "Lalu Prasad Yadav": "/Avaters/LALU PRASAD YADAV.png",
-        "Smriti Irani": "/Avaters/SMRITI IRANI.png",
-        "Mayawati": "/Avaters/MAYAWATI.png",
-        "Nirmala Sitharaman": "/Avaters/NIRMALA SITHARAMAN.png",
-        "N. Chandrababu Naidu": "/Avaters/N. CHANDRABABU NAIDU.png",
-        "Pinarayi Vijayan": "/Avaters/PINARAYI VIJAYAN.png",
-        "Prashant Kishor": "/Avaters/PRASHANT KISHOR.png",
-        "Tejaswi Yadav": "/Avaters/TEJASWI YADAV.png",
-        "Mallikarjun Kharge": "/Avaters/MALLIKARJUN KHARGE.png",
+    const getPath = () => {
+        const map: Record<string, string> = {
+            "Narendra Modi": "/Avaters/NARENDRA MODI (PM).png",
+            "Rahul Gandhi": "/Avaters/RAHUL GANDHI.png",
+            "Arvind Kejriwal": "/Avaters/ARVIND KEJRIWAL.png",
+            "Mamata Banerjee": "/Avaters/MAMTA BENRJEE.png",
+            "Yogi Adityanath": "/Avaters/YOGI ADITYANATH.png",
+            "M.K. Stalin": "/Avaters/M K STALIN.png",
+            "Regional Front": "/Avaters/MAMTA BENRJEE.png",
+            "National Front": "/Avaters/NARENDRA MODI (PM).png",
+            "Akhilesh Yadav": "/Avaters/AKHILESH YADAV.png",
+            "Nitish Kumar": "/Avaters/NITISH KUMAR.png",
+            "Uddhav Thackeray": "/Avaters/UDDAV THACKREAY.png",
+            "Amit Shah": "/Avaters/AMIT SHAH.png",
+            "Priyanka Gandhi": "/Avaters/PRIYANKA GANDHI.png",
+            "Rajnath Singh": "/Avaters/RAJNATH SINGH.png",
+            "Bhagwant Mann": "/Avaters/BHAGWANT MANN.png",
+            "Lalu Prasad Yadav": "/Avaters/LALU PRASAD YADAV.png",
+            "Smriti Irani": "/Avaters/SMRITI IRANI.png",
+            "Mayawati": "/Avaters/MAYAWATI.png",
+            "Nirmala Sitharaman": "/Avaters/NIRMALA SITHARAMAN.png",
+            "N. Chandrababu Naidu": "/Avaters/N. CHANDRABABU NAIDU.png",
+            "Pinarayi Vijayan": "/Avaters/PINARAYI VIJAYAN.png",
+            "Prashant Kishor": "/Avaters/PRASHANT KISHOR.png",
+            "Tejaswi Yadav": "/Avaters/TEJASWI YADAV.png",
+            "Mallikarjun Kharge": "/Avaters/MALLIKARJUN KHARGE.png",
+        };
+
+        const lowerName = name.toLowerCase();
+        const lowerState = stateName?.toLowerCase();
+
+        // Regional Fallbacks
+        if (lowerState === "west bengal" && (lowerName.includes("regional") || lowerName.includes("front"))) {
+            return "/Avaters/MAMTA BENRJEE.png";
+        }
+        if (lowerState === "tamil nadu" && (lowerName.includes("regional") || lowerName.includes("front"))) {
+            return "/Avaters/M K STALIN.png";
+        }
+        if (lowerState === "delhi" && (lowerName.includes("regional") || lowerName.includes("front"))) {
+            return "/Avaters/ARVIND KEJRIWAL.png";
+        }
+
+        if (map[name]) return map[name];
+        for (const [key, val] of Object.entries(map)) {
+            if (lowerName.includes(key.toLowerCase().split(" ")[0])) return val;
+        }
+        return "/Avaters/NARENDRA MODI (PM).png";
     };
 
-    const lowerName = name.toLowerCase();
-    const lowerState = stateName?.toLowerCase();
-
-    // Regional Fallbacks
-    if (lowerState === "west bengal" && (lowerName.includes("regional") || lowerName.includes("front"))) {
-        return "/Avaters/MAMTA BENRJEE.png";
-    }
-    if (lowerState === "tamil nadu" && (lowerName.includes("regional") || lowerName.includes("front"))) {
-        return "/Avaters/M K STALIN.png";
-    }
-    if (lowerState === "delhi" && (lowerName.includes("regional") || lowerName.includes("front"))) {
-        return "/Avaters/ARVIND KEJRIWAL.png";
-    }
-
-    if (map[name]) return map[name];
-    for (const [key, val] of Object.entries(map)) {
-        if (lowerName.includes(key.toLowerCase().split(" ")[0])) return val;
-    }
-    return "/Avaters/NARENDRA MODI (PM).png";
+    const path = getPath();
+    return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 }
 
 export default RajneetiMap;

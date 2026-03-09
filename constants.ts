@@ -2,7 +2,7 @@
 import { Game } from './types';
 
 export const NAV_LINKS = [
-  { label: 'Home', href: '/home', page: 'home' },
+  { label: 'Home', href: '/indian-politics-game-home', page: 'home' },
   { label: 'Rajneeti TV Network', href: '/rajneeti-tv-network', page: 'tv' },
   { label: 'Privacy Policy', href: '/privacy-policy', page: 'privacy' },
   { label: 'Contact Us', href: '/contact-us', page: 'contact' },

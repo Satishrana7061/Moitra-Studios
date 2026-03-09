@@ -15,7 +15,7 @@ const App: React.FC = () => {
       <main className="flex-1 relative overflow-y-auto overflow-x-hidden">
         <Routes>
           <Route path="/" element={<RajneetiMap />} />
-          <Route path="/home" element={<RajneetiMap />} />
+          <Route path="/indian-politics-game-home" element={<RajneetiMap />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy onBack={() => window.history.back()} />} />
           <Route path="/contact-us" element={<ContactSection />} />
           <Route path="/rajneeti-tv-network" element={<RajneetiNetworkTV />} />

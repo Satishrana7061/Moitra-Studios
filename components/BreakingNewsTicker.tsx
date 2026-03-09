@@ -38,26 +38,31 @@ const LEADER_AVATARS: Record<string, string> = {
 };
 
 function getLeaderAvatar(name: string, stateName?: string): string {
-    if (LEADER_AVATARS[name]) return LEADER_AVATARS[name];
+    const getPath = () => {
+        if (LEADER_AVATARS[name]) return LEADER_AVATARS[name];
 
-    const lowerName = name.toLowerCase();
-    const lowerState = stateName?.toLowerCase();
+        const lowerName = name.toLowerCase();
+        const lowerState = stateName?.toLowerCase();
 
-    // Regional Fallbacks
-    if (lowerState === "west bengal" && (lowerName.includes("regional") || lowerName.includes("front"))) {
-        return "/Avaters/MAMTA BENRJEE.png";
-    }
-    if (lowerState === "tamil nadu" && (lowerName.includes("regional") || lowerName.includes("front"))) {
-        return "/Avaters/M K STALIN.png";
-    }
-    if (lowerState === "delhi" && (lowerName.includes("regional") || lowerName.includes("front"))) {
-        return "/Avaters/ARVIND KEJRIWAL.png";
-    }
+        // Regional Fallbacks
+        if (lowerState === "west bengal" && (lowerName.includes("regional") || lowerName.includes("front"))) {
+            return "/Avaters/MAMTA BENRJEE.png";
+        }
+        if (lowerState === "tamil nadu" && (lowerName.includes("regional") || lowerName.includes("front"))) {
+            return "/Avaters/M K STALIN.png";
+        }
+        if (lowerState === "delhi" && (lowerName.includes("regional") || lowerName.includes("front"))) {
+            return "/Avaters/ARVIND KEJRIWAL.png";
+        }
 
-    for (const [key, val] of Object.entries(LEADER_AVATARS)) {
-        if (lowerName.includes(key.toLowerCase().split(" ")[0])) return val;
-    }
-    return "/Avaters/NARENDRA MODI (PM).png";
+        for (const [key, val] of Object.entries(LEADER_AVATARS)) {
+            if (lowerName.includes(key.toLowerCase().split(" ")[0])) return val;
+        }
+        return "/Avaters/NARENDRA MODI (PM).png";
+    };
+
+    const path = getPath();
+    return `${import.meta.env.BASE_URL}${path.replace(/^\//, '')}`;
 }
 
 const sentimentConfig = {

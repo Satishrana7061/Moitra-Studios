@@ -25,7 +25,7 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <div
             className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
-            onClick={() => handleNavClick('/home')}
+            onClick={() => handleNavClick('/indian-politics-game-home')}
           >
             {/* Custom Moitra Logo SVG */}
             <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">

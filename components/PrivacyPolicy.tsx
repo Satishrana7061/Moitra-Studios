@@ -10,7 +10,7 @@ interface PrivacyPolicyProps {
 const PrivacyPolicy: React.FC<PrivacyPolicyProps> = ({ onBack }) => {
 
     useEffect(() => {
-        // Initial scroll to top of internal container if needed
+        document.title = 'Privacy Policy | Moitra Studios - Rajneeti Game';
     }, []);
 
     return (

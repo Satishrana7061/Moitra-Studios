@@ -49,8 +49,8 @@ export const STUDIO_INFO = {
   name: 'Moitra Studios',
   legalName: '15029155 Canada Inc.',
   email: 'support@moitrastudios.com',
-  twitter: 'https://twitter.com',
-  linkedin: 'https://linkedin.com',
+  twitter: 'https://x.com/MoitraStudios',
+  linkedin: 'https://linkedin.com/company/moitra-studios',
   foundingYear: 2023,
   location: 'Canada / Global',
 };

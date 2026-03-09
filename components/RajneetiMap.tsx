@@ -307,6 +307,30 @@ const RajneetiMap: React.FC = () => {
                 </a>
             </div>
 
+            {/* SEO: Hidden h1 for search engines */}
+            <h1 className="sr-only">Rajneeti - Indian Political Strategy Game | Master Elections & Build Alliances</h1>
+
+            {/* SEO: About the Game section - visible when scrolling on mobile */}
+            <section className="relative z-10 w-full bg-gradient-to-b from-transparent to-slate-950/90 px-4 md:px-8 py-6">
+                <div className="max-w-3xl mx-auto text-center">
+                    <h2 className="font-cinzel text-lg md:text-xl font-bold text-white mb-3 normal-case tracking-wide">
+                        About Rajneeti
+                    </h2>
+                    <p className="text-slate-400 text-xs md:text-sm leading-relaxed normal-case mb-4">
+                        Rajneeti is the ultimate Indian political strategy game where you master election campaigns,
+                        build powerful alliances, and navigate the complex world of Indian politics.
+                        Play as a political strategist, manage state-level campaigns, and rise to power in this
+                        realistic election simulation game.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                        <span className="text-[10px] bg-gameOrange/10 text-gameOrange border border-gameOrange/20 px-3 py-1 rounded-full normal-case">Indian Politics Game</span>
+                        <span className="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-3 py-1 rounded-full normal-case">Election Simulator</span>
+                        <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1 rounded-full normal-case">Strategy & Simulation</span>
+                        <span className="text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-3 py-1 rounded-full normal-case">Multiplayer</span>
+                    </div>
+                </div>
+            </section>
+
             <BreakingNewsTicker events={allEvents} />
         </div>
     );

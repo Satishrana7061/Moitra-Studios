@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
 import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
@@ -26,7 +25,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
-        document.title = "Rajneeti TV Network | Rajneeti";
+        document.title = "Rajneeti TV Network | Live Indian Political News & Updates";
         const fetchDailyNews = async () => {
             try {
                 const response = await fetch(`${import.meta.env.BASE_URL}daily_news.json?t=${Date.now()}`);

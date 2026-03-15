@@ -134,7 +134,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                     const isPos = !news.sentiment_score.includes('-');
                                     const isActive = idx === activeIndex;
                                     return (
-                                        <div
+                                        <article
                                             key={idx}
                                             ref={(el) => { articleRefs.current[idx] = el; }}
                                             onClick={() => {
@@ -150,17 +150,17 @@ const RajneetiNetworkTV: React.FC = () => {
                                             }}
                                             className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100 scale-[1.01]' : 'opacity-50 hover:opacity-100'}`}
                                         >
-                                            <div className="relative">
-                                                <h3 className="text-gameOrange font-bold text-xs tracking-widest uppercase mb-2">
-                                                    Anchor's Desk
-                                                </h3>
-                                                <h4 className="text-lg font-cinzel font-bold text-white mb-3 leading-tight">
-                                                    {news.blog_title}
-                                                </h4>
+                                                <header className="relative">
+                                                    <h3 className="text-gameOrange font-bold text-xs tracking-widest uppercase mb-2">
+                                                        Anchor's Desk
+                                                    </h3>
+                                                    <h2 className="text-lg font-cinzel font-bold text-white mb-3 leading-tight" title={news.blog_title}>
+                                                        {news.blog_title}
+                                                    </h2>
+                                                </header>
                                                 <div className={`text-slate-300 font-rajdhani text-[16px] md:text-lg leading-[1.6] tracking-wide ${!isActive && 'line-clamp-3'}`}>
                                                     <p className="mb-2">{news.blog_content}</p>
                                                 </div>
-                                            </div>
 
                                             <div className="relative pt-2">
                                                 <h3 className="text-emerald-500 font-bold text-xs tracking-widest uppercase mb-2">
@@ -177,7 +177,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </article>
                                     );
                                 })}
                             </div>

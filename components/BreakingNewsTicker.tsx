@@ -172,13 +172,13 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                         const sc = getSentimentConfig(ev.delta, ev.sentiment);
                         const isSelected = ev.id === selectedId;
                         return (
-                            <button
+                            <article
                                 key={ev.id}
                                 onClick={(e) => handleCardClick(e, ev)}
                                 className={`w-full text-left p-3 rounded-xl transition-all duration-300 border ${isSelected
                                     ? `${sc.border} ${sc.bg} ${sc.glow} translate-x-1`
                                     : 'border-white/5 bg-white/[0.03] hover:bg-white/[0.06]'
-                                    } flex gap-3 items-start group`}
+                                    } flex gap-3 items-start group relative cursor-pointer`}
                             >
                                 <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 border-2 ${isSelected ? 'border-emerald-500' : 'border-white/10 opacity-70 group-hover:opacity-100 transition-opacity'}`}>
                                     <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
@@ -193,7 +193,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                         <span className={`text-[12px] font-black ${sc.text} shrink-0 ${ev.delta > 0 ? 'drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]'}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}</span>
                                     </div>
                                 </div>
-                            </button>
+                            </article>
                         );
                     })}
                 </div>
@@ -258,7 +258,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                     const sc = getSentimentConfig(ev.delta, ev.sentiment);
                                     const isSelected = ev.id === selectedId;
                                     return (
-                                        <button
+                                        <article
                                             key={`mob-${ev.id}`}
                                             onClick={(e) => {
                                                 handleCardClick(e, ev);
@@ -268,7 +268,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                             className={`w-full text-left p-4 rounded-2xl border transition-all ${isSelected
                                                 ? `${sc.border} ${sc.bg} ring-1 ring-emerald-500/20`
                                                 : 'border-white/5 bg-white/[0.02]'
-                                                } flex gap-4 items-center`}
+                                                } flex gap-4 items-center relative cursor-pointer`}
                                         >
                                             <div className={`w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 ${isSelected ? 'border-emerald-500' : 'border-white/10'}`}>
                                                 <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
@@ -283,7 +283,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                                     <span className={`text-xs font-black ${sc.text}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}</span>
                                                 </div>
                                             </div>
-                                        </button>
+                                        </article>
                                     );
                                 })}
                             </div>

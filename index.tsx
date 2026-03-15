@@ -10,9 +10,13 @@ if (!rootElement) {
 }
 
 const root = createRoot(rootElement);
+
+// Grab the base URL injected by Vite (e.g., '/Moitra-Studios/') so the React Router doesn't strip it
+const basename = import.meta.env.BASE_URL;
+
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={basename === '/' ? '' : basename}>
       <App />
     </BrowserRouter>
   </React.StrictMode>

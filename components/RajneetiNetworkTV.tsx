@@ -47,8 +47,8 @@ const RajneetiNetworkTV: React.FC = () => {
     const isPositive = activeNews && !activeNews.sentiment_score.includes('-');
 
     return (
-        <div className="h-full bg-black text-slate-200 font-sans flex flex-col overflow-hidden">
-            <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 pt-0 pb-4 relative h-full">
+        <div className="min-h-screen bg-black text-slate-200 font-sans flex flex-col overflow-x-hidden">
+            <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 pt-0 md:pt-4 pb-4 relative">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(50,20,20,0.5)_0%,rgba(0,0,0,0.9)_100%)] pointer-events-none z-0"></div>
 
                 <header className="relative z-10 flex items-center justify-between border-b-2 border-red-600 pb-2 mb-4 shrink-0">
@@ -158,7 +158,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                                         {news.blog_title}
                                                     </h2>
                                                 </header>
-                                                <div className={`text-slate-300 font-rajdhani text-[16px] md:text-lg leading-[1.6] tracking-wide ${!isActive && 'line-clamp-3'}`}>
+                                                <div className={`text-slate-300 font-serif normal-case text-base md:text-lg leading-relaxed ${!isActive && 'line-clamp-3'}`}>
                                                     <p className="mb-2">{news.blog_content}</p>
                                                 </div>
 
@@ -180,6 +180,12 @@ const RajneetiNetworkTV: React.FC = () => {
                                         </article>
                                     );
                                 })}
+
+                                {/* Google Ads Placeholder */}
+                                <div className="mt-4 mb-4 bg-black/40 border border-dashed border-white/20 rounded-lg p-4 text-center text-white/40 text-sm min-h-[120px] flex flex-col items-center justify-center shrink-0">
+                                    <span className="uppercase tracking-widest font-bold text-xs mb-1">Advertisement</span>
+                                    <span className="text-[10px]">Google Ad space (Integration pending)</span>
+                                </div>
                             </div>
                         </div>
                     </div>

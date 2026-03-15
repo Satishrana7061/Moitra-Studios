@@ -115,7 +115,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                 <div className="absolute left-0 top-0 bottom-0 bg-red-600 w-32 md:w-40 flex items-center justify-center z-10 shadow-lg border-r-2 border-white/20">
                                     <span className="text-white font-black text-sm md:text-lg tracking-widest">RN TICKER</span>
                                 </div>
-                                <div className="pl-36 md:pl-48 text-slate-200 text-lg md:text-xl font-bold font-rajdhani whitespace-nowrap animate-[marquee_20s_linear_infinite]">
+                                <div className="pl-36 md:pl-48 text-slate-200 text-lg md:text-xl font-bold font-rajdhani whitespace-nowrap animate-[marquee_45s_linear_infinite]">
                                     <span className="text-white">{activeNews.ticker_headline}</span> &nbsp;&bull;&nbsp; <span className="text-gameOrange">{activeNews.blog_title}</span> &nbsp;&bull;&nbsp; {activeNews.leader} reports a sentiment shift of {activeNews.sentiment_score}
                                 </div>
                             </div>

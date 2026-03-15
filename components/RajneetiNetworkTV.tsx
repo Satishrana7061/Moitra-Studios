@@ -154,7 +154,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                                     <h3 className="text-gameOrange font-bold text-xs tracking-widest uppercase mb-2">
                                                         Anchor's Desk
                                                     </h3>
-                                                    <h2 className="text-lg font-cinzel font-bold text-white mb-3 leading-tight" title={news.blog_title}>
+                                                    <h2 className="text-[22px] font-rajdhani font-bold text-white mb-3 leading-tight" title={news.blog_title}>
                                                         {news.blog_title}
                                                     </h2>
                                                 </header>

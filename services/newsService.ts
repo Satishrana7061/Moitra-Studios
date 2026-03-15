@@ -80,8 +80,13 @@ export async function fetchBreakingNews(): Promise<BreakingNewsEvent[]> {
         console.warn("Could not fetch daily news for ticker", err);
     }
 
+    if (dailyNewsEvents.length > 0) {
+        // Perfect sync: ONLY show the news available on the TV Network page.
+        return dailyNewsEvents;
+    }
+
     if (backendEvents.length > 0) {
-        return [...dailyNewsEvents, ...backendEvents];
+        return backendEvents;
     }
 
     // Fallback: convert mock data to BreakingNewsEvent[]
@@ -99,5 +104,5 @@ export async function fetchBreakingNews(): Promise<BreakingNewsEvent[]> {
         createdAt: new Date().toISOString(),
     }));
 
-    return [...dailyNewsEvents, ...fallbackEvents];
+    return fallbackEvents;
 }

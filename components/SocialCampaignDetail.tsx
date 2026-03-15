@@ -44,7 +44,6 @@ const SocialCampaignDetail: React.FC = () => {
 
     const formatWinner = (style: string) => {
         switch (style) {
-            case 'nehru': return 'Nehru-style Approach';
             case 'modi': return 'Modi-style Approach';
             case 'rahul': return 'Rahul-style Approach';
             default: return 'Alternative Solution';
@@ -108,7 +107,7 @@ const SocialCampaignDetail: React.FC = () => {
                         Strategic Approaches
                     </h2>
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         {campaign.approaches.map((approach) => (
                             <div key={approach.id} className="bg-slate-900/50 border border-white/10 rounded-xl p-6 md:p-8 flex flex-col transition-all hover:bg-slate-800/80 hover:border-white/20">
                                 <h3 className="text-white text-xl font-bold font-rajdhani uppercase mb-1">{approach.columnTitle}</h3>
@@ -189,7 +188,7 @@ const SocialCampaignDetail: React.FC = () => {
                                 Have Your Say
                             </h2>
                             <p className="text-slate-400 text-center text-sm mb-8 normal-case">
-                                For the next {Math.ceil((new Date(campaign.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days, this Social Campaign is live. Read the three approaches above and vote for the solution you would execute for India.
+                                For the next {Math.ceil((new Date(campaign.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days, this Social Campaign is live. Read the two approaches above and vote for the solution you would execute for India.
                             </p>
 
                             {hasVoted ? (

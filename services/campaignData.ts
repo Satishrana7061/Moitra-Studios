@@ -3,7 +3,7 @@ export interface LeaderApproach {
     leaderName: string;
     columnTitle: string;
     bullets: string[];
-    style: 'nehru' | 'modi' | 'rahul';
+    style: 'modi' | 'rahul';
 }
 
 export interface SocialCampaign {
@@ -36,18 +36,7 @@ export const CAMPAIGNS_DATA: SocialCampaign[] = [
         endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
         status: 'live',
         approaches: [
-            {
-                id: "approach-nehru",
-                leaderName: "Jawaharlal Nehru",
-                columnTitle: "If Jawaharlal Nehru were PM today",
-                style: "nehru",
-                bullets: [
-                    "Would likely advocate for massive state-led investment in nationalized energy infrastructure to ensure self-reliance.",
-                    "Might impose strict price controls and rationing to shield the poorest citizens from immediate market shocks.",
-                    "Focus on long-term Five-Year Planning to shift toward industrial capacity building rather than quick market fixes.",
-                    "Historically favored non-aligned diplomacy to negotiate state-to-state oil deals outside of major bloc conflicts."
-                ]
-            },
+
             {
                 id: "approach-modi",
                 leaderName: "Narendra Modi (Current PM)",
@@ -89,25 +78,14 @@ export const CAMPAIGNS_DATA: SocialCampaign[] = [
         results: {
             winnerStyle: 'modi',
             votePercentages: {
-                 nehru: 15,
-                 modi: 52,
-                 rahul: 28,
-                 own: 5
+                 modi: 58,
+                 rahul: 36,
+                 own: 6
             },
-            analysis: "Users heavily preferred the Modi-style approach of embracing the technology and trying to upskill the workforce to become 'AI creators' rather than trying to ban or heavily regulate the technology. Rahul's social safety net approach gained traction among those worried about immediate job losses, while Nehru's state-planning approach was seen as less viable for modern tech."
+            analysis: "Users heavily preferred the Modi-style approach of embracing the technology and trying to upskill the workforce to become 'AI creators' rather than trying to ban or heavily regulate the technology. Rahul's social safety net approach gained traction among those worried about immediate job losses and corporate exploitation."
         },
         approaches: [
-            {
-                id: "approach-nehru",
-                leaderName: "Jawaharlal Nehru",
-                columnTitle: "If Jawaharlal Nehru were PM today",
-                style: "nehru",
-                bullets: [
-                    "Would establish top-tier public institutions (like early IITs) specifically dedicated to AI research and development.",
-                    "Might heavily regulate AI adoption in critical sectors to protect manual labor and existing administrative jobs.",
-                    "Focus on building a sovereign, state-owned AI infrastructure to prevent data colonialism."
-                ]
-            },
+
             {
                 id: "approach-modi",
                 leaderName: "Narendra Modi",

@@ -61,20 +61,39 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop Links */}
-          <div className="hidden lg:block">
-            <div className="ml-10 flex items-baseline space-x-6 lg:space-x-8">
-              {NAV_LINKS.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => handleNavClick(link.href)}
-                  className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
-                >
-                  {link.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
-                </button>
-              ))}
-            </div>
+          {/* Desktop Links - Left Side */}
+          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-8 mr-auto z-10 pt-1">
+            {NAV_LINKS.slice(0, 2).map((link) => (
+              <button
+                key={link.label}
+                onClick={() => handleNavClick(link.href)}
+                className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
+              >
+                {link.label}
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop Links - Right Side */}
+          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-auto z-10 pt-1">
+            {NAV_LINKS.slice(2).map((link) => (
+              <button
+                key={link.label}
+                onClick={() => handleNavClick(link.href)}
+                className="relative text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5"
+              >
+                {link.label === 'Social Campaigns' ? (
+                  <div className="flex items-center gap-1.5 text-white">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse top-[-1px] relative"></div>
+                    {link.label}
+                  </div>
+                ) : (
+                  <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
+                )}
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+              </button>
+            ))}
           </div>
 
           {/* Mobile/iPad Menu Button */}

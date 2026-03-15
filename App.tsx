@@ -5,6 +5,8 @@ import Navbar from './components/Navbar';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import ContactSection from './components/ContactSection';
 import RajneetiNetworkTV from './components/RajneetiNetworkTV';
+import SocialCampaignsList from './components/SocialCampaignsList';
+import SocialCampaignDetail from './components/SocialCampaignDetail';
 import Footer from './components/Footer';
 
 const App: React.FC = () => {
@@ -24,6 +26,8 @@ const App: React.FC = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicy onBack={() => window.history.back()} />} />
           <Route path="/contact-us" element={<ContactSection />} />
           <Route path="/rajneeti-tv-network" element={<RajneetiNetworkTV />} />
+          <Route path="/social-campaigns" element={<SocialCampaignsList />} />
+          <Route path="/social-campaigns/:id" element={<SocialCampaignDetail />} />
           <Route path="*" element={<RajneetiMap />} />
         </Routes>
         {showFooter && <Footer />}

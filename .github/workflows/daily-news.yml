@@ -10,9 +10,8 @@ on:
 jobs:
   update-news:
     runs-on: ubuntu-latest
-
     permissions:
-      contents: write # Needed to push commits back to the repo
+      contents: write
 
     steps:
     - name: Checkout repository

@@ -113,9 +113,8 @@ const RajneetiMap: React.FC = () => {
         });
         const width = maxX - minX;
         const height = maxY - minY;
-        const marginX = width * 0.05;
-        const marginY = height * 0.15; // Added more vertical padding so Sri Lanka/Southern tip does not get cut off by bottom tickers
-        return `${minX - marginX} ${minY - marginY} ${width + marginX * 2} ${height + marginY * 2}`;
+        const margin = Math.max(width, height) * 0.05;
+        return `${minX - margin} ${minY - margin} ${width + margin * 2} ${height + margin * 2}`;
     }, [countryData]);
 
     const getPath = (feature: GeoJSONFeature) => {
@@ -203,7 +202,7 @@ const RajneetiMap: React.FC = () => {
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <div className={`relative flex-shrink-0 w-full flex flex-col items-center justify-center transition-all duration-500 ${selectedState ? 'h-[70vh] lg:h-full' : 'h-full'}`}>
                 <div
-                    className="absolute inset-0 z-0 flex items-center justify-center pt-[110px] md:pt-0"
+                    className="absolute inset-0 z-0 flex items-center justify-center pb-16 md:pb-0"
                     onClick={() => {
                         setSelectedState(null);
                     }}

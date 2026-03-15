@@ -113,8 +113,9 @@ const RajneetiMap: React.FC = () => {
         });
         const width = maxX - minX;
         const height = maxY - minY;
-        const margin = Math.max(width, height) * 0.05;
-        return `${minX - margin} ${minY - margin} ${width + margin * 2} ${height + margin * 2}`;
+        const marginX = width * 0.05;
+        const marginY = height * 0.15; // Added more vertical padding so Sri Lanka/Southern tip does not get cut off by bottom tickers
+        return `${minX - marginX} ${minY - marginY} ${width + marginX * 2} ${height + marginY * 2}`;
     }, [countryData]);
 
     const getPath = (feature: GeoJSONFeature) => {

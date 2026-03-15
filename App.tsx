@@ -13,7 +13,7 @@ const App: React.FC = () => {
   const showFooter = !isMapPage;
 
   return (
-    <div className="h-screen w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden uppercase">
+    <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden uppercase">
       <div className="relative w-full z-50">
         <Navbar />
       </div>

@@ -89,15 +89,15 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </h2>
                                 </div>
 
-                                <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
-                                    <div className="bg-blue-900/90 backdrop-blur-sm text-white font-bold px-4 py-2 text-sm md:text-base rounded-md shadow-lg border border-blue-400/30 uppercase tracking-widest shrink-0">
+                                <div className="absolute bottom-4 left-2 right-2 md:left-4 md:right-4 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-3 pointer-events-none">
+                                    <div className="bg-blue-900/90 backdrop-blur-sm text-white font-bold px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-base rounded-md shadow-lg border border-blue-400/30 uppercase tracking-widest shrink-0 pointer-events-auto">
                                         {activeNews.date} | {activeNews.state}
                                     </div>
                                     <a
                                         href="https://play.google.com/store/apps/details?id=com.rajneeti"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="flex items-center gap-2 bg-black/60 hover:bg-black/80 backdrop-blur-md border border-white/20 px-4 py-2 md:px-5 md:py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 group shrink-0"
+                                        className="flex items-center gap-1.5 md:gap-2 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 group shrink-0 pointer-events-auto"
                                     >
                                         <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 fill-gameBlue" xmlns="http://www.w3.org/2000/svg">
                                             <path d="M3.609 1.814L13.792 12 3.61 22.186a2.203 2.203 0 01-.61-1.511V3.325c0-.573.22-1.092.61-1.511zM14.502 12.71l2.583 2.583-9.524 5.49a2.189 2.189 0 01-1.353.284l8.294-8.357zM17.839 12.427L20.8 10.71c.73-.418.73-1.482 0-1.9L17.84 7.093l-3.34 3.341 3.339 1.993zM14.502 11.29l-8.293-8.357a2.189 2.189 0 011.353.284l9.524 5.49-2.584 2.583z" />
@@ -158,7 +158,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                                         {news.blog_title}
                                                     </h2>
                                                 </header>
-                                                <div className={`text-slate-300 font-serif normal-case text-base md:text-lg leading-relaxed ${!isActive && 'line-clamp-3'}`}>
+                                                <div className={`text-slate-300 font-sans normal-case text-base md:text-lg leading-relaxed ${!isActive && 'line-clamp-3'}`}>
                                                     <p className="mb-2">{news.blog_content}</p>
                                                 </div>
 

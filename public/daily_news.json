@@ -1,57 +1,13 @@
 [
   {
     "leader": "Narendra Modi",
-    "state": "Delhi",
-    "sentiment_score": "-3.8",
-    "ticker_headline": "India Under Modi: Shrinking Democracy, Growing Inequalities",
-    "blog_title": "Democracy: The DLC Nobody Asked For",
-    "blog_content": "The India Forum claims our 'Democracy' meter is depleting while 'Inequality' hits a new high score. In Rajneeti, we call this 'Streamlining the UI.' Why bother with complex voter mechanics when you can focus on 'High-Value Donors' and 'HQ Management'? If your 'Democratic Space' debuff is active, just spam the 'Rally' button and boost your 'Charisma' to mask the stats. Remember, a smaller democracy means fewer NPCs to manage. It\u2019s not a systemic failure; it\u2019s an elite-tier speedrun strategy. Grind those inequalities for maximum power and ignore the patch notes!",
-    "social_post": "Democracy shrinking? Inequality peaking? In the Rajneeti meta, we call that 'Streamlining for a High Score.' \ud83d\udcc9 Buff your HQ and ignore the critics. #RajneetiGame #PoliticalStrategy #ModiMeta #GamingTheSystem",
-    "original_url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxONTRad2FwVExZUG1ZaS12OW5uTjh6aV9OcVJneERrZWpxcVdXUUJCWDQxWWtDRW5nZ1RYS1NxUE9pT1ZqQmp4ZHpXa1R3UzdPM3BUQ3AzWGRQcFFESlc1SnNkWnZ2OGFlenJzNXRmS0s3cVJCUENqWVZoV0VEVzhZM2s5WFBCcFZuaVhUSnhBRVhnbkx4SjNVbXBuQQ?oc=5",
-    "date": "2026-03-07"
-  },
-  {
-    "leader": "Rahul Gandhi",
-    "state": "Uttar Pradesh",
-    "sentiment_score": "+3",
-    "ticker_headline": "Opposition Unity Gains Momentum as New Alliance Strategies Are Discussed for Upcoming State Polls",
-    "blog_title": "Alliance DLC: The Coalition Update Nobody Expected",
-    "blog_content": "In a surprising turn of events, opposition leaders have unveiled a new alliance strategy ahead of state elections. In the world of Rajneeti, this is like unlocking the 'Coalition Builder' ability tree. The key moves? Pool voter bases, share campaign resources, and deploy 'Joint Rally' events for maximum influence gain. Political analysts say this alliance could shift the meta entirely, forcing the ruling party to recalibrate their electoral strategy. The question remains: will this coalition hold together through the election season, or will internal friction cause a party split debuff?",
-    "social_post": "Opposition alliance loading... \ud83e\udd1d New coalition strategy just dropped for the upcoming state elections. Will it change the political meta? #RajneetiGame #IndianPolitics #AllianceMode #ElectionSeason",
-    "original_url": "",
-    "date": "2026-03-09"
-  },
-  {
-    "leader": "Narendra Modi",
-    "state": "Delhi",
-    "sentiment_score": "+4",
-    "ticker_headline": "Central Government Announces Major Infrastructure Projects in Key States Ahead of Election Season",
-    "blog_title": "Infrastructure Speedrun: Building for Votes",
-    "blog_content": "The central government has launched a massive infrastructure push across key electoral states, from highways to digital connectivity projects. In Rajneeti terms, this is the classic 'Infrastructure Investment' play \u2014 spend big on public works to boost your 'Development Score' before elections. The strategy is proven: visible projects translate to voter satisfaction. But critics argue this is just 'Election Season Spending' \u2014 a temporary buff that fades post-election. Smart players know that timing infrastructure announcements right before polls can swing undecided voters. The real question: will the projects actually get completed, or will they remain 'Under Construction' forever?",
-    "social_post": "Massive infra push just dropped across key states! \ud83c\udfd7\ufe0f In Rajneeti, we call this the 'Development Score Grind.' Build highways, win hearts. #RajneetiGame #Infrastructure #ElectionStrategy #DevelopmentMode",
-    "original_url": "",
-    "date": "2026-03-09"
-  },
-  {
-    "leader": "Mamata Banerjee",
-    "state": "West Bengal",
-    "sentiment_score": "+2",
-    "ticker_headline": "New Welfare Schemes Launched in Kolkata Receive Widespread Public Support, Boosting Regional Influence",
-    "blog_title": "Welfare Meta: The Kolkata Power Move",
-    "blog_content": "West Bengal's Chief Minister has rolled out a series of new welfare schemes targeting healthcare and education in Kolkata and surrounding districts. In the Rajneeti playbook, this is a textbook 'Welfare Stack' strategy \u2014 layer multiple public benefit programs to build an unshakeable voter base. The schemes include free medical check-ups, student scholarships, and food distribution programs. Political rivals call it populism; supporters call it governance. Either way, the approval ratings are climbing, and the regional influence meter is glowing green. The real game theory question: can these welfare schemes sustain the budget, or will the economic debuff hit later?",
-    "social_post": "Kolkata goes full welfare mode! \ud83c\udfe5\ud83c\udf93 Healthcare + education schemes stacking up. In Rajneeti, this is how you max out regional influence. #RajneetiGame #WelfareState #BengalPolitics #RegionalPower",
-    "original_url": "",
-    "date": "2026-03-09"
-  },
-  {
-    "leader": "Arvind Kejriwal",
-    "state": "Delhi",
-    "sentiment_score": "-2.5",
-    "ticker_headline": "Delhi Government Faces Criticism Over Pollution Crisis as Air Quality Drops to Hazardous Levels",
-    "blog_title": "Pollution Debuff: The Delhi AQI Crisis Event",
-    "blog_content": "Delhi is once again in the grip of a severe pollution crisis, with AQI levels hitting hazardous marks across the capital. In the Rajneeti universe, this triggers the 'Environmental Crisis' event \u2014 a debuff that tanks your approval ratings unless you deploy emergency countermeasures fast. The ruling party has announced odd-even traffic rules and factory shutdowns, but critics say these are band-aid fixes to a systemic problem. Smart Rajneeti players know that environmental events require long-term infrastructure investment, not just seasonal patches. The political fallout is already showing up in poll numbers as opposition parties weaponize the crisis for their own campaigns.",
-    "social_post": "Delhi AQI hitting hazardous levels \u26a0\ufe0f That's a major 'Environmental Crisis' debuff in Rajneeti. Quick fixes won't work \u2014 you need the long-term strategy upgrade. #RajneetiGame #DelhiPollution #CrisisManagement #PoliticalStrategy",
-    "original_url": "",
-    "date": "2026-03-10"
+    "state": "Bihar",
+    "sentiment_score": "+2.5",
+    "ticker_headline": "PM Modi's Bihar post sparks political storm ahead of Bihar elections",
+    "blog_title": "Bihar Buffs Activated: Modi Hits Rally Mode, Opposition Trips HQ Alarm",
+    "blog_content": "In Rajneeti terms, this is classic high-level Rally play: one Modi post, and suddenly the whole Bihar map starts blinking red. The opposition, naturally, responds by fumbling Charisma checks and triggering an Arrest Event card. BJP gains momentum, media oxygen, and probably a tidy Fundraise bonus, while rivals waste turns on damage control. Moral of the campaign? In Bihar, never hand your opponent free outrage XP.",
+    "social_post": "One post, one storm, and Bihar politics is back in full Rajneeti mode. Modi looks like he just played Rally + Charisma, while the opposition burned a turn on self-sabotage. Bihar election board: thoroughly entertained. #BiharElections #Modi #Rajneeti #IndianPolitics #ElectionStrategy",
+    "original_url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOVk9OSm5FS3Njd2ZoaTA2VGZfZUdNN0RMRFJ4TTJDYjBQT1hONktIeS1IVS05TGJLQmdBRjJsREM0WkxUMjJFNDRQODRERHZJeDc2Ql9KbGd1VmVXMURHQlAzcWhKWTVPdURMb3RkSWlWNVdEcU1Hdy0zU2ZPVFZoR1dDb05iUVBIVm9VOQ?oc=5",
+    "date": "2026-03-15"
   }
 ]

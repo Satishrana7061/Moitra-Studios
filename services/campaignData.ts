@@ -25,8 +25,8 @@ export interface SocialCampaign {
 export const CAMPAIGNS_DATA: SocialCampaign[] = [
     {
         id: "oil-price-shock-2026",
-        title: "Oil Price Shock: Nehru vs Modi vs Rahul on India’s Energy Future",
-        metaDescription: "Global oil prices have spiked due to international conflicts. Compare how three distinct leaders would handle the energy crisis in India.",
+        title: "Oil Price Shock: Modi vs Rahul on India’s Energy Future",
+        metaDescription: "Global oil prices have spiked due to international conflicts. Compare how the two leaders would handle the energy crisis in India.",
         problemBullets: [
             "Global crude oil prices jumped significantly after escalating conflicts in oil-producing regions.",
             "India imports over 80% of its crude oil, making domestic petrol and LPG prices highly vulnerable to international swings.",

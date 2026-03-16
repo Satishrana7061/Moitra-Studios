@@ -241,15 +241,29 @@ Rules:
 Output ONLY a valid JSON array, nothing else.`;
 
   const scores = await callGPT(prompt, 0.3);
-  if (!scores) return [];
+  if (!scores) {
+    console.error("[Score] GPT returned null/empty for scoring");
+    return [];
+  }
+
+  // Strip markdown code blocks that GPT often wraps around JSON
+  const cleanedScores = scores
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .trim();
+
+  console.log(`[Score] GPT response preview: ${cleanedScores.substring(0, 200)}`);
 
   let parsed: any[];
   try {
-    parsed = JSON.parse(scores);
-  } catch {
-    console.error("[Score] Failed to parse GPT scoring response");
+    parsed = JSON.parse(cleanedScores);
+  } catch (e) {
+    console.error(`[Score] Failed to parse GPT scoring response: ${e.message}`);
+    console.error(`[Score] Raw response (first 300 chars): ${scores.substring(0, 300)}`);
     return [];
   }
+
+  console.log(`[Score] Successfully parsed ${parsed.length} scored issues`);
 
   const results: ScoredIssue[] = [];
   for (const s of parsed) {
@@ -550,6 +564,7 @@ async function logGeneration(
 
 async function callGPT(prompt: string, temperature = 0.5): Promise<string | null> {
   try {
+    console.log(`[GPT] Calling OpenAI API (model: gpt-4o, temp: ${temperature})...`);
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -568,7 +583,18 @@ async function callGPT(prompt: string, temperature = 0.5): Promise<string | null
     });
 
     const data = await res.json();
-    return data.choices?.[0]?.message?.content?.trim() || null;
+
+    // Check for API errors (wrong key, no access, rate limit, etc.)
+    if (data.error) {
+      console.error(`[GPT] API error: ${data.error.message} (type: ${data.error.type})`);
+      return null;
+    }
+
+    const content = data.choices?.[0]?.message?.content?.trim() || null;
+    if (!content) {
+      console.error("[GPT] API returned no content in choices");
+    }
+    return content;
   } catch (e) {
     console.error("[GPT] API call failed:", e.message);
     return null;

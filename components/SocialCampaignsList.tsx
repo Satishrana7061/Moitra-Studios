@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Megaphone, ArrowRight, CheckCircle2, Vote, Clock, Trophy } from 'lucide-react';
+import { Megaphone, ArrowRight, CheckCircle2, Vote, Clock, Trophy, History } from 'lucide-react';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 
 const SocialCampaignsList: React.FC = () => {

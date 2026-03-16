@@ -84,10 +84,10 @@ const Navbar: React.FC = () => {
                 className="relative text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5"
               >
                 {link.label === 'Social Campaigns' ? (
-                  <div className="flex items-center gap-1.5 text-white">
-                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse top-[-1px] relative"></div>
+                  <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
                     {link.label}
-                  </div>
+                  </span>
                 ) : (
                   <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
                 )}

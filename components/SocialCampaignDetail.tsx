@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Award, Users, ChevronRight, MessageSquare, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Share2, Award, Users, ChevronRight, MessageSquare, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 import CountdownTimer from './CountdownTimer';
 import SocialCampaignSidebar from './SocialCampaignSidebar';
@@ -17,6 +17,7 @@ const SocialCampaignDetail: React.FC = () => {
     const [votedStyle, setVotedStyle] = useState<string | null>(null);
     const [ownSolution, setOwnSolution] = useState('');
     const [activeExperience, setActiveExperience] = useState<{ type: string, data: any } | null>(null);
+    const [voteError, setVoteError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -55,21 +56,33 @@ const SocialCampaignDetail: React.FC = () => {
         setHasVoted(false);
         setVotedStyle(null);
         setOwnSolution('');
+        setVoteError(null);
     }, [id]);
 
     const handleVote = async (style: string) => {
-        if (!campaign || hasVoted) return;
+        if (!campaign || hasVoted || voteLoading) return;
         
+        setVoteError(null);
         setVoteLoading(true);
+
+        // Optimistic UI: show success immediately
+        setHasVoted(true);
+        setVotedStyle(style);
+
         const success = await dynamicCampaignService.castVote(campaign.id, style);
         
         if (success) {
+            // Persist to localStorage so refresh keeps it
             localStorage.setItem(`vote_${campaign.slug}`, style);
-            setHasVoted(true);
-            setVotedStyle(style);
+        } else {
+            // Roll back if API failed
+            setHasVoted(false);
+            setVotedStyle(null);
+            setVoteError('Could not register your vote. Please check your connection and try again.');
         }
         setVoteLoading(false);
     };
+
 
     if (loading) {
         return (
@@ -229,6 +242,15 @@ const SocialCampaignDetail: React.FC = () => {
                         ) : (
                             <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-10">
                                 <h2 className="text-3xl font-cinzel font-bold text-white text-center mb-8">Cast Your Vote</h2>
+
+                                {/* Error Banner */}
+                                {voteError && (
+                                    <div className="max-w-md mx-auto mb-6 flex items-center gap-3 bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
+                                        <XCircle className="w-5 h-5 text-red-500 shrink-0" />
+                                        <p className="text-red-400 text-sm font-medium">{voteError}</p>
+                                    </div>
+                                )}
+
                                 {!hasVoted ? (
                                     <div className="max-w-md mx-auto space-y-4">
                                         {campaign.approaches?.map((app) => (
@@ -236,7 +258,7 @@ const SocialCampaignDetail: React.FC = () => {
                                                 key={app.id}
                                                 onClick={() => handleVote(app.style)}
                                                 disabled={voteLoading}
-                                                className="w-full p-6 rounded-2xl bg-white/5 border border-white/10 text-left text-white hover:bg-white/10 hover:border-gameOrange/50 transition-all flex items-center justify-between group"
+                                                className="w-full p-6 rounded-2xl bg-white/5 border border-white/10 text-left text-white hover:bg-white/10 hover:border-gameOrange/50 transition-all flex items-center justify-between group disabled:opacity-60 disabled:cursor-wait"
                                             >
                                                 <span className="font-bold text-lg">{app.leader_name} Approach</span>
                                                 <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all" />
@@ -253,21 +275,31 @@ const SocialCampaignDetail: React.FC = () => {
                                             <button 
                                                 onClick={() => handleVote('own')}
                                                 disabled={voteLoading || !ownSolution.trim()}
-                                                className="w-full bg-slate-800 text-slate-300 py-3 rounded-xl hover:bg-slate-700 transition-all font-bold uppercase tracking-widest text-xs"
+                                                className="w-full bg-slate-800 text-slate-300 py-3 rounded-xl hover:bg-slate-700 transition-all font-bold uppercase tracking-widest text-xs disabled:opacity-60 disabled:cursor-wait"
                                             >
                                                 Submit Alternative Solution
                                             </button>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="text-center py-10 animate-fade-in">
-                                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                                            <Award className="w-10 h-10 text-green-500" />
-                                        </div>
-                                        <h3 className="text-2xl font-bold text-white mb-2 uppercase">Vote Recorded!</h3>
-                                        <p className="text-slate-400 max-w-xs mx-auto mb-6">
-                                            You selected the <span className="text-white font-bold">{votedStyle}-style</span> approach. Results will be calculated when the timer hits zero.
-                                        </p>
+                                    <div className="text-center py-10">
+                                        {voteLoading ? (
+                                            <>
+                                                <div className="w-20 h-20 border-4 border-gameOrange/20 border-t-gameOrange rounded-full animate-spin mx-auto mb-6" />
+                                                <p className="text-slate-400 font-medium">Registering your vote...</p>
+                                            </>
+                                        ) : (
+                                            <>
+                                            <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                                                <CheckCircle className="w-10 h-10 text-green-500" />
+                                            </div>
+                                            <h3 className="text-2xl font-bold text-white mb-2 uppercase">✅ Vote Registered!</h3>
+                                            <p className="text-slate-400 max-w-xs mx-auto mb-2">
+                                                You voted for the <span className="text-gameOrange font-bold">{votedStyle === 'own' ? 'Your Own Idea' : campaign.approaches?.find(a => a.style === votedStyle)?.leader_name + ' approach' || votedStyle + ' approach'}</span>.
+                                            </p>
+                                            <p className="text-slate-500 text-xs max-w-xs mx-auto mb-6">Your vote is locked in. Results will be analysed by AI when the campaign timer hits zero.</p>
+                                            </>                                            
+                                        )}
                                         <button className="flex items-center gap-2 text-slate-500 hover:text-white mx-auto text-xs font-bold transition-colors">
                                             <Share2 className="w-4 h-4" />
                                             SHARE DEBATE

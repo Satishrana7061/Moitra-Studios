@@ -22,10 +22,26 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")!;
 
+// ---- AI MODEL (GPT-4.5 as requested in the OpenAI account) ----
+const GPT_MODEL = "gpt-4.5";
+
+// ---- UPCOMING ELECTION STATES (boost RSS scoring for these) ----
+// Update this list whenever new state elections are announced.
+// Current: Bihar (2025), Delhi (just had elections, strong user interest), 
+//          Uttar Pradesh, Madhya Pradesh, Rajasthan, Jharkhand
+const UPCOMING_ELECTION_STATES = [
+  "Bihar", "Delhi", "Uttar Pradesh", "UP", "Madhya Pradesh", "MP",
+  "Rajasthan", "Jharkhand", "West Bengal", "Punjab"
+];
+
 const RSS_FEEDS = [
   "https://news.google.com/rss/search?q=India+political+issue&hl=en-IN&gl=IN&ceid=IN:en",
   "https://news.google.com/rss/search?q=India+economy+inflation+unemployment&hl=en-IN&gl=IN&ceid=IN:en",
   "https://news.google.com/rss/search?q=India+government+policy+Modi+Rahul&hl=en-IN&gl=IN&ceid=IN:en",
+  // Election-state targeted feeds
+  "https://news.google.com/rss/search?q=Bihar+election+politics+2025&hl=en-IN&gl=IN&ceid=IN:en",
+  "https://news.google.com/rss/search?q=Delhi+political+issue+AAP+BJP&hl=en-IN&gl=IN&ceid=IN:en",
+  "https://news.google.com/rss/search?q=India+real+problem+citizens+state+level&hl=en-IN&gl=IN&ceid=IN:en",
 ];
 
 const ISSUE_CATEGORIES = [
@@ -47,7 +63,10 @@ serve(async (req: Request) => {
 
     console.log(`[Campaign Bot] Starting run in mode: ${mode}`);
 
-    // Step 0: Auto-close expired campaigns
+    // Step 0a: Clean up old data to stay within Supabase free tier limits
+    await cleanupOldData();
+
+    // Step 0b: Auto-close expired campaigns
     await autoCloseExpiredCampaigns();
 
     // Step 1: Create a run log entry
@@ -269,7 +288,17 @@ Output ONLY a valid JSON array, nothing else.`;
   for (const s of parsed) {
     const h = headlines[s.index - 1];
     if (!h) continue;
-    const composite = 0.4 * s.recency_score + 0.3 * s.reach_score + 0.3 * s.civic_relevance_score;
+    let composite = 0.4 * s.recency_score + 0.3 * s.reach_score + 0.3 * s.civic_relevance_score;
+
+    // Boost composite score for headlines from upcoming-election states
+    const headlineLower = h.title.toLowerCase();
+    const isElectionState = UPCOMING_ELECTION_STATES.some(state =>
+      headlineLower.includes(state.toLowerCase())
+    );
+    if (isElectionState) {
+      composite = Math.min(1.0, composite + 0.15); // +15% boost, capped at 1.0
+      console.log(`[Score] Election-state boost applied to: "${h.title.substring(0, 60)}"`);
+    }
 
     const issue: ScoredIssue = {
       headline: h.title,
@@ -277,7 +306,7 @@ Output ONLY a valid JSON array, nothing else.`;
       source_url: h.link,
       source_name: h.source,
       category: s.category || "Governance",
-      region: s.region || "national",
+      region: s.region || (isElectionState ? `state:${UPCOMING_ELECTION_STATES.find(st => headlineLower.includes(st.toLowerCase()))}` : "national"),
       recency_score: s.recency_score,
       reach_score: s.reach_score,
       civic_relevance_score: s.civic_relevance_score,
@@ -551,7 +580,7 @@ async function logGeneration(
 ) {
   await supabase.from("campaign_generation_logs").insert({
     run_id: runId, campaign_id: campaignId,
-    model_used: "gpt-4o", confidence_score: campaign.confidence_score,
+    model_used: GPT_MODEL, confidence_score: campaign.confidence_score,
     moderation_passed: moderation.passed, moderation_flags: moderation.flags,
     raw_response_preview: JSON.stringify(campaign).substring(0, 500),
     generation_time_ms: timeMs,
@@ -564,7 +593,7 @@ async function logGeneration(
 
 async function callGPT(prompt: string, temperature = 0.5): Promise<string | null> {
   try {
-    console.log(`[GPT] Calling OpenAI API (model: gpt-4o, temp: ${temperature})...`);
+    console.log(`[GPT] Calling OpenAI API (model: ${GPT_MODEL}, temp: ${temperature})...`);
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -572,13 +601,13 @@ async function callGPT(prompt: string, temperature = 0.5): Promise<string | null
         "Authorization": `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: GPT_MODEL,
         messages: [
           { role: "system", content: "You are a neutral Indian political analyst. Output only valid JSON." },
           { role: "user", content: prompt },
         ],
         temperature,
-        max_tokens: 2000,
+        max_tokens: 3000,
       }),
     });
 
@@ -599,6 +628,61 @@ async function callGPT(prompt: string, temperature = 0.5): Promise<string | null
     console.error("[GPT] API call failed:", e.message);
     return null;
   }
+}
+
+// =============================================================
+// SUPABASE FREE-TIER DATA CLEANUP
+// =============================================================
+
+async function cleanupOldData() {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const sixtyDaysAgo  = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+
+  // 1. Delete old issue_candidates (these accumulate fast — 15 per run)
+  const { count: deletedCandidates } = await supabase
+    .from("issue_candidates")
+    .delete()
+    .lt("created_at", thirtyDaysAgo)
+    .select("id", { count: "exact", head: true });
+
+  // 2. Delete old generation logs (low value after 60 days)
+  const { count: deletedLogs } = await supabase
+    .from("campaign_generation_logs")
+    .delete()
+    .lt("created_at", sixtyDaysAgo)
+    .select("id", { count: "exact", head: true });
+
+  // 3. Cap votes per campaign — keep only newest 5000 per archived campaign
+  //    First find archived campaigns with excess votes
+  const { data: heavyCampaigns } = await supabase
+    .from("votes")
+    .select("campaign_id")
+    .limit(1000);
+
+  if (heavyCampaigns) {
+    // Count by campaign_id
+    const countMap: Record<string, number> = {};
+    for (const v of heavyCampaigns) {
+      countMap[v.campaign_id] = (countMap[v.campaign_id] || 0) + 1;
+    }
+    for (const [cid, count] of Object.entries(countMap)) {
+      if (count > 5000) {
+        // Get the IDs of votes to delete (oldest excess)
+        const { data: oldVotes } = await supabase
+          .from("votes")
+          .select("id")
+          .eq("campaign_id", cid)
+          .order("created_at", { ascending: true })
+          .limit(count - 5000);
+        if (oldVotes && oldVotes.length > 0) {
+          await supabase.from("votes").delete().in("id", oldVotes.map((v: any) => v.id));
+          console.log(`[Cleanup] Pruned ${oldVotes.length} excess votes from campaign ${cid}`);
+        }
+      }
+    }
+  }
+
+  console.log(`[Cleanup] Deleted ~${deletedCandidates || 0} old candidates, ~${deletedLogs || 0} old logs`);
 }
 
 // =============================================================

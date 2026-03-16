@@ -1,101 +1,170 @@
-import requests
-import json
 import os
-from openai import OpenAI
-from datetime import datetime
+import json
 import xml.etree.ElementTree as ET
+from datetime import datetime, timedelta
+import requests
+from openai import OpenAI
+import google.generativeai as genai
+from supabase import create_client, Client
+from dotenv import load_dotenv
 
-# Configuration
+load_dotenv()
+
+# --- CONFIGURATION ---
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+SUPABASE_URL = os.getenv("VITE_SUPABASE_URL")
+SUPABASE_KEY = os.getenv("VITE_SUPABASE_ANON_KEY") # Use Service Role Key in Prod for Bypass RLS
+
 RSS_FEED_URL = "https://news.google.com/rss/search?q=Indian+politics+leaders&hl=en-IN&gl=IN&ceid=IN:en"
-# Use a relative path so it works in GitHub Actions
 OUTPUT_FILE = os.path.join(os.path.dirname(__file__), "public", "daily_news.json")
 
-def fetch_rss_headlines():
-    """Fetch 3 headlines from the Google News RSS feed."""
-    print("Fetching RSS headlines...")
-    response = requests.get(RSS_FEED_URL)
-    root = ET.fromstring(response.content)
-    
-    headlines = []
-    for item in root.findall('.//item')[:3]:
-        title = item.find('title').text
-        description = item.find('description').text
-        link = item.find('link').text
-        headlines.append({"title": title, "summary": description, "link": link})
-    
-    return headlines
+# Initialize Clients
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
+    supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def generate_daily_news_package(headlines):
-    """Use OpenAI to generate a satirical, game-linked news JSON."""
-    if not OPENAI_API_KEY:
-        print("Error: OPENAI_API_KEY not found in environment variables.")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
+# --- NEWS MODULE ---
+
+def fetch_rss_headlines(count=3):
+    print(f"Fetching {count} RSS headlines...")
+    try:
+        response = requests.get(RSS_FEED_URL)
+        root = ET.fromstring(response.content)
+        headlines = []
+        for item in root.findall('.//item')[:count]:
+            headlines.append({
+                "title": item.find('title').text,
+                "summary": item.find('description').text,
+                "link": item.find('link').text
+            })
+        return headlines
+    except Exception as e:
+        print(f"RSS Fetch Error: {e}")
+        return []
+
+def generate_daily_news(headlines):
+    if not OPENAI_API_KEY: return None
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    
+    prompt = f"Analyze these 3 headlines for the Rajneeti game: {json.dumps(headlines)}. Output STRICT JSON: leader, state, sentiment_score, ticker_headline, blog_title, blog_content, social_post, original_url."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4", # Falling back to gpt-4 since 5.4 was a placeholder
+            messages=[{"role": "system", "content": "Satirical political advisor for Rajneeti game."}, {"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        text = response.choices[0].message.content.strip()
+        return json.loads(text.replace('```json', '').replace('```', ''))
+    except Exception as e:
+        print(f"Daily News AI Error: {e}")
         return None
 
-    client = OpenAI(api_key=OPENAI_API_KEY)
+# --- CAMPAIGN MODULE ---
 
+def generate_social_campaign(topic_name, category):
+    """Uses Gemini to generate a full Modi vs Rahul campaign scenario."""
+    if not GEMINI_API_KEY: 
+        print("Gemini Key missing for Campaign generation.")
+        return None
+    
+    model = genai.GenerativeModel('gemini-1.5-pro')
     prompt = f"""
-    You are a sarcastic, political strategy advisor for the game 'Rajneeti'.
-    Analyze these 3 Indian political news headlines:
-    {json.dumps(headlines)}
-
-    Instructions:
-    1. Select the most impactful headline.
-    2. Identify the primary 'leader' and 'state' involved.
-    3. Calculate a 'sentiment_score' between -5.0 and +5.0 (simulating game impact).
-    4. Create a 'blog_title' and 'blog_content' (100 words max) that is satirical and links the news to Rajneeti game mechanics (like 'Fundraise', 'Charisma', 'HQ management', or 'Rally').
-    5. Draft a 'social_post' for Twitter with hashtags.
-
-    Output format: STRICT JSON (only the object, no backticks).
+    Create a highly detailed 'Social Campaign' for the Rajneeti game based on this topic: '{topic_name}' in category '{category}'.
+    
+    Strictly focus on the competition between Narendra Modi and Rahul Gandhi.
+    
+    Output STRICT JSON with these keys:
     {{
-      "leader": "string",
-      "state": "string",
-      "sentiment_score": "string (e.g., +3.5 or -2.0)",
-      "ticker_headline": "string (cleaned headline)",
-      "blog_title": "string",
-      "blog_content": "string",
-      "social_post": "string",
-      "original_url": "string (the 'link' provided in the headlines for the chosen story)"
+      "title": "Impactful Headline (Modi vs Rahul style)",
+      "subtitle": "A catchy ideological tagline",
+      "issue_summary": "A 2-paragraph neutral summary of the crisis/topic",
+      "problem_bullets": ["3 key facts about the problem"],
+      "approaches": [
+        {{
+          "leader_name": "Narendra Modi (Current PM)",
+          "style": "modi",
+          "column_title": "His Current Policy Direction",
+          "bullets": ["4 bullet points summarizing his actual or likely strategic response"]
+        }},
+        {{
+          "leader_name": "Rahul Gandhi",
+          "style": "rahul",
+          "column_title": "His Proposed Counter-Response",
+          "bullets": ["4 bullet points summarizing his likely populist or rights-based response"]
+        }}
+      ]
     }}
     """
     
-    print("Asking OpenAI for the daily news package...")
     try:
-        response = client.chat.completions.create(
-            model="gpt-5.4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant that outputs STRICT JSON."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.7,
-        )
-        
-        # Clean response text if it contains markdown markers
-        text = response.choices[0].message.content.strip()
-        text = text.replace('```json', '').replace('```', '')
-        return json.loads(text)
+        response = model.generate_content(prompt)
+        text = response.text.strip()
+        return json.loads(text.replace('```json', '').replace('```', ''))
     except Exception as e:
-        print(f"Error parsing OpenAI response: {e}")
+        print(f"Campaign AI Error: {e}")
         return None
 
-def main():
-    headlines = fetch_rss_headlines()
-    if not headlines:
-        print("No headlines found.")
-        return
+def manage_campaign_lifecycle():
+    if not supabase: return
 
-    package = generate_daily_news_package(headlines)
-    if package:
-        package["date"] = datetime.now().strftime("%Y-%m-%d")
-        
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
-        
-        with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
-            json.dump([package], f, indent=2) # Wrapping in array as per public/daily_news.json format
-        print(f"Daily news package saved to {OUTPUT_FILE}")
-    else:
-        print("Failed to generate package.")
+    # 1. Check if a topic round has ended and needs conversion
+    # Logic: find 'finished' rounds that don't have a child campaign yet
+    now = datetime.now().isoformat()
+    
+    # 2. Check for Live Experience
+    # This part would fetch the winning topic from the votes table
+    # For now, simplified: Check if we need a fresh live campaign
+    live_campaigns = supabase.table('campaigns').select('id').eq('status', 'live').execute()
+    
+    if len(live_campaigns.data) == 0:
+        print("No live campaign found. Checking for winning topics...")
+        # Simulating fetching a winning topic for demo
+        campaign_data = generate_social_campaign("National Job Security post-AI", "Technology")
+        if campaign_data:
+            slug = "campaign-" + datetime.now().strftime("%Y%m%d")
+            res = supabase.table('campaigns').insert({
+                "slug": slug,
+                "title": campaign_data['title'],
+                "subtitle": campaign_data['subtitle'],
+                "category": "Technology",
+                "issue_summary": campaign_data['issue_summary'],
+                "problem_bullets": campaign_data['problem_bullets'],
+                "status": "live",
+                "end_time": (datetime.now() + timedelta(days=3)).isoformat()
+            }).execute()
+            
+            if res.data:
+                campaign_id = res.data[0]['id']
+                for app in campaign_data['approaches']:
+                    supabase.table('leader_approaches').insert({
+                        "campaign_id": campaign_id,
+                        "leader_name": app['leader_name'],
+                        "style": app['style'],
+                        "column_title": app['column_title'],
+                        "bullets": app['bullets']
+                    }).execute()
+                print(f"Successfully launched new campaign: {slug}")
+
+# --- MAIN RUNNER ---
+
+def main():
+    # Update Daily News (Static JSON for SEO)
+    headlines = fetch_rss_headlines()
+    if headlines:
+        package = generate_daily_news(headlines)
+        if package:
+            package["date"] = datetime.now().strftime("%Y-%m-%d")
+            with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+                json.dump([package], f, indent=2)
+            print("Daily News Updated.")
+
+    # Manage Dynamic Campaigns
+    manage_campaign_lifecycle()
 
 if __name__ == "__main__":
     main()

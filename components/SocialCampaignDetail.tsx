@@ -1,262 +1,315 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CAMPAIGNS_DATA, SocialCampaign } from '../services/campaignData';
-import { ArrowLeft, Megaphone, CheckCircle2, ChevronRight, BarChart3, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Share2, Award, Users, ChevronRight, MessageSquare, AlertCircle } from 'lucide-react';
+import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
+import CountdownTimer from './CountdownTimer';
+import SocialCampaignSidebar from './SocialCampaignSidebar';
+import TopicVoting from './TopicVoting';
 
 const SocialCampaignDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [campaign, setCampaign] = useState<SocialCampaign | null>(null);
-    const [userVote, setUserVote] = useState<string | null>(null);
-    const [ownSolution, setOwnSolution] = useState('');
+    const [allCampaigns, setAllCampaigns] = useState<SocialCampaign[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [voteLoading, setVoteLoading] = useState(false);
     const [hasVoted, setHasVoted] = useState(false);
+    const [votedStyle, setVotedStyle] = useState<string | null>(null);
+    const [ownSolution, setOwnSolution] = useState('');
+    const [activeExperience, setActiveExperience] = useState<{ type: string, data: any } | null>(null);
 
     useEffect(() => {
-        window.scrollTo(0, 0);
-        const found = CAMPAIGNS_DATA.find(c => c.id === id);
-        if (found) {
-            setCampaign(found);
-            document.title = `${found.title} | Rajneeti Campaigns`;
-            // Check local storage
-            const storedVote = localStorage.getItem(`rajneeti_vote_${id}`);
-            if (storedVote) {
-                setHasVoted(true);
-                setUserVote(storedVote);
+        const fetchData = async () => {
+            setLoading(true);
+            const archive = await dynamicCampaignService.getArchive();
+            setAllCampaigns(archive);
+
+             if (id) {
+                const data = await dynamicCampaignService.getCampaignBySlug(id);
+                setCampaign(data);
+                
+                // Check if already voted for this campaign in this session/device
+                const localVote = localStorage.getItem(`vote_${id}`);
+                if (localVote) {
+                    setHasVoted(true);
+                    setVotedStyle(localVote);
+                }
+            } else {
+                // Fetch the current live experience if no ID provided
+                const live = await dynamicCampaignService.getActiveExperience();
+                setActiveExperience(live);
+                if (live.type === 'campaign') {
+                    setCampaign(live.data);
+                    const localVote = localStorage.getItem(`vote_${live.data.slug}`);
+                    if (localVote) {
+                        setHasVoted(true);
+                        setVotedStyle(localVote);
+                    }
+                }
             }
-        } else {
-            navigate('/social-campaigns');
+            setLoading(false);
+        };
+
+        fetchData();
+        // Reset vote status when campaign changes
+        setHasVoted(false);
+        setVotedStyle(null);
+        setOwnSolution('');
+    }, [id]);
+
+    const handleVote = async (style: string) => {
+        if (!campaign || hasVoted) return;
+        
+        setVoteLoading(true);
+        const success = await dynamicCampaignService.castVote(campaign.id, style, style === 'own' ? ownSolution : undefined);
+        
+        if (success) {
+            localStorage.setItem(`vote_${campaign.slug}`, style);
+            setHasVoted(true);
+            setVotedStyle(style);
         }
-    }, [id, navigate]);
-
-    if (!campaign) return <div className="min-h-screen bg-black" />;
-
-    const isLive = campaign.status === 'live';
-
-    const handleVoteSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!userVote) return;
-        localStorage.setItem(`rajneeti_vote_${campaign.id}`, userVote);
-        if (userVote === 'own' && ownSolution.trim()) {
-            localStorage.setItem(`rajneeti_own_solution_${campaign.id}`, ownSolution);
-        }
-        setHasVoted(true);
+        setVoteLoading(false);
     };
 
-    const formatWinner = (style: string) => {
-        switch (style) {
-            case 'modi': return 'Modi-style Approach';
-            case 'rahul': return 'Rahul-style Approach';
-            default: return 'Alternative Solution';
-        }
-    };
+    if (loading) {
+        return (
+            <div className="min-h-screen pt-24 pb-12 bg-slate-950 flex flex-col items-center justify-center">
+                <div className="w-12 h-12 border-4 border-gameOrange/20 border-t-gameOrange rounded-full animate-spin mb-4" />
+                <p className="text-slate-400 font-rajdhani animate-pulse">Loading Political Situation...</p>
+            </div>
+        );
+    }
 
-    return (
-        <div className="min-h-[100dvh] bg-black text-slate-200 font-sans flex flex-col md:pt-4 overflow-x-hidden pb-20">
-            <div className="absolute top-0 left-0 right-0 h-96 bg-gradient-to-b from-indigo-900/40 to-transparent pointer-events-none z-0"></div>
-            
-            <main className="flex-1 max-w-6xl mx-auto w-full px-4 pt-16 md:pt-24 relative z-10">
+     if (!campaign) {
+        if (activeExperience?.type === 'topic_round') {
+            return (
+                <div className="min-h-screen pt-24 pb-12 bg-slate-950">
+                    <TopicVoting round={activeExperience.data} onVoteComplete={() => navigate('/social-campaigns')} />
+                </div>
+            );
+        }
+
+        return (
+            <div className="min-h-screen pt-24 pb-12 bg-slate-950 flex flex-col items-center justify-center p-4">
+                <AlertCircle className="w-16 h-16 text-slate-700 mb-6" />
+                <h1 className="text-3xl font-cinzel font-bold text-white mb-2">Campaign Not Found</h1>
+                <p className="text-slate-400 mb-8">This policy debate may have been moved or archived.</p>
                 <button 
                     onClick={() => navigate('/social-campaigns')}
-                    className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-8 text-sm font-bold uppercase tracking-widest"
+                    className="bg-gameOrange text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-orange-600 transition-all shadow-[0_4px_15px_rgba(255,107,0,0.3)]"
                 >
-                    <ArrowLeft size={16} /> Back to Campaigns
+                    Back to Hub
                 </button>
+            </div>
+        );
+    }
 
-                {/* Header & Problem Block */}
-                <header className="mb-12">
-                    <div className="flex items-center gap-3 mb-6">
-                        {isLive ? (
-                            <span className="bg-red-600/20 text-red-500 border border-red-500/50 text-xs uppercase tracking-widest font-black px-3 py-1.5 rounded flex items-center gap-2">
-                                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div> LIVE CAMPAIGN
-                            </span>
-                        ) : (
-                            <span className="bg-slate-800 text-slate-400 border border-slate-700 text-xs uppercase tracking-widest font-black px-3 py-1.5 rounded flex items-center gap-2">
-                                <CheckCircle2 size={14} /> CLOSED
-                            </span>
-                        )}
-                        <span className="text-slate-500 text-xs font-bold uppercase tracking-wider hidden sm:block">
-                            {new Date(campaign.startDate).toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })}
-                        </span>
-                    </div>
-
-                    <h1 className="text-3xl md:text-5xl lg:text-6xl font-black font-rajdhani uppercase text-white leading-tight mb-6">
-                        {campaign.title}
-                    </h1>
-                    <p className="text-indigo-300/80 text-lg md:text-xl font-serif italic mb-8 border-l-4 border-indigo-500/50 pl-4">
-                        {campaign.metaDescription}
-                    </p>
-
-                    <div className="bg-slate-900/80 border border-slate-700 p-6 md:p-8 rounded-xl backdrop-blur-sm">
-                        <div className="flex items-center gap-2 text-gameOrange font-black uppercase tracking-widest text-sm mb-4">
-                            <AlertTriangle size={18} /> The Current Situation
-                        </div>
-                        <ul className="space-y-3">
-                            {campaign.problemBullets.map((bullet, idx) => (
-                                <li key={idx} className="flex items-start gap-3">
-                                    <ChevronRight size={18} className="text-indigo-500 shrink-0 mt-0.5" />
-                                    <span className="text-slate-300 normal-case leading-relaxed">{bullet}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </header>
-
-                {/* Three-Column Leader Comparison */}
-                <div className="mb-16">
-                    <h2 className="text-2xl font-black font-cinzel text-center mb-8 uppercase tracking-widest text-white border-b border-white/10 pb-4">
-                        Strategic Approaches
-                    </h2>
+    return (
+        <div className="min-h-screen pt-24 pb-12 bg-slate-950">
+            <div className="max-w-7xl mx-auto px-4 md:px-8">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                        {campaign.approaches.map((approach) => (
-                            <div key={approach.id} className="bg-slate-900/50 border border-white/10 rounded-xl p-6 md:p-8 flex flex-col transition-all hover:bg-slate-800/80 hover:border-white/20">
-                                <h3 className="text-white text-xl font-bold font-rajdhani uppercase mb-1">{approach.columnTitle}</h3>
-                                {approach.style !== 'modi' && (
-                                    <span className="text-xs font-black uppercase tracking-widest text-indigo-400/80 mb-6 inline-block bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">
-                                        Hypothetical Analysis
-                                    </span>
-                                )}
-                                {approach.style === 'modi' && (
-                                    <span className="text-xs font-black uppercase tracking-widest text-emerald-400/80 mb-6 inline-block bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                                        Current Methodology
-                                    </span>
-                                )}
+                    {/* LEFT SIDEBAR - Persistent Archive */}
+                    <div className="hidden lg:block lg:col-span-1 h-[calc(100vh-160px)] sticky top-32">
+                        <SocialCampaignSidebar 
+                            campaigns={allCampaigns} 
+                            onSelectCampaign={(slug) => navigate(`/social-campaigns/${slug}`)} 
+                            activeSlug={campaign.slug}
+                        />
+                    </div>
+
+                    {/* MAIN CONTENT AREA */}
+                    <div className="lg:col-span-3 space-y-8">
+                        
+                        {/* Header Banner */}
+                        <div className="relative p-8 md:p-12 rounded-3xl overflow-hidden border border-white/5 bg-slate-900/40">
+                            <div className="absolute top-0 right-0 p-6">
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                                    campaign.status === 'live' 
+                                    ? 'bg-red-500/10 border-red-500/30 text-red-500 animate-pulse' 
+                                    : 'bg-green-500/10 border-green-500/30 text-green-500'
+                                }`}>
+                                    {campaign.status}
+                                </span>
+                            </div>
+
+                            <div className="max-w-2xl">
+                                <div className="flex items-center gap-2 mb-4 text-gameOrange font-black font-rajdhani tracking-[0.2em] uppercase text-sm">
+                                    <MessageSquare className="w-4 h-4" />
+                                    <span>{campaign.category} Campaign</span>
+                                </div>
+                                <h1 className="text-3xl md:text-5xl font-cinzel font-black text-white leading-tight mb-4">
+                                    {campaign.title}
+                                </h1>
+                                <p className="text-slate-400 text-lg font-medium italic mb-6">
+                                    {campaign.subtitle}
+                                </p>
                                 
-                                <ul className="space-y-4 flex-1">
-                                    {approach.bullets.map((bullet, idx) => (
-                                        <li key={idx} className="flex items-start gap-3 text-sm md:text-base text-slate-300 normal-case leading-relaxed">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-600 mt-2 shrink-0"></div>
-                                            {bullet}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Status/Voting/Results Area */}
-                <div className="mb-16 bg-gradient-to-br from-indigo-950/80 to-slate-900 border border-indigo-500/30 rounded-2xl p-6 md:p-10 shadow-2xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-32 bg-indigo-500/5 rounded-full blur-3xl mix-blend-screen pointer-events-none"></div>
-                    
-                    {!isLive ? (
-                        /* CLOSED RESULTS */
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-3 mb-6 justify-center">
-                                <BarChart3 size={24} className="text-indigo-400" />
-                                <h2 className="text-2xl font-black font-rajdhani uppercase text-white tracking-widest">
-                                    Final Campaign Results
-                                </h2>
-                            </div>
-                            
-                            {campaign.results && (
-                                <div className="max-w-3xl mx-auto">
-                                    <div className="text-center mb-8">
-                                        <div className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-2">Winning Approach</div>
-                                        <div className="text-3xl font-black text-emerald-400 uppercase tracking-tight">
-                                            {formatWinner(campaign.results.winnerStyle)} ({campaign.results.votePercentages[campaign.results.winnerStyle]}%)
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="space-y-4 mb-8">
-                                        {Object.entries(campaign.results.votePercentages).map(([style, pct]) => (
-                                            <div key={style} className="w-full">
-                                                <div className="flex justify-between text-xs font-bold uppercase tracking-widest mb-1">
-                                                    <span className="text-white">{formatWinner(style)}</span>
-                                                    <span className="text-indigo-300">{pct}%</span>
-                                                </div>
-                                                <div className="w-full bg-slate-800 rounded-full h-2.5 overflow-hidden border border-slate-700">
-                                                    <div className="bg-indigo-500 h-2.5 rounded-full" style={{ width: `${pct}%` }}></div>
-                                                </div>
+                                <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                    <p className="text-slate-300 text-sm leading-relaxed mb-4">{campaign.issue_summary}</p>
+                                    <div className="space-y-2">
+                                        {campaign.problem_bullets.map((bullet, idx) => (
+                                            <div key={idx} className="flex gap-3 text-xs text-slate-400">
+                                                <div className="w-1.5 h-1.5 bg-gameOrange rounded-full mt-1.5 shrink-0" />
+                                                <p>{bullet}</p>
                                             </div>
                                         ))}
                                     </div>
+                                </div>
+                            </div>
 
-                                    <div className="bg-black/50 border border-white/5 p-6 rounded-lg">
-                                        <h3 className="text-indigo-400 text-xs font-black uppercase tracking-widest mb-3">Strategic Analysis</h3>
-                                        <p className="text-slate-300 text-sm md:text-base leading-relaxed normal-case italic">
-                                            "{campaign.results.analysis}"
-                                        </p>
+                            {/* Center Timer Area */}
+                            {campaign.status === 'live' && (
+                                <div className="mt-8 flex justify-center py-6 border-t border-white/5">
+                                    <CountdownTimer targetDate={campaign.end_time} label="VOTING CLOSES IN" />
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Leader Approaches Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {campaign.approaches?.map((approach) => (
+                                <div key={approach.id} className={`p-8 rounded-3xl border transition-all ${
+                                    campaign.status === 'closed' && approach.is_winner
+                                    ? 'bg-blue-600/10 border-blue-500/40 scale-[1.02] shadow-[0_10px_30px_rgba(37,99,235,0.1)]'
+                                    : 'bg-slate-900/40 border-white/5'
+                                }`}>
+                                    <div className="flex justify-between items-start mb-6">
+                                        <h3 className="text-white text-2xl font-bold font-rajdhani uppercase tracking-wide">{approach.column_title}</h3>
+                                        {campaign.status === 'closed' && approach.is_winner && (
+                                            <Award className="w-8 h-8 text-blue-500 animate-bounce" />
+                                        )}
+                                    </div>
+                                    <div className="space-y-4">
+                                        {approach.bullets.map((point, i) => (
+                                            <div key={i} className="flex gap-4">
+                                                <span className="text-blue-500 font-bold font-mono py-0.5">0{i+1}.</span>
+                                                <p className="text-slate-300 text-sm leading-relaxed">{point}</p>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            )}
+                            ))}
                         </div>
-                    ) : (
-                        /* LIVE VOTING */
-                        <div className="relative z-10 max-w-2xl mx-auto">
-                            <h2 className="text-2xl font-black font-rajdhani text-center mb-2 uppercase text-white">
-                                Have Your Say
-                            </h2>
-                            <p className="text-slate-400 text-center text-sm mb-8 normal-case">
-                                For the next {Math.ceil((new Date(campaign.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} days, this Social Campaign is live. Read the two approaches above and vote for the solution you would execute for India.
-                            </p>
 
-                            {hasVoted ? (
-                                <div className="text-center p-8 bg-emerald-500/10 border border-emerald-500/30 rounded-xl">
-                                    <CheckCircle2 size={48} className="text-emerald-500 mx-auto mb-4" />
-                                    <h3 className="text-xl font-black text-white uppercase mb-2">Vote Recorded</h3>
-                                    <p className="text-emerald-400/80 text-sm">Your vote for {userVote === 'own' ? 'an Alternative Solution' : `the ${userVote}-style approach`} has been securely stored. Results will be published when the campaign closes.</p>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleVoteSubmit} className="space-y-4">
-                                    {campaign.approaches.map(app => (
-                                        <label key={app.id} className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all ${userVote === app.style ? 'bg-indigo-600/20 border-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-black/40 border-white/10 hover:border-white/30'}`}>
-                                            <input type="radio" name="vote" value={app.style} checked={userVote === app.style} onChange={(e) => setUserVote(e.target.value)} className="w-5 h-5 text-indigo-600 bg-slate-800 border-slate-600 accent-indigo-500" />
-                                            <span className="ml-4 text-white font-bold uppercase tracking-wider text-sm md:text-base">{app.style.charAt(0).toUpperCase() + app.style.slice(1)}-style Approach</span>
-                                        </label>
-                                    ))}
-                                    <label className={`flex flex-col p-4 border rounded-xl transition-all ${userVote === 'own' ? 'bg-indigo-600/20 border-indigo-500' : 'bg-black/40 border-white/10 hover:border-white/30'}`}>
-                                        <div className="flex items-center cursor-pointer mb-2">
-                                            <input type="radio" name="vote" value="own" checked={userVote === 'own'} onChange={(e) => setUserVote(e.target.value)} className="w-5 h-5 text-indigo-600 bg-slate-800 border-slate-600 accent-indigo-500" />
-                                            <span className="ml-4 text-white font-bold uppercase tracking-wider text-sm md:text-base">None of these / My own solution</span>
+                        {/* RESULTS OR VOTING SECTION */}
+                        {campaign.status === 'closed' ? (
+                            <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-10 text-center">
+                                <h2 className="text-4xl font-cinzel font-bold text-white mb-6">Final Analysis</h2>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 max-w-3xl mx-auto">
+                                    {Object.entries(campaign.vote_percentages || {}).map(([key, value]) => (
+                                        <div key={key} className="flex flex-col items-center">
+                                            <div className="relative w-24 h-24 mb-4">
+                                                <svg className="w-full h-full transform -rotate-90">
+                                                    <circle cx="48" cy="48" r="40" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="8"/>
+                                                    <circle 
+                                                        cx="48" cy="48" r="40" 
+                                                        fill="transparent" 
+                                                        stroke={key === campaign.winner_style ? "#2563eb" : "#475569"} 
+                                                        strokeWidth="8"
+                                                        strokeDasharray={2 * Math.PI * 40}
+                                                        strokeDashoffset={2 * Math.PI * 40 * (1 - (value as number) / 100)}
+                                                        className="transition-all duration-1000"
+                                                    />
+                                                </svg>
+                                                <span className="absolute inset-0 flex items-center justify-center text-white font-black text-xl">{value}%</span>
+                                            </div>
+                                            <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">{key === 'own' ? 'Other Solution' : `${key}-style`}</span>
                                         </div>
-                                        {userVote === 'own' && (
+                                    ))}
+                                </div>
+                                <div className="max-w-2xl mx-auto p-6 bg-blue-500/5 rounded-2xl border border-blue-500/10">
+                                    <p className="text-slate-300 italic text-lg mb-4">"{campaign.result_analysis}"</p>
+                                    <div className="flex items-center justify-center gap-2 text-slate-500 text-xs font-bold font-rajdhani">
+                                        <Users className="w-4 h-4" />
+                                        <span>TOTAL VOTES CAST: {campaign.total_votes?.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-10">
+                                <h2 className="text-3xl font-cinzel font-bold text-white text-center mb-8">Cast Your Vote</h2>
+                                {!hasVoted ? (
+                                    <div className="max-w-md mx-auto space-y-4">
+                                        {campaign.approaches?.map((app) => (
+                                            <button 
+                                                key={app.id}
+                                                onClick={() => handleVote(app.style)}
+                                                disabled={voteLoading}
+                                                className="w-full p-6 rounded-2xl bg-white/5 border border-white/10 text-left text-white hover:bg-white/10 hover:border-gameOrange/50 transition-all flex items-center justify-between group"
+                                            >
+                                                <span className="font-bold text-lg">{app.leader_name} Approach</span>
+                                                <ChevronRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transform -translate-x-2 group-hover:translate-x-0 transition-all" />
+                                            </button>
+                                        ))}
+                                        <div className="pt-4 border-t border-white/5">
                                             <textarea 
-                                                className="w-full mt-3 bg-black/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 normal-case outline-none focus:border-indigo-500 min-h-[80px]" 
-                                                placeholder="Briefly describe your chosen solution..."
+                                                placeholder="None of these? Submit your own solution..."
+                                                className="w-full bg-black/30 border border-white/5 rounded-2xl p-4 text-sm text-slate-300 mb-4 focus:border-gameOrange/30 focus:outline-none transition-all"
+                                                rows={3}
                                                 value={ownSolution}
                                                 onChange={(e) => setOwnSolution(e.target.value)}
-                                                required
                                             />
-                                        )}
-                                    </label>
-                                    
-                                    <button 
-                                        type="submit" 
-                                        disabled={!userVote}
-                                        className="w-full mt-6 bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black uppercase tracking-widest py-4 rounded-xl shadow-lg transition-colors border border-red-500"
-                                    >
-                                        Cast Vote
-                                    </button>
-                                </form>
-                            )}
+                                            <button 
+                                                onClick={() => handleVote('own')}
+                                                disabled={voteLoading || !ownSolution.trim()}
+                                                className="w-full bg-slate-800 text-slate-300 py-3 rounded-xl hover:bg-slate-700 transition-all font-bold uppercase tracking-widest text-xs"
+                                            >
+                                                Submit Alternative Solution
+                                            </button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-10 animate-fade-in">
+                                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <Award className="w-10 h-10 text-green-500" />
+                                        </div>
+                                        <h3 className="text-2xl font-bold text-white mb-2 uppercase">Vote Recorded!</h3>
+                                        <p className="text-slate-400 max-w-xs mx-auto mb-6">
+                                            You selected the <span className="text-white font-bold">{votedStyle}-style</span> approach. Results will be calculated when the timer hits zero.
+                                        </p>
+                                        <button className="flex items-center gap-2 text-slate-500 hover:text-white mx-auto text-xs font-bold transition-colors">
+                                            <Share2 className="w-4 h-4" />
+                                            SHARE DEBATE
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* GAME CTA SECTION */}
+                        <div className="relative rounded-3xl p-10 overflow-hidden group shadow-2xl">
+                            <div className="absolute inset-0 bg-gradient-to-br from-gameOrange/30 to-blue-900/30 group-hover:scale-110 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-[url('/grid.png')] opacity-10" />
+                            
+                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
+                                <div className="flex-1 space-y-6">
+                                    <h2 className="text-4xl font-cinzel font-black text-white leading-tight">
+                                        PLAY THIS SCENARIO IN <span className="text-gameOrange">RAJNEETI</span>
+                                    </h2>
+                                    <p className="text-white/80 text-lg leading-relaxed">
+                                        Don't just vote—lead! Take command of India's fate, manage the budget, negotiated trade deals, and see if your approach can withstand the international pressure.
+                                    </p>
+                                    <div className="flex flex-wrap gap-4">
+                                        <button className="bg-white text-slate-900 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
+                                            Download on Play Store
+                                        </button>
+                                        <button className="border border-white/20 backdrop-blur-md text-white px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-white/10 transition-all">
+                                            Watch Trailer
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="w-full md:w-64 aspect-square bg-slate-900/80 rounded-2xl border border-white/10 flex items-center justify-center shadow-inner overflow-hidden relative">
+                                    <img src="/Rajneeti-Game-Main-Screen.png" alt="Game Screenshot" className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
+                                    <span className="absolute bottom-4 left-4 text-white font-bold font-rajdhani text-[10px] tracking-widest uppercase bg-gameOrange px-2 py-1 rounded">Projected Simulator</span>
+                                </div>
+                            </div>
                         </div>
-                    )}
-                </div>
 
-                {/* Global Rajneeti CTA */}
-                <div className="bg-lokBlue-900 border border-lokBlue-800 rounded-2xl p-8 md:p-12 text-center flex flex-col items-center">
-                    <Megaphone size={32} className="text-gameOrange mb-4" />
-                    <h2 className="text-2xl md:text-4xl font-black font-cinzel uppercase text-white mb-4">
-                        Think you can do better?
-                    </h2>
-                    <p className="text-slate-400 max-w-2xl text-sm md:text-base normal-case mb-8 leading-relaxed">
-                        Want to play this crisis as Prime Minister? Rajneeti lets you test your choices, build state-level alliances, and battle for the Lok Sabha in a full political strategy game.
-                    </p>
-                    <a
-                        href="https://play.google.com/store/apps/details?id=com.rajneeti"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-3 bg-white text-black hover:bg-slate-200 px-6 py-3 md:px-8 md:py-4 rounded-full transition-all hover:scale-105 group font-bold tracking-widest uppercase text-sm md:text-base shadow-xl"
-                    >
-                        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-black" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M3.609 1.814L13.792 12 3.61 22.186a2.203 2.203 0 01-.61-1.511V3.325c0-.573.22-1.092.61-1.511zM14.502 12.71l2.583 2.583-9.524 5.49a2.189 2.189 0 01-1.353.284l8.294-8.357zM17.839 12.427L20.8 10.71c.73-.418.73-1.482 0-1.9L17.84 7.093l-3.34 3.341 3.339 1.993zM14.502 11.29l-8.293-8.357a2.189 2.189 0 011.353.284l9.524 5.49-2.584 2.583z" />
-                        </svg>
-                        Play Rajneeti on Play Store
-                    </a>
+                    </div>
                 </div>
-
-            </main>
+            </div>
         </div>
     );
 };

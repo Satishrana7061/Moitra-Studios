@@ -22,8 +22,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const OPENAI_API_KEY = Deno.env.get("OPENAI_API_KEY")!;
 
-// ---- AI MODEL (GPT-4.5 as requested in the OpenAI account) ----
-const GPT_MODEL = "gpt-4.5";
+// ---- AI MODEL (GPT-5.4 as requested in the OpenAI account) ----
+const GPT_MODEL = "gpt-5.4";
 
 // ---- UPCOMING ELECTION STATES (boost RSS scoring for these) ----
 // Update this list whenever new state elections are announced.

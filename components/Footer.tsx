@@ -6,7 +6,7 @@ import { STUDIO_INFO } from '../constants';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="bg-lokBlue-900/80 border-t border-slate-800/50 pt-10 pb-6 backdrop-blur-sm">
+    <footer className="bg-transparent pt-10 pb-6 relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
 

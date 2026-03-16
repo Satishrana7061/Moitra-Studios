@@ -19,8 +19,6 @@ const PageLoader = () => (
 
 const App: React.FC = () => {
   const location = useLocation();
-  const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home' || !['/', '/indian-politics-game-home', '/privacy-policy', '/contact-us', '/rajneeti-tv-network'].includes(location.pathname);
-  const showFooter = !isMapPage;
 
   return (
     <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden uppercase">
@@ -43,7 +41,7 @@ const App: React.FC = () => {
             <Route path="*" element={<RajneetiMap />} />
           </Routes>
         </Suspense>
-        {showFooter && <Footer />}
+        <Footer />
       </main>
     </div>
   );

@@ -136,10 +136,10 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
             {/* ── DESKTOP & iPAD SIDE PANEL ────────────────────────── */}
             <div
-                className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent backdrop-blur-sm border-r border-white/5 transition-transform duration-500`}
+                className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent border-r border-white/5 transition-transform duration-500 pointer-events-none`}
             >
                 {/* Header */}
-                <div className="pt-7 pb-3 px-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10">
+                <div className="pt-7 pb-3 px-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10 pointer-events-auto">
                     <span className="font-black text-white tracking-widest text-xs lg:text-sm uppercase flex items-center gap-2">
                         <Newspaper size={16} /> Latest Briefings
                     </span>
@@ -162,7 +162,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                 )}
 
                 {/* Scrollable Feed */}
-                <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scrollbar pointer-events-auto">
                     {loading ? (
                         <div className="h-full flex flex-col items-center justify-center gap-4 opacity-50">
                             <RefreshCw className="w-6 h-6 animate-spin text-emerald-500" />

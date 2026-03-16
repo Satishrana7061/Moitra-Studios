@@ -75,10 +75,9 @@ const SocialCampaignDetail: React.FC = () => {
             // Persist to localStorage so refresh keeps it
             localStorage.setItem(`vote_${campaign.slug}`, style);
         } else {
-            // Roll back if API failed
             setHasVoted(false);
             setVotedStyle(null);
-            setVoteError('Could not register your vote. Please check your connection and try again.');
+            setVoteError('Supabase RLS Error: Anonymous INSERT is disabled on the "votes" table. Please go to your Supabase Dashboard -> Table Editor -> votes -> Auth Policies, and create a new policy allowing "anon" to INSERT.');
         }
         setVoteLoading(false);
     };

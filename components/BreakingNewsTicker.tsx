@@ -136,7 +136,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
             {/* ── DESKTOP & iPAD SIDE PANEL ────────────────────────── */}
             <div
-                className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-slate-950/95 backdrop-blur-xl border-r border-white/5 shadow-2xl transition-transform duration-500`}
+                className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent backdrop-blur-sm border-r border-white/5 transition-transform duration-500`}
             >
                 {/* Header */}
                 <div className="pt-7 pb-3 px-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10">
@@ -199,7 +199,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-900/40">
+                <div className="p-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-transparent">
                     <span>{events.length} Active Events</span>
                     <button onClick={loadNews} className="hover:text-emerald-400 transition-colors uppercase italic flex items-center gap-1">
                         <RefreshCw size={10} /> Refresh

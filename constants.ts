@@ -49,7 +49,7 @@ export const GAMES_DATA: Game[] = [
 export const STUDIO_INFO = {
   name: 'Moitra Studios',
   legalName: '15029155 Canada Inc.',
-  email: 'support@moitrastudios.com',
+  email: 'moitrastudios@gmail.com',
   twitter: 'https://x.com/MoitraStudios',
   linkedin: 'https://linkedin.com/company/moitra-studios',
   foundingYear: 2023,

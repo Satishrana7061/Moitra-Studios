@@ -173,6 +173,10 @@ class CampaignService {
         anonymous_session_id: sessionId,        // Perplexity column
       });
 
+    if (error) {
+      console.error('Failed to cast vote in Supabase:', error);
+    }
+
     return !error;
   }
 

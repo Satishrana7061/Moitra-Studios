@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { ContactFormState } from '../types';
 import { Mail, Send, CheckCircle, ExternalLink } from 'lucide-react';
@@ -7,6 +7,7 @@ import { STUDIO_INFO } from '../constants';
 const ContactSection: React.FC = () => {
   const [form, setForm] = useState<ContactFormState>({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     document.title = 'Contact Moitra Studios | Rajneeti Game Support';
@@ -16,12 +17,40 @@ const ContactSection: React.FC = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setTimeout(() => {
-      setSubmitted(true);
-      setForm({ name: '', email: '', message: '' });
-    }, 1000);
+    setSending(true);
+
+    try {
+      // FormSubmit.co â€” free service, emails directly to moitrastudios@gmail.com
+      const response = await fetch('https://formsubmit.co/ajax/moitrastudios@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          message: form.message,
+          _subject: `Rajneeti Website: Message from ${form.name}`,
+          _template: 'table',
+        }),
+      });
+
+      if (response.ok) {
+        setSubmitted(true);
+        setForm({ name: '', email: '', message: '' });
+      } else {
+        // Fallback: open mailto link
+        window.location.href = `mailto:${STUDIO_INFO.email}?subject=Message from ${encodeURIComponent(form.name)}&body=${encodeURIComponent(form.message)}`;
+      }
+    } catch {
+      // Network error fallback: open mailto
+      window.location.href = `mailto:${STUDIO_INFO.email}?subject=Message from ${encodeURIComponent(form.name)}&body=${encodeURIComponent(form.message)}`;
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -114,8 +143,8 @@ const ContactSection: React.FC = () => {
                   <div className="w-16 h-16 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-full flex items-center justify-center mb-5 shadow-[0_0_30px_rgba(16,185,129,0.2)]">
                     <CheckCircle className="w-8 h-8 text-emerald-400" />
                   </div>
-                  <h3 className="text-xl font-cinzel font-black text-white mb-2 uppercase tracking-widest">Message Sent</h3>
-                  <p className="text-slate-400 text-sm normal-case mb-6">Thank you for reaching out. We'll get back to you soon.</p>
+                  <h3 className="text-xl font-cinzel font-black text-white mb-2 uppercase tracking-widest">Message Sent!</h3>
+                  <p className="text-slate-400 text-sm normal-case mb-6">Thank you for reaching out. We'll reply to you at <span className="text-white font-bold">{STUDIO_INFO.email}</span> soon.</p>
                   <button
                     onClick={() => setSubmitted(false)}
                     className="text-gameOrange font-bold uppercase tracking-widest hover:text-white transition-colors text-xs border border-gameOrange/30 px-6 py-2 rounded-lg hover:bg-gameOrange/10"
@@ -167,11 +196,16 @@ const ContactSection: React.FC = () => {
                   <div className="flex justify-end pt-2">
                     <button
                       type="submit"
-                      className="relative overflow-hidden bg-gradient-to-r from-gameOrange to-red-600 hover:from-red-500 hover:to-gameOrange text-white font-cinzel font-black py-3.5 px-10 uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,107,0,0.3)] rounded-xl border border-white/10 hover:border-white/20 group text-sm"
+                      disabled={sending}
+                      className="relative overflow-hidden bg-gradient-to-r from-gameOrange to-red-600 hover:from-red-500 hover:to-gameOrange text-white font-cinzel font-black py-3.5 px-10 uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,107,0,0.3)] rounded-xl border border-white/10 hover:border-white/20 group text-sm disabled:opacity-60 disabled:cursor-wait"
                     >
                       <div className="flex items-center gap-3 relative z-10">
-                        <Send size={16} className="group-hover:rotate-12 transition-transform duration-300" />
-                        Send Message
+                        {sending ? (
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                          <Send size={16} className="group-hover:rotate-12 transition-transform duration-300" />
+                        )}
+                        {sending ? 'Sending...' : 'Send Message'}
                       </div>
                     </button>
                   </div>

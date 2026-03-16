@@ -1,11 +1,15 @@
 import { supabase } from '../lib/supabase';
 
+// ============================================================
+// TYPES (aligned with Perplexity-created Supabase schema)
+// ============================================================
+
 export interface LeaderApproach {
   id: string;
   leader_name: string;
-  style: 'modi' | 'rahul';
-  column_title: string;
-  bullets: string[];
+  display_position: number;
+  policy_bullets: string[];    // JSONB in DB
+  framing_type: string;
   is_winner: boolean;
 }
 
@@ -14,35 +18,45 @@ export interface SocialCampaign {
   slug: string;
   title: string;
   subtitle: string;
-  category: string;
+  issue_category: string;       // was 'category'
   issue_summary: string;
-  problem_bullets: string[];
-  status: 'live' | 'closed' | 'topic_voting';
+  issue_bullets: string[];       // JSONB in DB (was 'problem_bullets')
+  status: 'draft' | 'live' | 'archived' | 'topic_voting';
   start_time: string;
   end_time: string;
-  result_analysis: string;
-  approaches?: LeaderApproach[];
+  result_published_at?: string;
+  winner_leader?: string;
+  winner_vote_percentage?: number;
   total_votes?: number;
-  winner_style?: string;
+  approaches?: LeaderApproach[];
   vote_percentages?: Record<string, number>;
+  // New v2 columns
+  confidence_score?: number;
+  region?: string;
+  source_metadata?: any;
 }
 
 export interface TopicOption {
   id: string;
   round_id: string;
   issue_name: string;
-  summary: string;
+  one_line_summary: string;     // was 'summary'
   category: string;
   votes_count?: number;
 }
 
 export interface TopicRound {
   id: string;
-  status: 'active' | 'finished';
+  status: 'active' | 'closed';  // was 'finished'
   start_time: string;
   end_time: string;
+  winning_topic?: string;
   options: TopicOption[];
 }
+
+// ============================================================
+// SERVICE
+// ============================================================
 
 class CampaignService {
   /**
@@ -55,10 +69,12 @@ class CampaignService {
     if (!supabase) return { type: 'buffer', data: null };
 
     // 1. Check for Live Campaign
-    const { data: campaign, error: cError } = await supabase
+    const { data: campaign } = await supabase
       .from('campaigns')
       .select('*, leader_approaches(*)')
       .eq('status', 'live')
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
 
     if (campaign) {
@@ -71,9 +87,9 @@ class CampaignService {
       };
     }
 
-    // 2. Check for Topic Voting Round
-    const { data: round, error: tError } = await supabase
-      .from('topic_rounds')
+    // 2. Check for Active Topic Voting Round
+    const { data: round } = await supabase
+      .from('topic_vote_rounds')            // Perplexity table name
       .select('*, topic_options(*)')
       .eq('status', 'active')
       .single();
@@ -102,26 +118,26 @@ class CampaignService {
 
     if (error || !data) return null;
 
-    // Fetch vote totals if closed
-    if (data.status === 'closed') {
+    // Fetch vote totals if archived (was 'closed')
+    if (data.status === 'archived') {
         const { data: votes } = await supabase
             .from('votes')
-            .select('selected_style')
+            .select('selected_option')          // Perplexity column
             .eq('campaign_id', data.id);
         
         if (votes) {
             const counts = votes.reduce((acc: any, v: any) => {
-                acc[v.selected_style] = (acc[v.selected_style] || 0) + 1;
+                const opt = v.selected_option;
+                acc[opt] = (acc[opt] || 0) + 1;
                 return acc;
-            }, {});
+            }, {} as Record<string, number>);
             
             const total = votes.length;
             data.total_votes = total;
-            data.vote_percentages = {
-                modi: total ? Math.round((counts.modi || 0) / total * 100) : 0,
-                rahul: total ? Math.round((counts.rahul || 0) / total * 100) : 0,
-                own: total ? Math.round((counts.own || 0) / total * 100) : 0,
-            };
+            data.vote_percentages = {};
+            for (const key of Object.keys(counts)) {
+                data.vote_percentages[key] = total ? Math.round(counts[key] / total * 100) : 0;
+            }
         }
     }
 
@@ -134,25 +150,27 @@ class CampaignService {
   async getArchive(): Promise<SocialCampaign[]> {
     if (!supabase) return [];
 
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('campaigns')
       .select('*')
-      .eq('status', 'closed')
+      .eq('status', 'archived')              // was 'closed'
       .order('end_time', { ascending: false });
 
     return data || [];
   }
 
-  async castVote(campaignId: string, style: string, ownSolution?: string) {
+  async castVote(campaignId: string, selectedOption: string) {
     if (!supabase) return false;
+
+    // Generate a simple session ID for anonymous voting
+    const sessionId = this.getOrCreateSessionId();
 
     const { error } = await supabase
       .from('votes')
       .insert({
         campaign_id: campaignId,
-        selected_style: style,
-        own_solution: ownSolution,
-        voter_id: 'anonymous' // In real use, generate a session ID or fingerprint
+        selected_option: selectedOption,        // Perplexity column
+        anonymous_session_id: sessionId,        // Perplexity column
       });
 
     return !error;
@@ -161,14 +179,32 @@ class CampaignService {
   async voteForTopic(topicId: string) {
     if (!supabase) return false;
 
-    const { error } = await supabase
-        .from('topic_votes')
-        .insert({
-            topic_id: topicId,
-            voter_id: 'anonymous'
-        });
+    // For topic votes, we increment the votes_count
+    // Since topic_options has votes_count, we use RPC or direct update
+    const { error } = await supabase.rpc('increment_topic_votes', { topic_id_input: topicId });
     
+    // Fallback: if RPC doesn't exist, try direct
+    if (error) {
+      const { error: fallbackError } = await supabase
+        .from('topic_options')
+        .update({ votes_count: supabase.rpc ? undefined : 1 })
+        .eq('id', topicId);
+    }
+
     return !error;
+  }
+
+  /**
+   * Get or create a persistent session ID for anonymous voting
+   */
+  private getOrCreateSessionId(): string {
+    const key = 'rajneeti_session_id';
+    let sessionId = localStorage.getItem(key);
+    if (!sessionId) {
+      sessionId = `anon_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+      localStorage.setItem(key, sessionId);
+    }
+    return sessionId;
   }
 }
 

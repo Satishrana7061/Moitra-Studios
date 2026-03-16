@@ -61,7 +61,7 @@ const SocialCampaignDetail: React.FC = () => {
         if (!campaign || hasVoted) return;
         
         setVoteLoading(true);
-        const success = await dynamicCampaignService.castVote(campaign.id, style, style === 'own' ? ownSolution : undefined);
+        const success = await dynamicCampaignService.castVote(campaign.id, style);
         
         if (success) {
             localStorage.setItem(`vote_${campaign.slug}`, style);
@@ -136,7 +136,7 @@ const SocialCampaignDetail: React.FC = () => {
                             <div className="max-w-2xl">
                                 <div className="flex items-center gap-2 mb-4 text-gameOrange font-black font-rajdhani tracking-[0.2em] uppercase text-sm">
                                     <MessageSquare className="w-4 h-4" />
-                                    <span>{campaign.category} Campaign</span>
+                                    <span>{campaign.issue_category} Campaign</span>
                                 </div>
                                 <h1 className="text-3xl md:text-5xl font-cinzel font-black text-white leading-tight mb-4">
                                     {campaign.title}
@@ -148,7 +148,7 @@ const SocialCampaignDetail: React.FC = () => {
                                 <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                                     <p className="text-slate-300 text-sm leading-relaxed mb-4">{campaign.issue_summary}</p>
                                     <div className="space-y-2">
-                                        {campaign.problem_bullets.map((bullet, idx) => (
+                                        {(campaign.issue_bullets || []).map((bullet: string, idx: number) => (
                                             <div key={idx} className="flex gap-3 text-xs text-slate-400">
                                                 <div className="w-1.5 h-1.5 bg-gameOrange rounded-full mt-1.5 shrink-0" />
                                                 <p>{bullet}</p>
@@ -170,18 +170,18 @@ const SocialCampaignDetail: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {campaign.approaches?.map((approach) => (
                                 <div key={approach.id} className={`p-8 rounded-3xl border transition-all ${
-                                    campaign.status === 'closed' && approach.is_winner
+                                    campaign.status === 'archived' && approach.is_winner
                                     ? 'bg-blue-600/10 border-blue-500/40 scale-[1.02] shadow-[0_10px_30px_rgba(37,99,235,0.1)]'
                                     : 'bg-slate-900/40 border-white/5'
                                 }`}>
                                     <div className="flex justify-between items-start mb-6">
-                                        <h3 className="text-white text-2xl font-bold font-rajdhani uppercase tracking-wide">{approach.column_title}</h3>
-                                        {campaign.status === 'closed' && approach.is_winner && (
+                                        <h3 className="text-white text-2xl font-bold font-rajdhani uppercase tracking-wide">{approach.leader_name}</h3>
+                                        {campaign.status === 'archived' && approach.is_winner && (
                                             <Award className="w-8 h-8 text-blue-500 animate-bounce" />
                                         )}
                                     </div>
                                     <div className="space-y-4">
-                                        {approach.bullets.map((point, i) => (
+                                        {(approach.policy_bullets || []).map((point: string, i: number) => (
                                             <div key={i} className="flex gap-4">
                                                 <span className="text-blue-500 font-bold font-mono py-0.5">0{i+1}.</span>
                                                 <p className="text-slate-300 text-sm leading-relaxed">{point}</p>
@@ -193,7 +193,7 @@ const SocialCampaignDetail: React.FC = () => {
                         </div>
 
                         {/* RESULTS OR VOTING SECTION */}
-                        {campaign.status === 'closed' ? (
+                        {campaign.status === 'archived' ? (
                             <div className="bg-slate-900/60 border border-white/5 rounded-3xl p-10 text-center">
                                 <h2 className="text-4xl font-cinzel font-bold text-white mb-6">Final Analysis</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10 max-w-3xl mx-auto">
@@ -205,7 +205,7 @@ const SocialCampaignDetail: React.FC = () => {
                                                     <circle 
                                                         cx="48" cy="48" r="40" 
                                                         fill="transparent" 
-                                                        stroke={key === campaign.winner_style ? "#2563eb" : "#475569"} 
+                                                        stroke={key === campaign.winner_leader ? "#2563eb" : "#475569"} 
                                                         strokeWidth="8"
                                                         strokeDasharray={2 * Math.PI * 40}
                                                         strokeDashoffset={2 * Math.PI * 40 * (1 - (value as number) / 100)}
@@ -222,7 +222,7 @@ const SocialCampaignDetail: React.FC = () => {
                                     <p className="text-slate-300 italic text-lg mb-4">"{campaign.result_analysis}"</p>
                                     <div className="flex items-center justify-center gap-2 text-slate-500 text-xs font-bold font-rajdhani">
                                         <Users className="w-4 h-4" />
-                                        <span>TOTAL VOTES CAST: {campaign.total_votes?.toLocaleString()}</span>
+                                        <span>TOTAL VOTES CAST: {(campaign.total_votes || 0).toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>

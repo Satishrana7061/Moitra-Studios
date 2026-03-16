@@ -1,48 +1,41 @@
 -- =============================================
--- RLS POLICIES FOR NEW TRACKING TABLES
--- Run this in Supabase SQL Editor AFTER supabase_migration_v2.sql
+-- RLS POLICIES FOR NEW TRACKING TABLES ONLY
+-- Run this AFTER supabase_migration_v2.sql
+-- Your existing 5 table policies are UNTOUCHED
 -- =============================================
 
 -- ============ ISSUE INGESTION RUNS ============
 ALTER TABLE issue_ingestion_runs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read on issue_ingestion_runs"
+DROP POLICY IF EXISTS "Public can read ingestion runs" ON issue_ingestion_runs;
+CREATE POLICY "Public can read ingestion runs"
   ON issue_ingestion_runs FOR SELECT
+  TO anon, authenticated
   USING (true);
-
-CREATE POLICY "Allow service_role full access on issue_ingestion_runs"
-  ON issue_ingestion_runs FOR ALL
-  USING (auth.role() = 'service_role');
 
 -- ============ ISSUE CANDIDATES ============
 ALTER TABLE issue_candidates ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read on issue_candidates"
+DROP POLICY IF EXISTS "Public can read issue candidates" ON issue_candidates;
+CREATE POLICY "Public can read issue candidates"
   ON issue_candidates FOR SELECT
+  TO anon, authenticated
   USING (true);
-
-CREATE POLICY "Allow service_role full access on issue_candidates"
-  ON issue_candidates FOR ALL
-  USING (auth.role() = 'service_role');
 
 -- ============ SOURCE ARTICLES ============
 ALTER TABLE source_articles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read on source_articles"
+DROP POLICY IF EXISTS "Public can read source articles" ON source_articles;
+CREATE POLICY "Public can read source articles"
   ON source_articles FOR SELECT
+  TO anon, authenticated
   USING (true);
-
-CREATE POLICY "Allow service_role full access on source_articles"
-  ON source_articles FOR ALL
-  USING (auth.role() = 'service_role');
 
 -- ============ CAMPAIGN GENERATION LOGS ============
 ALTER TABLE campaign_generation_logs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Allow public read on campaign_generation_logs"
+DROP POLICY IF EXISTS "Public can read generation logs" ON campaign_generation_logs;
+CREATE POLICY "Public can read generation logs"
   ON campaign_generation_logs FOR SELECT
+  TO anon, authenticated
   USING (true);
-
-CREATE POLICY "Allow service_role full access on campaign_generation_logs"
-  ON campaign_generation_logs FOR ALL
-  USING (auth.role() = 'service_role');

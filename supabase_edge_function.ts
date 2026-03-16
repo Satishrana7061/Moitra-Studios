@@ -2,9 +2,16 @@
 // Supabase Edge Function: generate-current-campaigns
 // =============================================================
 // WHERE TO DEPLOY:
-//   Supabase Dashboard → Edge Functions → New Function
+//   Supabase Dashboard → Edge Functions → Via Editor → Open Editor
 //   Name: generate-current-campaigns
-//   Paste this entire file as the function code.
+//   Paste this entire file → Deploy
+// =============================================================
+// COLUMN MAPPING (matches Perplexity-created schema):
+//   campaigns: issue_category, issue_bullets (JSONB), status (draft/live/archived)
+//   leader_approaches: display_position, policy_bullets (JSONB), framing_type
+//   votes: anonymous_session_id, selected_option
+//   topic_vote_rounds (not topic_rounds)
+//   topic_options: one_line_summary, votes_count
 // =============================================================
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -69,7 +76,7 @@ serve(async (req: Request) => {
       return jsonResponse({ status: "scan_complete", run_id: runId, top_issue: topIssue.headline, score: topIssue.composite_score });
     }
 
-    // Step 6: Generate the full campaign using GPT-5.4
+    // Step 6: Generate the full campaign using GPT
     const startTime = Date.now();
     const campaignData = await generateCampaignWithAI(topIssue);
     const generationTimeMs = Date.now() - startTime;
@@ -138,7 +145,7 @@ async function fetchRSSHeadlines(): Promise<RSSHeadline[]> {
     }
   }
 
-  // Deduplicate by title similarity (exact match for now)
+  // Deduplicate by title similarity
   const seen = new Set<string>();
   const unique = allHeadlines.filter((h) => {
     const key = h.title.toLowerCase().trim();
@@ -148,7 +155,7 @@ async function fetchRSSHeadlines(): Promise<RSSHeadline[]> {
   });
 
   console.log(`[RSS] Fetched ${allHeadlines.length} total, ${unique.length} unique headlines`);
-  return unique.slice(0, 15); // Cap at 15
+  return unique.slice(0, 15);
 }
 
 function parseRSSItems(xml: string): RSSHeadline[] {
@@ -226,10 +233,10 @@ For each headline, output a JSON array. Each element:
 }
 
 Rules:
-- recency_score: How recent and urgent is this issue?
+- recency_score: How recent and urgent is this?
 - reach_score: How many people does this affect?
-- civic_relevance_score: How relevant is this for a citizen-facing policy comparison?
-- Skip entertainment, sports, or celebrity gossip headlines (give all scores 0)
+- civic_relevance_score: How relevant for a citizen-facing policy comparison?
+- Skip entertainment, sports, or celebrity gossip (give all scores 0)
 
 Output ONLY a valid JSON array, nothing else.`;
 
@@ -264,10 +271,8 @@ Output ONLY a valid JSON array, nothing else.`;
       already_covered: false,
     };
 
-    // Save to database
     const { data } = await supabase.from("issue_candidates").insert({
-      run_id: runId,
-      ...issue,
+      run_id: runId, ...issue,
     }).select("id").single();
 
     if (data) issue.id = data.id;
@@ -282,21 +287,17 @@ Output ONLY a valid JSON array, nothing else.`;
 // =============================================================
 
 async function findBestUncoveredIssue(issues: ScoredIssue[]): Promise<ScoredIssue | null> {
-  // Get all live/recent campaigns from last 5 days
   const fiveDaysAgo = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString();
   const { data: recentCampaigns } = await supabase
     .from("campaigns")
-    .select("title, category")
+    .select("title, issue_category")
     .gte("created_at", fiveDaysAgo);
 
   const recentTitles = (recentCampaigns || []).map((c: any) => c.title.toLowerCase());
-  const recentCategories = (recentCampaigns || []).map((c: any) => c.category);
 
   for (const issue of issues) {
-    // Skip low-scoring issues
     if (issue.composite_score < 0.4) continue;
 
-    // Check if a similar headline was already covered
     const isOverlapping = recentTitles.some((t: string) => {
       const words = issue.headline.toLowerCase().split(" ");
       const matchCount = words.filter((w) => t.includes(w)).length;
@@ -315,24 +316,24 @@ async function findBestUncoveredIssue(issues: ScoredIssue[]): Promise<ScoredIssu
 }
 
 // =============================================================
-// AI CAMPAIGN GENERATION (GPT-5.4)
+// AI CAMPAIGN GENERATION
 // =============================================================
 
 interface GeneratedCampaign {
   slug: string;
   title: string;
   subtitle: string;
-  category: string;
+  issue_category: string;
   issue_summary: string;
-  problem_bullets: string[];
+  issue_bullets: string[];
   framing_type: string;
   confidence_score: number;
   source_links: string[];
   approaches: {
     leader_name: string;
-    style: string;
-    column_title: string;
-    bullets: string[];
+    display_position: number;
+    policy_bullets: string[];
+    framing_type: string;
   }[];
 }
 
@@ -362,24 +363,24 @@ OUTPUT (STRICT JSON, no markdown):
   "slug": "<url-friendly-slug>",
   "title": "<compelling but neutral headline, max 80 chars>",
   "subtitle": "<analytical tagline, max 120 chars>",
-  "category": "${issue.category}",
+  "issue_category": "${issue.category}",
   "issue_summary": "<2-paragraph neutral summary of the crisis/issue, 150-250 words>",
-  "problem_bullets": ["<3-4 key facts about the problem>"],
+  "issue_bullets": ["<3-4 key facts about the problem>"],
   "framing_type": "<neutral|comparative|analytical>",
   "confidence_score": <0.0-1.0, how confident you are in the accuracy>,
   "source_links": ["<original article URLs if available>"],
   "approaches": [
     {
-      "leader_name": "Narendra Modi (Current PM)",
-      "style": "modi",
-      "column_title": "Current Government Approach",
-      "bullets": ["<4 substantive policy points based on actual government actions or stated positions>"]
+      "leader_name": "Narendra Modi",
+      "display_position": 1,
+      "policy_bullets": ["<4 substantive policy points based on actual government actions or stated positions>"],
+      "framing_type": "current_government"
     },
     {
       "leader_name": "Rahul Gandhi",
-      "style": "rahul",
-      "column_title": "Opposition's Proposed Alternative",
-      "bullets": ["<4 substantive policy points based on Congress manifesto, public statements, or historical positions>"]
+      "display_position": 2,
+      "policy_bullets": ["<4 substantive policy points based on Congress manifesto, public statements, or historical positions>"],
+      "framing_type": "opposition_alternative"
     }
   ]
 }`;
@@ -407,12 +408,10 @@ interface ModerationResult {
 function moderateContent(campaign: GeneratedCampaign): ModerationResult {
   const flags: string[] = [];
 
-  // Rule 1: Confidence too low
   if (campaign.confidence_score < 0.6) {
     flags.push("LOW_CONFIDENCE");
   }
 
-  // Rule 2: Check for inflammatory keywords
   const fullText = JSON.stringify(campaign).toLowerCase();
   const bannedPhrases = [
     "anti-national", "traitor", "terrorist", "communal riot",
@@ -425,47 +424,42 @@ function moderateContent(campaign: GeneratedCampaign): ModerationResult {
     }
   }
 
-  // Rule 3: Check for fabricated statistics patterns
   const statPatterns = /\d{2,3}%\s+(increase|decrease|growth|decline)/gi;
   if (statPatterns.test(fullText) && campaign.source_links.length === 0) {
     flags.push("UNVERIFIED_STATISTICS");
   }
 
-  // Rule 4: One-sided content check (crude heuristic)
-  const modiBullets = campaign.approaches.find(a => a.style === "modi")?.bullets.length || 0;
-  const rahulBullets = campaign.approaches.find(a => a.style === "rahul")?.bullets.length || 0;
+  const modiBullets = campaign.approaches.find(a => a.display_position === 1)?.policy_bullets.length || 0;
+  const rahulBullets = campaign.approaches.find(a => a.display_position === 2)?.policy_bullets.length || 0;
   if (Math.abs(modiBullets - rahulBullets) > 2) {
     flags.push("UNBALANCED_CONTENT");
   }
 
-  // Rule 5: Missing required fields
   if (!campaign.title || !campaign.issue_summary || campaign.approaches.length < 2) {
     flags.push("INCOMPLETE_STRUCTURE");
   }
 
-  return {
-    passed: flags.length === 0,
-    flags,
-  };
+  return { passed: flags.length === 0, flags };
 }
 
 // =============================================================
-// DATABASE OPERATIONS
+// DATABASE OPERATIONS (matches Perplexity schema exactly)
 // =============================================================
 
 async function insertCampaign(campaign: GeneratedCampaign, issue: ScoredIssue): Promise<string | null> {
-  const endTime = new Date(Date.now() + CAMPAIGN_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date();
+  const endTime = new Date(now.getTime() + CAMPAIGN_DURATION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
   const { data, error } = await supabase.from("campaigns").insert({
     slug: campaign.slug,
     title: campaign.title,
     subtitle: campaign.subtitle,
-    category: campaign.category,
+    issue_category: campaign.issue_category,    // Perplexity column name
     issue_summary: campaign.issue_summary,
-    problem_bullets: campaign.problem_bullets,
+    issue_bullets: campaign.issue_bullets,       // JSONB array
     status: "live",
+    start_time: now.toISOString(),
     end_time: endTime,
-    framing_type: campaign.framing_type,
     confidence_score: campaign.confidence_score,
     region: issue.region,
     source_metadata: { sources: campaign.source_links, original_headline: issue.headline },
@@ -478,14 +472,14 @@ async function insertCampaign(campaign: GeneratedCampaign, issue: ScoredIssue): 
 
   const campaignId = data.id;
 
-  // Insert leader approaches
+  // Insert leader approaches (Perplexity column names)
   for (const app of campaign.approaches) {
     await supabase.from("leader_approaches").insert({
       campaign_id: campaignId,
       leader_name: app.leader_name,
-      style: app.style,
-      column_title: app.column_title,
-      bullets: app.bullets,
+      display_position: app.display_position,   // Perplexity column
+      policy_bullets: app.policy_bullets,        // JSONB array
+      framing_type: app.framing_type,            // Perplexity column
     });
   }
 
@@ -503,9 +497,9 @@ async function insertCampaign(campaign: GeneratedCampaign, issue: ScoredIssue): 
 }
 
 async function autoCloseExpiredCampaigns() {
-  const { data, error } = await supabase
+  const { data } = await supabase
     .from("campaigns")
-    .update({ status: "closed", updated_at: new Date().toISOString() })
+    .update({ status: "archived", updated_at: new Date().toISOString() })
     .eq("status", "live")
     .lt("end_time", new Date().toISOString())
     .select("id");
@@ -521,8 +515,7 @@ async function autoCloseExpiredCampaigns() {
 
 async function createRunLog(runType: string): Promise<string> {
   const { data } = await supabase.from("issue_ingestion_runs").insert({
-    run_type: runType,
-    status: "started",
+    run_type: runType, status: "started",
   }).select("id").single();
   return data?.id || "unknown";
 }
@@ -532,11 +525,8 @@ async function updateRunLog(
   campaignGenerated: boolean, campaignId?: string | null, errorMessage?: string
 ) {
   await supabase.from("issue_ingestion_runs").update({
-    status,
-    issues_found: issuesFound,
-    campaign_generated: campaignGenerated,
-    campaign_id: campaignId || null,
-    error_message: errorMessage || null,
+    status, issues_found: issuesFound, campaign_generated: campaignGenerated,
+    campaign_id: campaignId || null, error_message: errorMessage || null,
     completed_at: new Date().toISOString(),
   }).eq("id", runId);
 }
@@ -546,19 +536,16 @@ async function logGeneration(
   campaign: GeneratedCampaign, moderation: ModerationResult, timeMs: number
 ) {
   await supabase.from("campaign_generation_logs").insert({
-    run_id: runId,
-    campaign_id: campaignId,
-    model_used: "gpt-5.4",
-    confidence_score: campaign.confidence_score,
-    moderation_passed: moderation.passed,
-    moderation_flags: moderation.flags,
+    run_id: runId, campaign_id: campaignId,
+    model_used: "gpt-4o", confidence_score: campaign.confidence_score,
+    moderation_passed: moderation.passed, moderation_flags: moderation.flags,
     raw_response_preview: JSON.stringify(campaign).substring(0, 500),
     generation_time_ms: timeMs,
   });
 }
 
 // =============================================================
-// GPT-5.4 API CALLER
+// GPT API CALLER
 // =============================================================
 
 async function callGPT(prompt: string, temperature = 0.5): Promise<string | null> {
@@ -570,7 +557,7 @@ async function callGPT(prompt: string, temperature = 0.5): Promise<string | null
         "Authorization": `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o",  // Replace with "gpt-5.4" when available
+        model: "gpt-4o",
         messages: [
           { role: "system", content: "You are a neutral Indian political analyst. Output only valid JSON." },
           { role: "user", content: prompt },

@@ -125,7 +125,7 @@ const SocialCampaignsList: React.FC = () => {
                                 onClick={() => navigate(`/social-campaigns/${campaign.slug}`)}
                             >
                                 <div className="flex justify-between items-start mb-4">
-                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{campaign.category}</span>
+                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{campaign.issue_category}</span>
                                     <CheckCircle2 size={16} className="text-slate-600 group-hover:text-indigo-400 transition-colors" />
                                 </div>
                                 <h4 className="text-xl font-bold font-rajdhani text-white uppercase mb-3 line-clamp-2 leading-tight group-hover:text-indigo-400 transition-colors">
@@ -134,7 +134,7 @@ const SocialCampaignsList: React.FC = () => {
                                 <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">
                                     <div className="flex items-center gap-2">
                                         <Trophy size={14} className="text-indigo-500" />
-                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Victor: <span className="text-white italic">{formatWinner(campaign.winner_style || 'modi')}</span></span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Victor: <span className="text-white italic">{formatWinner(campaign.winner_leader || 'modi')}</span></span>
                                     </div>
                                     <button className="text-[10px] font-black text-indigo-400 uppercase tracking-widest flex items-center gap-1 group-hover:translate-x-1 transition-transform">
                                         View Results <ArrowRight size={12} />

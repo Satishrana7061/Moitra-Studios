@@ -1,7 +1,8 @@
 -- =============================================
--- MIGRATION: New tracking tables for campaign automation
+-- MIGRATION V2: New tracking tables for campaign automation
 -- Run this in Supabase SQL Editor → New Query → Paste → Run
 -- All statements are safe to re-run (IF NOT EXISTS)
+-- NOTE: Your existing 5 tables are UNTOUCHED. This only ADDS new tables.
 -- =============================================
 
 -- 1. ISSUE INGESTION RUNS
@@ -67,8 +68,7 @@ CREATE TABLE IF NOT EXISTS campaign_generation_logs (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 5. ALTER EXISTING CAMPAIGNS TABLE (safe re-run)
-ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS framing_type TEXT DEFAULT 'neutral';
+-- 5. ADD optional columns to existing campaigns table (safe re-run)
 ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS confidence_score REAL;
 ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS region TEXT DEFAULT 'national';
 ALTER TABLE campaigns ADD COLUMN IF NOT EXISTS source_metadata JSONB;

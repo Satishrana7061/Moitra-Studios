@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { STATE_INTEL, DEFAULT_STATE_DATA, StateData } from './stateIntel';
 import BreakingNewsTicker from './BreakingNewsTicker';
 import { fetchBreakingNews, BreakingNewsEvent } from '../services/newsService';
+import InteractiveParticles from './InteractiveParticles';
 import { X } from 'lucide-react';
 
 interface GeoJSONFeature {
@@ -199,6 +200,9 @@ const RajneetiMap: React.FC = () => {
 
     return (
         <div className={`relative w-full h-full bg-slate-950 select-none flex flex-col ${selectedState ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-hidden'}`}>
+            {/* Interactive Particle System — behind map, uses screen blend */}
+            <InteractiveParticles />
+
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <div className={`relative flex-shrink-0 w-full flex flex-col items-center justify-center transition-all duration-500 ${selectedState ? 'h-[70vh] lg:h-full' : 'h-full'}`}>
                 <div

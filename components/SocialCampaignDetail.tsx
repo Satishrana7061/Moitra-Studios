@@ -314,28 +314,21 @@ const SocialCampaignDetail: React.FC = () => {
                             <div className="absolute inset-0 bg-gradient-to-br from-gameOrange/30 to-blue-900/30 group-hover:scale-110 transition-transform duration-700" />
                             <div className="absolute inset-0 bg-[url('/grid.png')] opacity-10" />
                             
-                            <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-                                <div className="flex-1 space-y-6">
-                                    <h2 className="text-4xl font-cinzel font-black text-white leading-tight">
-                                        PLAY THIS SCENARIO IN <span className="text-gameOrange">RAJNEETI</span>
-                                    </h2>
-                                    <p className="text-white/80 text-lg leading-relaxed">
-                                        Don't just vote—lead! Take command of India's fate, manage the budget, negotiated trade deals, and see if your approach can withstand the international pressure.
-                                    </p>
-                                    <div className="flex flex-wrap gap-4">
-                                        <button className="bg-white text-slate-900 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl">
-                                            Download on Play Store
-                                        </button>
-                                        <button className="border border-white/20 backdrop-blur-md text-white px-8 py-4 rounded-full font-black uppercase tracking-widest hover:bg-white/10 transition-all">
-                                            Watch Trailer
-                                        </button>
-                                    </div>
-                                </div>
-                                <div className="w-full md:w-64 aspect-square bg-slate-900/80 rounded-2xl border border-white/10 flex items-center justify-center shadow-inner overflow-hidden relative">
-                                    <img src="/Rajneeti-Game-Main-Screen.png" alt="Game Screenshot" className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent" />
-                                    <span className="absolute bottom-4 left-4 text-white font-bold font-rajdhani text-[10px] tracking-widest uppercase bg-gameOrange px-2 py-1 rounded">Projected Simulator</span>
-                                </div>
+                            <div className="relative z-10 space-y-6">
+                                <h2 className="text-4xl font-cinzel font-black text-white leading-tight">
+                                    PLAY THIS SCENARIO IN <span className="text-gameOrange">RAJNEETI</span>
+                                </h2>
+                                <p className="text-white/80 text-lg leading-relaxed max-w-2xl">
+                                    Don't just vote—lead! Take command of India's fate, manage the budget, negotiated trade deals, and see if your approach can withstand the international pressure.
+                                </p>
+                                <a
+                                    href="https://play.google.com/store/apps/details?id=com.rajneeti"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block bg-white text-slate-900 px-8 py-4 rounded-full font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
+                                >
+                                    Download on Play Store
+                                </a>
                             </div>
                         </div>
 

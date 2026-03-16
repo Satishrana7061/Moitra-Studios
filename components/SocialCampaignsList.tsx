@@ -11,7 +11,6 @@ const SocialCampaignsList: React.FC = () => {
 
     useEffect(() => {
         document.title = "Campaign Hub | Rajneeti";
-        window.scrollTo(0, 0);
 
         const fetchData = async () => {
             const [archive, active] = await Promise.all([
@@ -44,10 +43,10 @@ const SocialCampaignsList: React.FC = () => {
     }
 
     return (
-        <div className="min-h-[100dvh] bg-black text-slate-200 font-sans flex flex-col md:pt-4 overflow-x-hidden">
+        <div className="min-h-screen bg-black text-slate-200 font-sans flex flex-col md:pt-4 overflow-x-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(60,20,100,0.3)_0%,rgba(0,0,0,1)_70%)] pointer-events-none z-0"></div>
             
-            <main className="flex-1 max-w-6xl mx-auto w-full px-4 pb-20 relative z-10 top-20">
+            <main className="flex-1 max-w-6xl mx-auto w-full px-4 pb-20 relative z-10 pt-20">
                 <header className="mb-16 text-center">
                     <div className="inline-flex items-center justify-center gap-3 bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-full mb-6">
                         <Megaphone size={16} />

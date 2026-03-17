@@ -132,9 +132,8 @@ const InteractiveParticles: React.FC = () => {
     }
 
     const handleMouseMove = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const newX = e.clientX - rect.left;
-      const newY = e.clientY - rect.top;
+      const newX = e.clientX;
+      const newY = e.clientY;
 
       // Calculate mouse speed
       const dx = newX - lastMousePos.current.x;
@@ -164,9 +163,8 @@ const InteractiveParticles: React.FC = () => {
     };
 
     const handleClick = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const x = e.clientX;
+      const y = e.clientY;
 
       // Burst of particles on click
       // Calculate how many we can add without exceeding MAX_AMBIENT_PARTICLES too much
@@ -178,9 +176,9 @@ const InteractiveParticles: React.FC = () => {
       }
     };
 
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseleave', handleMouseLeave);
-    canvas.addEventListener('click', handleClick);
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('click', handleClick);
 
     // Animation loop
     const animate = () => {
@@ -389,9 +387,9 @@ const InteractiveParticles: React.FC = () => {
 
     return () => {
       cancelAnimationFrame(animFrameRef.current);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseleave', handleMouseLeave);
-      canvas.removeEventListener('click', handleClick);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('click', handleClick);
       resizeObserver.disconnect();
     };
   }, [createParticle]);
@@ -399,7 +397,7 @@ const InteractiveParticles: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="absolute inset-0 w-full h-full pointer-events-auto z-[1]"
+      className="fixed inset-0 w-full h-[100dvh] pointer-events-none z-[0]"
       style={{ mixBlendMode: 'screen' }}
     />
   );

@@ -199,12 +199,12 @@ const RajneetiMap: React.FC = () => {
     const stopBubbling = (e: React.MouseEvent) => e.stopPropagation();
 
     return (
-        <div className={`relative w-full h-full bg-slate-950 select-none flex flex-col ${selectedState ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-hidden'}`}>
+        <div className={`relative w-full min-h-[100dvh] bg-slate-950 select-none flex flex-col ${selectedState ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-hidden'}`}>
             {/* Interactive Particle System — behind map, uses screen blend */}
             <InteractiveParticles />
 
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
-            <div className={`relative flex-shrink-0 w-full flex flex-col items-center justify-center transition-all duration-500 ${selectedState ? 'h-[70vh] lg:h-full' : 'h-full'}`}>
+            <div className={`relative flex-shrink-0 w-full flex flex-col items-center justify-center transition-all duration-500 ${selectedState ? 'h-[70vh] lg:h-[100dvh]' : 'h-[100dvh]'}`}>
                 <div
                     className="absolute inset-0 z-0 flex items-center justify-center pb-16 md:pb-0"
                     onClick={() => {

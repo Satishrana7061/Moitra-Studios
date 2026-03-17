@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { NAV_LINKS } from '../constants';
@@ -11,6 +11,37 @@ const Navbar: React.FC = () => {
 
   const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
 
+  // Add scroll listener since we rely on it now
+  useEffect(() => {
+    const handleScroll = () => {
+      // The scroll happens on the main element now, but since we are global, we might need to listen to window or main.
+      // Wait, let's just listen to the closest scroll container if possible, or assume body scroll.
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+         if (mainElement.scrollTop > 20) {
+            setIsScrolled(true);
+         } else {
+            setIsScrolled(false);
+         }
+      } else if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+        mainElement.addEventListener('scroll', handleScroll);
+    }
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      if (mainElement) mainElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const handleNavClick = (href: string) => {
     navigate(href);
     setIsMobileMenuOpen(false);
@@ -18,7 +49,7 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`relative w-full z-50 transition-all duration-500 ${!isMapPage && isScrolled
+      className={`relative w-full z-50 transition-all duration-500 ${isScrolled
         ? 'bg-lokBlue-950/80 backdrop-blur-md border-b border-white/5 py-2 shadow-lg'
         : 'bg-transparent py-4'
         }`}

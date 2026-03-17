@@ -52,7 +52,7 @@ const SocialCampaignsList: React.FC = () => {
                         <Megaphone size={16} />
                         <span className="text-[10px] font-black tracking-widest uppercase">Rajneeti Social Voice</span>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black font-cinzel text-white uppercase tracking-tight mb-4">
+                    <h1 className="text-5xl md:text-7xl font-black font-cinzel text-white tracking-tight mb-4">
                         Campaign <span className="text-indigo-500">Hub</span>
                     </h1>
                     <p className="text-slate-500 max-w-2xl mx-auto text-sm md:text-base leading-relaxed normal-case">
@@ -81,7 +81,7 @@ const SocialCampaignsList: React.FC = () => {
                                 </div>
 
                                 <div className="max-w-2xl relative z-10">
-                                    <h2 className="text-4xl md:text-5xl font-black font-rajdhani text-white uppercase leading-tight mb-6">
+                                    <h2 className="text-4xl md:text-5xl font-black font-rajdhani text-white leading-tight mb-6">
                                         {currentExperience.type === 'campaign' ? currentExperience.data.title : "Next Campaign: Your Vote Matters"}
                                     </h2>
                                     <p className="text-slate-400 text-lg mb-8 line-clamp-2">
@@ -127,7 +127,7 @@ const SocialCampaignsList: React.FC = () => {
                                     <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{campaign.issue_category}</span>
                                     <CheckCircle2 size={16} className="text-slate-600 group-hover:text-indigo-400 transition-colors" />
                                 </div>
-                                <h4 className="text-xl font-bold font-rajdhani text-white uppercase mb-3 line-clamp-2 leading-tight group-hover:text-indigo-400 transition-colors">
+                                <h4 className="text-xl font-bold font-rajdhani text-white mb-3 line-clamp-2 leading-tight group-hover:text-indigo-400 transition-colors">
                                     {campaign.title}
                                 </h4>
                                 <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/5">

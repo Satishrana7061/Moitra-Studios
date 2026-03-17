@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
@@ -100,7 +100,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                         <div className="inline-block bg-red-600 text-white px-3 py-1 text-sm font-black uppercase tracking-widest mb-4 shadow-[0_0_10px_rgba(220,38,38,0.8)]">
                                             Breaking
                                         </div>
-                                        <h2 className="text-3xl md:text-5xl font-black text-white font-rajdhani uppercase leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+                                        <h2 className="text-3xl md:text-5xl font-black text-white font-rajdhani leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
                                             {activeNews.ticker_headline}
                                         </h2>
                                     </div>

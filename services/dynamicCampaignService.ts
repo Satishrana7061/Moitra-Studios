@@ -122,12 +122,12 @@ class CampaignService {
     if (data.status === 'archived') {
         const { data: votes } = await supabase
             .from('votes')
-            .select('selected_option')          // Perplexity column
+            .select('selected_style')
             .eq('campaign_id', data.id);
         
         if (votes) {
             const counts = votes.reduce((acc: any, v: any) => {
-                const opt = v.selected_option;
+                const opt = v.selected_style;
                 acc[opt] = (acc[opt] || 0) + 1;
                 return acc;
             }, {} as Record<string, number>);
@@ -159,8 +159,8 @@ class CampaignService {
     return data || [];
   }
 
-  async castVote(campaignId: string, selectedOption: string) {
-    if (!supabase) return false;
+  async castVote(campaignId: string, selectedStyle: string, ownSolution?: string) {
+    if (!supabase) return { success: false, errorMsg: 'Supabase not connected' };
 
     // Generate a simple session ID for anonymous voting
     const sessionId = this.getOrCreateSessionId();
@@ -169,15 +169,17 @@ class CampaignService {
       .from('votes')
       .insert({
         campaign_id: campaignId,
-        selected_option: selectedOption,        // Perplexity column
-        anonymous_session_id: sessionId,        // Perplexity column
+        selected_style: selectedStyle,
+        voter_id: sessionId,
+        own_solution: ownSolution || null
       });
 
     if (error) {
       console.error('Failed to cast vote in Supabase:', error);
+      return { success: false, errorMsg: error.message || 'Unknown database error' };
     }
 
-    return !error;
+    return { success: true };
   }
 
   async voteForTopic(topicId: string) {

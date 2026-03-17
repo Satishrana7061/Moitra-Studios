@@ -70,15 +70,19 @@ const SocialCampaignDetail: React.FC = () => {
         setHasVoted(true);
         setVotedStyle(style);
 
-        const success = await dynamicCampaignService.castVote(campaign.id, style);
+        const result = await dynamicCampaignService.castVote(
+            campaign.id, 
+            style, 
+            style === 'own' ? ownSolution : undefined
+        );
         
-        if (success) {
+        if (result.success) {
             // Persist to localStorage so refresh keeps it
             localStorage.setItem(`vote_${campaign.slug}`, style);
         } else {
             setHasVoted(false);
             setVotedStyle(null);
-            setVoteError('Supabase RLS Error: Anonymous INSERT is disabled on the "votes" table. Please go to your Supabase Dashboard -> Table Editor -> votes -> Auth Policies, and create a new policy allowing "anon" to INSERT.');
+            setVoteError(`Failed to cast vote: ${result.errorMsg}`);
         }
         setVoteLoading(false);
     };

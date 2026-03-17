@@ -19,14 +19,15 @@ const PageLoader = () => (
 
 const App: React.FC = () => {
   const location = useLocation();
+  const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home' || !['/', '/indian-politics-game-home', '/privacy-policy', '/contact-us', '/rajneeti-tv-network'].includes(location.pathname);
 
   return (
-    <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden uppercase">
-      <div className="relative w-full z-50">
+    <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden">
+      <div className="absolute top-0 w-full z-50">
         <Navbar />
       </div>
       <main
-        className="flex-1 relative overflow-y-auto overflow-x-hidden"
+        className="h-full w-full relative overflow-y-auto overflow-x-hidden"
         style={{ scrollBehavior: 'smooth' }}
       >
         <Suspense fallback={<PageLoader />}>
@@ -41,7 +42,15 @@ const App: React.FC = () => {
             <Route path="*" element={<RajneetiMap />} />
           </Routes>
         </Suspense>
-        <Footer />
+        {isMapPage ? (
+          <div className="absolute bottom-0 w-full z-40 pointer-events-none">
+            <div className="pointer-events-auto">
+              <Footer />
+            </div>
+          </div>
+        ) : (
+          <Footer />
+        )}
       </main>
     </div>
   );

@@ -139,7 +139,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                 className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent border-r border-white/5 transition-transform duration-500 pointer-events-none`}
             >
                 {/* Header */}
-                <div className="pt-7 pb-3 px-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10 pointer-events-auto">
+                <div className="pt-7 pb-3 px-3 flex items-center justify-between z-10 pointer-events-auto">
                     <span className="font-black text-white tracking-widest text-xs lg:text-sm uppercase flex items-center gap-2">
                         <Newspaper size={16} /> Latest Briefings
                     </span>

@@ -20,6 +20,7 @@ const SocialCampaignDetail: React.FC = () => {
     const [voteError, setVoteError] = useState<string | null>(null);
 
     useEffect(() => {
+        window.scrollTo(0, 0);
         const fetchData = async () => {
             setLoading(true);
             const archive = await dynamicCampaignService.getArchive();
@@ -117,7 +118,7 @@ const SocialCampaignDetail: React.FC = () => {
     }
 
     return (
-        <div className="min-h-screen pt-24 pb-12 bg-slate-950">
+        <div className="min-h-screen pt-24 pb-12 bg-slate-950 normal-case">
             <div className="max-w-7xl mx-auto px-4 md:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     

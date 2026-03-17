@@ -217,6 +217,28 @@ const InteractiveParticles: React.FC = () => {
         );
       }
 
+      // Check for neutron star blast condition
+      let denseCount = 0;
+      if (mouse.active && idleTimeRef.current > 30) {
+          for (let i = 0; i < particles.length; i++) {
+              const dx = mouse.x - particles[i].x;
+              const dy = mouse.y - particles[i].y;
+              if (dx * dx + dy * dy < 2500) { // dist < 50
+                  denseCount++;
+              }
+          }
+      }
+      
+      let isBlasting = false;
+      if (denseCount > 40) { // If more than 40 particles are very close
+          isBlasting = true;
+          idleTimeRef.current = -40; // Negative idle time prevents immediate re-attraction
+          // Create extra blast particles
+          for (let i = 0; i < 20; i++) {
+               particles.push(createParticle(mouse.x, mouse.y, 'burst'));
+          }
+      }
+
       let currentAmbientCount = 0;
 
       // Update & draw particles (iterate backwards for safe splicing)
@@ -273,7 +295,18 @@ const InteractiveParticles: React.FC = () => {
           const dy = mouse.y - p.y;
           const dist = Math.sqrt(dx * dx + dy * dy);
           
-          if (dist < 350) {
+          if (isBlasting && dist < 250) {
+              // NEUTRON STAR BLAST!
+              const angle = Math.atan2(-dy, -dx) + (Math.random() - 0.5) * 0.5; // Outward angle
+              const blastSpeed = 12 + Math.random() * 15;
+              p.vx = Math.cos(angle) * blastSpeed;
+              p.vy = Math.sin(angle) * blastSpeed;
+              p.alpha = 1;
+              p.type = 'burst'; // make them act like bursts so they decelerate nicely
+              p.life = 0;
+              p.maxLife = 60 + Math.random() * 20;
+
+          } else if (dist < 350) {
             // If cursor is still (idle), attract particles strongly
             // If cursor is moving fast, gently repel or scatter them
             

@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { NAV_LINKS } from '../constants';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
 
   const handleNavClick = (href: string) => {
     navigate(href);
@@ -15,8 +18,8 @@ const Navbar: React.FC = () => {
 
   return (
     <nav
-      className={`relative w-full z-50 transition-all duration-500 ${isScrolled
-        ? 'bg-lokBlue-950/40 backdrop-blur-md border-b border-white/5 py-2 shadow-lg'
+      className={`relative w-full z-50 transition-all duration-500 ${!isMapPage && isScrolled
+        ? 'bg-lokBlue-950/80 backdrop-blur-md border-b border-white/5 py-2 shadow-lg'
         : 'bg-transparent py-4'
         }`}
     >

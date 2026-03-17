@@ -136,7 +136,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
             {/* ── DESKTOP & iPAD SIDE PANEL ────────────────────────── */}
             <div
-                className={`hidden md:flex absolute left-0 -top-4 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent border-r border-white/5 transition-transform duration-500 pointer-events-none`}
+                className={`hidden md:flex absolute left-0 top-20 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent transition-transform duration-500 pointer-events-none`}
             >
                 {/* Header */}
                 <div className="pt-7 pb-3 px-3 flex items-center justify-between z-10 pointer-events-auto">
@@ -151,7 +151,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
                 {/* Desktop Ticker Item */}
                 {tickerEvent && (
-                    <div className="px-5 py-2.5 bg-white/[0.02] border-b border-white/5 overflow-hidden">
+                    <div className="px-5 py-2.5 overflow-hidden">
                         <div key={tickerEvent.id} className="ticker-animation text-[11px] text-slate-400 font-medium">
                             <span className="text-white font-bold">{tickerEvent.stateName}</span>
                             <span className="mx-2 opacity-30 text-white">•</span>
@@ -175,12 +175,9 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                             <article
                                 key={ev.id}
                                 onClick={(e) => handleCardClick(e, ev)}
-                                className={`w-full text-left p-3 rounded-xl transition-all duration-300 border ${isSelected
-                                    ? `${sc.border} ${sc.bg} ${sc.glow} translate-x-1`
-                                    : 'border-white/5 bg-white/[0.03] hover:bg-white/[0.06]'
-                                    } flex gap-3 items-start group relative cursor-pointer`}
+                                className={`w-full text-left py-2 px-3 rounded-none transition-all duration-300 bg-transparent flex gap-3 items-start group relative cursor-pointer ${isSelected ? 'translate-x-1' : ''}`}
                             >
-                                <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 border-2 ${isSelected ? 'border-emerald-500' : 'border-white/10 opacity-70 group-hover:opacity-100 transition-opacity'}`}>
+                                <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity`}>
                                     <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
                                 </div>
                                 <div className="flex-1 min-w-0 font-rajdhani">
@@ -199,7 +196,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-transparent">
+                <div className="p-4 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-transparent">
                     <span>{events.length} Active Events</span>
                     <button onClick={loadNews} className="hover:text-emerald-400 transition-colors uppercase italic flex items-center gap-1">
                         <RefreshCw size={10} /> Refresh

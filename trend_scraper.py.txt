@@ -1,0 +1,29 @@
+import requests
+from bs4 import BeautifulSoup
+import json
+import datetime
+
+def get_current_trends():
+    """Scrapes top news and trending topics for the AI to analyze."""
+    # We scrape a neutral news aggregator or trending page
+    url = "https://news.google.com/topstories?hl=en-IN&gl=IN&ceid=IN:en"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        headlines = []
+        # Extract the top 10 headlines
+        for item in soup.find_all('h4', limit=10):
+            headlines.append(item.get_text(strip=True))
+            
+        return json.dumps({
+            "date": str(datetime.date.today()),
+            "trending_topics": headlines
+        })
+    except Exception as e:
+        return json.dumps({"error": str(e)})
+
+if __name__ == "__main__":
+    print(get_current_trends())

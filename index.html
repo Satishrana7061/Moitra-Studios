@@ -4,43 +4,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Moitra Studios - Grand Strategy Games</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            lokBlue: { 950: '#020617', 900: '#0f172a', 800: '#1e293b' },
-            lokGold: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706' },
-            lokGreen: { 500: '#10b981', 600: '#059669' },
-            gameBlue: '#00BEFF',
-            gameDarkBlue: '#023047',
-            gameOrange: '#FF6B00',
-            gameGreen: '#4CAF50',
-            gameRed: '#E63946',
-            gameYellow: '#FFD700',
-            gamePurple: '#9D4EDD',
-          },
-          fontFamily: {
-            sans: ['Lato', 'sans-serif'],
-            serif: ['Cinzel', 'serif'],
-          },
-          backgroundImage: {
-            'war-room': "url('https://www.transparenttextures.com/patterns/stardust.png')",
-          },
-          animation: {
-            'scroll-left': 'scroll-left 40s linear infinite',
-          },
-          keyframes: {
-            'scroll-left': {
-              '0%': { transform: 'translateX(0)' },
-              '100%': { transform: 'translateX(-50%)' },
-            },
-          },
-        },
-      },
-    };
+  <title>Rajneeti | Indian Political Strategy Game - Moitra Studios</title>
+  <meta name="description"
+    content="Play Rajneeti, the ultimate Indian political strategy game by Moitra Studios. Master election campaigns, build alliances, and navigate breaking news in a realistic simulator." />
+  <meta name="keywords"
+    content="Rajneeti, Indian Political Strategy Game, Election Simulator, Politics Game India, Multiplayer Strategy Game, Moitra Studios" />
+  <meta name="author" content="Moitra Studios" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://satishrana7061.github.io/Moitra-Studios/" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://satishrana7061.github.io/Moitra-Studios/" />
+  <meta property="og:title" content="Rajneeti | Indian Political Strategy Game" />
+  <meta property="og:description"
+    content="Master Indian elections in Rajneeti. Build alliances, manage your party, and win the political battlefield." />
+  <meta property="og:image" content="https://satishrana7061.github.io/Moitra-Studios/IndiaMapPreview.webp" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://satishrana7061.github.io/Moitra-Studios/" />
+  <meta property="twitter:title" content="Rajneeti | Indian Political Strategy Game" />
+  <meta property="twitter:description"
+    content="Master Indian elections in Rajneeti. Build alliances, manage your party, and win the political battlefield." />
+  <meta property="twitter:image" content="https://satishrana7061.github.io/Moitra-Studios/IndiaMapPreview.webp" />
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Rajneeti: Indian Political Strategy Game",
+    "operatingSystem": "Android",
+    "applicationCategory": "GameApplication",
+    "description": "Master Indian elections in Rajneeti. Build alliances, manage your party, and win the political battlefield.",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "url": "https://play.google.com/store/apps/details?id=com.rajneeti",
+    "author": {
+      "@type": "Organization",
+      "name": "Moitra Studios",
+      "url": "https://satishrana7061.github.io/Moitra-Studios/"
+    }
+  }
   </script>
   <link
     href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Lato:wght@300;400;700&family=Rajdhani:wght@400;500;600;700&display=swap"
@@ -107,6 +116,20 @@
       animation: hinge-swing 5s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
     }
   </style>
+
+  <!-- SPA routing for GitHub Pages decoder -->
+  <script type="text/javascript">
+    (function(l) {
+      if (l.search[1] === '/' ) {
+        var decoded = l.search.slice(1).split('&').map(function(s) { 
+          return s.replace(/~and~/g, '&')
+        }).join('?');
+        window.history.replaceState(null, null,
+            l.pathname.slice(0, -1) + decoded + l.hash
+        );
+      }
+    }(window.location))
+  </script>
 </head>
 
 <body class="text-slate-200 selection:bg-gameOrange selection:text-white">

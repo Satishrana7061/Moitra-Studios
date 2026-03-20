@@ -1,12 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { NAV_LINKS } from '../constants';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
+
+  // Add scroll listener since we rely on it now
+  useEffect(() => {
+    const handleScroll = () => {
+      // The scroll happens on the main element now, but since we are global, we might need to listen to window or main.
+      // Wait, let's just listen to the closest scroll container if possible, or assume body scroll.
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+         if (mainElement.scrollTop > 20) {
+            setIsScrolled(true);
+         } else {
+            setIsScrolled(false);
+         }
+      } else if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+        mainElement.addEventListener('scroll', handleScroll);
+    }
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      if (mainElement) mainElement.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   const handleNavClick = (href: string) => {
     navigate(href);
@@ -16,7 +50,7 @@ const Navbar: React.FC = () => {
   return (
     <nav
       className={`relative w-full z-50 transition-all duration-500 ${isScrolled
-        ? 'bg-lokBlue-950/90 backdrop-blur-md border-b border-white/5 py-2 shadow-lg'
+        ? 'bg-lokBlue-950/80 backdrop-blur-md border-b border-white/5 py-2 shadow-lg'
         : 'bg-transparent py-4'
         }`}
     >
@@ -25,7 +59,7 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <div
             className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
-            onClick={() => handleNavClick('/home')}
+            onClick={() => handleNavClick('/indian-politics-game-home')}
           >
             {/* Custom Moitra Logo SVG */}
             <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
@@ -61,20 +95,39 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop Links */}
-          <div className="hidden lg:block">
-            <div className="ml-10 flex items-baseline space-x-6 lg:space-x-8">
-              {NAV_LINKS.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => handleNavClick(link.href)}
-                  className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
-                >
-                  {link.label}
-                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
-                </button>
-              ))}
-            </div>
+          {/* Desktop Links - Left Side */}
+          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-8 mr-auto z-10 pt-1">
+            {NAV_LINKS.slice(0, 2).map((link) => (
+              <button
+                key={link.label}
+                onClick={() => handleNavClick(link.href)}
+                className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
+              >
+                {link.label}
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop Links - Right Side */}
+          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-auto z-10 pt-1">
+            {NAV_LINKS.slice(2).map((link) => (
+              <button
+                key={link.label}
+                onClick={() => handleNavClick(link.href)}
+                className="relative text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5"
+              >
+                {link.label === 'Social Campaigns' ? (
+                  <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
+                    {link.label}
+                  </span>
+                ) : (
+                  <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
+                )}
+                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+              </button>
+            ))}
           </div>
 
           {/* Mobile/iPad Menu Button */}

@@ -180,12 +180,17 @@ class CampaignService {
       try {
         const { data, error } = await supabase
           .from('campaigns')
-          .select('*')
+          .select('*, leader_approaches(*)')
           .eq('status', 'archived')              // was 'closed'
           .order('end_time', { ascending: false });
 
         if (error) throw error;
-        if (data) return data;
+        if (data) {
+          return data.map(c => ({
+            ...c,
+            approaches: c.leader_approaches
+          }));
+        }
       } catch (err) {
          console.warn("Supabase failed in getArchive. Falling back to static data.");
       }

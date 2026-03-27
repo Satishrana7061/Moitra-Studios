@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,7 +19,16 @@ const PageLoader = () => (
 
 const App: React.FC = () => {
   const location = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
   const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
+
+  // Scroll to top on every route change
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0);
+    }
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
     <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden">
@@ -27,6 +36,7 @@ const App: React.FC = () => {
         <Navbar />
       </div>
       <main
+        ref={mainRef}
         className="flex-1 w-full relative overflow-y-auto overflow-x-hidden"
         style={{ scrollBehavior: 'smooth' }}
       >

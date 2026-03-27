@@ -23,7 +23,15 @@ import requests
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 
+<<<<<<< HEAD
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "public", "daily_news.json")
+=======
+# --- CONFIGURATION ---
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+SUPABASE_URL = os.getenv("VITE_SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("VITE_SUPABASE_ANON_KEY") # Prioritize Service Role Key for bypassing RLS during automated inserts
+>>>>>>> 9f908a7 (Dynamic Campaigns & UI Visualizations)
 
 RSS_FEEDS = [
     "https://timesofindia.indiatimes.com/rssfeeds/66023901.cms",  # TOI Politics
@@ -83,10 +91,30 @@ def fetch_rss_articles() -> list[dict]:
             resp.raise_for_status()
             root = ET.fromstring(resp.content)
 
+<<<<<<< HEAD
             # Handle both RSS 2.0 (<item>) and Atom (<entry>) elements
             items = root.findall(".//item") or root.findall(
                 ".//{http://www.w3.org/2005/Atom}entry"
             )
+=======
+def generate_daily_news(headlines):
+    if not OPENAI_API_KEY: return None
+    client = OpenAI(api_key=OPENAI_API_KEY)
+    
+    prompt = f"Analyze these 3 headlines for the Rajneeti game: {json.dumps(headlines)}. Output STRICT JSON: leader, state, sentiment_score, ticker_headline, blog_title, blog_content, social_post, original_url."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-5.4-mini",
+            messages=[{"role": "system", "content": "Satirical political advisor for Rajneeti game."}, {"role": "user", "content": prompt}],
+            temperature=0.7
+        )
+        text = response.choices[0].message.content.strip()
+        return json.loads(text.replace('```json', '').replace('```', ''))
+    except Exception as e:
+        print(f"Daily News AI Error: {e}")
+        return None
+>>>>>>> 9f908a7 (Dynamic Campaigns & UI Visualizations)
 
             for item in items:
                 title = (
@@ -107,12 +135,63 @@ def fetch_rss_articles() -> list[dict]:
                     atom_link = item.find("{http://www.w3.org/2005/Atom}link")
                     link = (atom_link.get("href", "") if atom_link is not None else "")
 
+<<<<<<< HEAD
                 if not title:
                     continue
 
                 combined = (title + " " + description).lower()
                 if any(kw in combined for kw in BANNED_KEYWORDS):
                     continue
+=======
+def manage_campaign_lifecycle(latest_topic="National Job Security post-AI"):
+    if not supabase: return
+
+    now = datetime.now()
+
+    # 1. Auto-archive expired live campaigns
+    live_campaigns = supabase.table('campaigns').select('id, slug, end_time').eq('status', 'live').execute()
+    for camp in live_campaigns.data:
+        if camp.get('end_time') and datetime.fromisoformat(camp['end_time'].replace('Z', '+00:00').replace('+00:00', '')) < now:
+            print(f"Auto-archiving expired campaign: {camp['slug']}")
+            supabase.table('campaigns').update({
+                'status': 'archived',
+                'result_published_at': now.isoformat()
+            }).eq('id', camp['id']).execute()
+
+    # 2. Check if we need a fresh live campaign
+    active = supabase.table('campaigns').select('id').eq('status', 'live').execute()
+    
+    if len(active.data) == 0:
+        print(f"No live campaign found. Generating new campaign for topic: {latest_topic}...")
+        campaign_data = generate_social_campaign(latest_topic, "Current Affairs")
+        if campaign_data:
+            slug = "campaign-" + now.strftime("%Y%m%d")
+            res = supabase.table('campaigns').insert({
+                "slug": slug,
+                "title": campaign_data['title'],
+                "subtitle": campaign_data['subtitle'],
+                "issue_category": "Current Affairs",
+                "issue_summary": campaign_data['issue_summary'],
+                "issue_bullets": campaign_data.get('problem_bullets', []),
+                "status": "live",
+                "start_time": now.isoformat(),
+                "end_time": (now + timedelta(days=3)).isoformat()
+            }).execute()
+            
+            if res.data:
+                campaign_id = res.data[0]['id']
+                for idx, app in enumerate(campaign_data['approaches']):
+                    supabase.table('leader_approaches').insert({
+                        "campaign_id": campaign_id,
+                        "leader_name": app['leader_name'],
+                        "style": app['style'],
+                        "display_position": idx + 1,
+                        "framing_type": app.get('column_title', 'policy'),
+                        "policy_bullets": app.get('bullets', []),
+                        "is_winner": False
+                    }).execute()
+                print(f"Successfully launched new campaign: {slug}")
+>>>>>>> 9f908a7 (Dynamic Campaigns & UI Visualizations)
 
                 articles.append({
                     "title": title,
@@ -305,6 +384,12 @@ def main():
 
     print("\n🎉 Done!")
 
+<<<<<<< HEAD
+=======
+    # Manage Dynamic Campaigns
+    latest_topic = headlines[0]["title"] if headlines else "National Job Security post-AI"
+    manage_campaign_lifecycle(latest_topic)
+>>>>>>> 9f908a7 (Dynamic Campaigns & UI Visualizations)
 
 if __name__ == "__main__":
     main()

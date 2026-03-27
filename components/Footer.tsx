@@ -74,7 +74,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-slate-800/50 pt-4 flex flex-col md:flex-row items-center justify-between gap-2">
+        <div className="pt-4 flex flex-col md:flex-row items-center justify-between gap-2">
           <p className="text-slate-600 text-[10px] uppercase tracking-wider">
             &copy; {new Date().getFullYear()} {STUDIO_INFO.name}. All rights reserved.
           </p>

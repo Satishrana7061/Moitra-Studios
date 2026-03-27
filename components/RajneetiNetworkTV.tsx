@@ -87,47 +87,49 @@ const RajneetiNetworkTV: React.FC = () => {
                         {/* Main Video + Sidebar */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                             {/* Top/Main Video Area */}
-                            <div className="lg:col-span-8 bg-slate-900 border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col relative h-[500px]">
-                                <div className="flex-1 bg-black flex items-center justify-center relative overflow-hidden group">
-                                    {/* Fake background for the news broadcast */}
-                                    <div className="absolute inset-0 bg-blue-900/20 flex items-center justify-center">
-                                        <div className="w-[120%] h-[120%] border-[20px] border-white/5 rounded-full animate-spin-slow absolute"></div>
-                                        <div className="w-[80%] h-[80%] border-t-4 border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
-                                    </div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-red-950/90 to-transparent"></div>
-
-                                    <div className="relative text-center px-6 md:px-12 w-full">
-                                        <div className="inline-block bg-red-600 text-white px-3 py-1 text-sm font-black uppercase tracking-widest mb-4 shadow-[0_0_10px_rgba(220,38,38,0.8)]">
-                                            Breaking
+                            <div className="lg:col-span-8 flex flex-col gap-0">
+                                <div className="bg-slate-900 border border-white/10 rounded-t-xl overflow-hidden shadow-2xl flex flex-col relative h-[460px]">
+                                    <div className="flex-1 bg-black flex items-center justify-center relative overflow-hidden group">
+                                        {/* Fake background for the news broadcast */}
+                                        <div className="absolute inset-0 bg-blue-900/20 flex items-center justify-center">
+                                            <div className="w-[120%] h-[120%] border-[20px] border-white/5 rounded-full animate-spin-slow absolute"></div>
+                                            <div className="w-[80%] h-[80%] border-t-4 border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
                                         </div>
-                                        <h2 className="text-3xl md:text-5xl font-black text-white font-rajdhani leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-                                            {activeNews.ticker_headline}
-                                        </h2>
-                                    </div>
+                                        <div className="absolute inset-0 bg-gradient-to-t from-red-950/90 to-transparent"></div>
 
-                                    <div className="absolute bottom-4 left-2 right-2 md:left-4 md:right-4 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-3 pointer-events-none">
-                                        <div className="bg-blue-900/90 backdrop-blur-sm text-white font-bold px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-base rounded-md shadow-lg border border-blue-400/30 uppercase tracking-widest shrink-0 pointer-events-auto">
-                                            {activeNews.date} | {activeNews.state}
-                                        </div>
-                                        <a
-                                            href="https://play.google.com/store/apps/details?id=com.rajneeti"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-1.5 md:gap-2 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 group shrink-0 pointer-events-auto"
-                                        >
-                                            <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 fill-gameBlue" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M3.609 1.814L13.792 12 3.61 22.186a2.203 2.203 0 01-.61-1.511V3.325c0-.573.22-1.092.61-1.511zM14.502 12.71l2.583 2.583-9.524 5.49a2.189 2.189 0 01-1.353.284l8.294-8.357zM17.839 12.427L20.8 10.71c.73-.418.73-1.482 0-1.9L17.84 7.093l-3.34 3.341 3.339 1.993zM14.502 11.29l-8.293-8.357a2.189 2.189 0 011.353.284l9.524 5.49-2.584 2.583z" />
-                                            </svg>
-                                            <div className="flex flex-col items-start leading-none gap-[1px]">
-                                                <span className="text-[8px] md:text-[9px] font-bold text-slate-300 uppercase tracking-tighter">Get it on</span>
-                                                <span className="text-[14px] md:text-[15px] font-black text-white tracking-tight">Google Play</span>
+                                        <div className="relative text-center px-6 md:px-12 w-full">
+                                            <div className="inline-block bg-red-600 text-white px-3 py-1 text-sm font-black uppercase tracking-widest mb-4 shadow-[0_0_10px_rgba(220,38,38,0.8)]">
+                                                Breaking
                                             </div>
-                                        </a>
+                                            <h2 className="text-3xl md:text-5xl font-black text-white font-rajdhani leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
+                                                {activeNews.ticker_headline}
+                                            </h2>
+                                        </div>
+
+                                        <div className="absolute bottom-4 left-2 right-2 md:left-4 md:right-4 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-3 pointer-events-none">
+                                            <div className="bg-blue-900/90 backdrop-blur-sm text-white font-bold px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-base rounded-md shadow-lg border border-blue-400/30 uppercase tracking-widest shrink-0 pointer-events-auto">
+                                                {activeNews.date} | {activeNews.state}
+                                            </div>
+                                            <a
+                                                href="https://play.google.com/store/apps/details?id=com.rajneeti"
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-1.5 md:gap-2 bg-black/80 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-5 md:py-2.5 rounded-xl transition-all hover:scale-105 active:scale-95 group shrink-0 pointer-events-auto"
+                                            >
+                                                <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-6 md:h-6 fill-gameBlue" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M3.609 1.814L13.792 12 3.61 22.186a2.203 2.203 0 01-.61-1.511V3.325c0-.573.22-1.092.61-1.511zM14.502 12.71l2.583 2.583-9.524 5.49a2.189 2.189 0 01-1.353.284l8.294-8.357zM17.839 12.427L20.8 10.71c.73-.418.73-1.482 0-1.9L17.84 7.093l-3.34 3.341 3.339 1.993zM14.502 11.29l-8.293-8.357a2.189 2.189 0 011.353.284l9.524 5.49-2.584 2.583z" />
+                                                </svg>
+                                                <div className="flex flex-col items-start leading-none gap-[1px]">
+                                                    <span className="text-[8px] md:text-[9px] font-bold text-slate-300 uppercase tracking-tighter">Get it on</span>
+                                                    <span className="text-[14px] md:text-[15px] font-black text-white tracking-tight">Google Play</span>
+                                                </div>
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Bottom Ticker bar similar to real TV */}
-                                <div className="h-16 bg-blue-950 flex items-center relative overflow-hidden flex-shrink-0">
+                                {/* Bottom Ticker bar — outside the video container so it's always visible */}
+                                <div className="h-14 bg-blue-950 flex items-center relative overflow-hidden flex-shrink-0 rounded-b-xl border border-t-0 border-white/10">
                                     <div className="absolute left-0 top-0 bottom-0 bg-red-600 w-32 md:w-40 flex items-center justify-center z-10 shadow-lg border-r-2 border-white/20">
                                         <span className="text-white font-black text-sm md:text-lg tracking-widest">RN TICKER</span>
                                     </div>

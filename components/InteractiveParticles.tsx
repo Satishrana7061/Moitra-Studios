@@ -108,16 +108,15 @@ const InteractiveParticles: React.FC = () => {
     if (!ctx) return;
 
     const resize = () => {
-      const parent = canvas.parentElement;
-      if (parent) {
-        canvas.width = parent.clientWidth;
-        canvas.height = parent.clientHeight;
-      }
+      // The canvas is fixed to the viewport (inset-0 h-[100dvh]), so its internal
+      // resolution should match the actual screen dimensions, not the parent's
+      // scroll height, otherwise coordinate mapping (clientX/clientY) becomes offset.
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     };
     resize();
 
-    const resizeObserver = new ResizeObserver(resize);
-    if (canvas.parentElement) resizeObserver.observe(canvas.parentElement);
+    window.addEventListener('resize', resize);
 
     // Initialize ambient particles
     const particles = particlesRef.current;
@@ -390,7 +389,7 @@ const InteractiveParticles: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
       window.removeEventListener('click', handleClick);
-      resizeObserver.disconnect();
+      window.removeEventListener('resize', resize);
     };
   }, [createParticle]);
 

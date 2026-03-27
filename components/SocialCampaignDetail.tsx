@@ -185,28 +185,121 @@ const SocialCampaignDetail: React.FC = () => {
 
                         {/* Leader Approaches Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {campaign.approaches?.map((approach) => (
+                            {campaign.approaches?.map((approach) => {
+                                const leaderImg = approach.style === 'modi' 
+                                    ? `${import.meta.env.BASE_URL}leaders/modi.png`
+                                    : approach.style === 'rahul'
+                                    ? `${import.meta.env.BASE_URL}leaders/rahul.png`
+                                    : null;
+                                const accentColor = approach.style === 'modi' ? 'orange' : 'blue';
+
+                                // Deterministic simulated metrics generator based on campaign slug + style
+                                const seed = (str: string) => {
+                                    let h = 0;
+                                    for(let i=0; i<str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+                                    return h;
+                                };
+                                const s = Math.abs(seed(campaign.slug + approach.style));
+                                
+                                // Base biases: Modi leans infra/econ, Rahul leans welfare
+                                const isModi = approach.style === 'modi';
+                                let econScore = (s % 40) + (isModi ? 55 : 45); // Econ
+                                let welfScore = ((s >> 2) % 40) + (isModi ? 45 : 55); // Welfare
+                                let techScore = ((s >> 4) % 40) + (isModi ? 50 : 40); // Infra/Tech
+                                
+                                // Cap at 98 for realism
+                                econScore = Math.min(98, econScore);
+                                welfScore = Math.min(98, welfScore);
+                                techScore = Math.min(98, techScore);
+
+                                return (
                                 <div key={approach.id} className={`p-8 rounded-3xl border transition-all ${
                                     campaign.status === 'archived' && approach.is_winner
                                     ? 'bg-blue-600/10 border-blue-500/40 scale-[1.02] shadow-[0_10px_30px_rgba(37,99,235,0.1)]'
                                     : 'bg-slate-900/40 border-white/5'
                                 }`}>
+                                    {/* Leader Photo */}
+                                    {leaderImg && (
+                                        <div className="flex justify-center mb-6">
+                                            <div className={`relative w-24 h-24 rounded-full overflow-hidden border-3 ${
+                                                accentColor === 'orange' 
+                                                ? 'border-gameOrange shadow-[0_0_20px_rgba(255,107,0,0.3)]' 
+                                                : 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]'
+                                            }`}>
+                                                <img 
+                                                    src={leaderImg} 
+                                                    alt={approach.leader_name}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="flex justify-between items-start mb-6">
                                         <h3 className="text-white text-2xl font-bold font-rajdhani uppercase tracking-wide">{approach.leader_name}</h3>
                                         {campaign.status === 'archived' && approach.is_winner && (
                                             <Award className="w-8 h-8 text-blue-500 animate-bounce" />
                                         )}
                                     </div>
-                                    <div className="space-y-4">
+                                    <div className="space-y-4 mb-8">
                                         {(approach.policy_bullets || []).map((point: string, i: number) => (
                                             <div key={i} className="flex gap-4">
-                                                <span className="text-blue-500 font-bold font-mono py-0.5">0{i+1}.</span>
+                                                <span className={`${accentColor === 'orange' ? 'text-gameOrange' : 'text-blue-500'} font-bold font-mono py-0.5`}>0{i+1}.</span>
                                                 <p className="text-slate-300 text-sm leading-relaxed">{point}</p>
                                             </div>
                                         ))}
                                     </div>
+
+                                    {/* AI Impact Projection Graphs */}
+                                    <div className="pt-6 border-t border-white/10">
+                                        <h4 className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-bold mb-6 flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                                            Simulated AI Impact Projection
+                                        </h4>
+                                        <div className="space-y-4">
+                                            {/* Graph Bar 1 */}
+                                            <div className="group/graph">
+                                                <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
+                                                    <span className="text-slate-300 uppercase">Economic Growth</span>
+                                                    <span className="text-white">{econScore}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
+                                                    <div 
+                                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
+                                                        style={{ width: `${econScore}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                            {/* Graph Bar 2 */}
+                                            <div className="group/graph">
+                                                <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
+                                                    <span className="text-slate-300 uppercase">Public Welfare</span>
+                                                    <span className="text-white">{welfScore}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
+                                                    <div 
+                                                        className={`h-full rounded-full transition-all duration-1000 ease-out delay-150 ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
+                                                        style={{ width: `${welfScore}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                            {/* Graph Bar 3 */}
+                                            <div className="group/graph">
+                                                <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
+                                                    <span className="text-slate-300 uppercase">Infrastructure & Tech</span>
+                                                    <span className="text-white">{techScore}%</span>
+                                                </div>
+                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
+                                                    <div 
+                                                        className={`h-full rounded-full transition-all duration-1000 ease-out delay-300 ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
+                                                        style={{ width: `${techScore}%` }}
+                                                    ></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
 
                         {/* RESULTS OR VOTING SECTION */}

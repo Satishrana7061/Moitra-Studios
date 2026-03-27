@@ -119,10 +119,22 @@ const RajneetiMap: React.FC = () => {
     }, [countryData]);
 
     const getPath = (feature: GeoJSONFeature) => {
+        if (!feature.geometry || !feature.geometry.coordinates) return "";
         const { coordinates, type } = feature.geometry;
-        const renderPolygon = (poly: any[]) => "M" + poly.map((ring: any[]) => ring.map(p => `${p[0]},${p[1]}`).join("L")).join("Z");
-        if (type === "Polygon") return renderPolygon(coordinates);
-        else if (type === "MultiPolygon") return coordinates.map(poly => renderPolygon(poly)).join(" ");
+        
+        const renderPolygon = (poly: any[]) => {
+            if (!poly || !poly.length) return "";
+            return poly.map(ring => {
+                if (!ring || !ring.length) return "";
+                return "M" + ring.map((p: any) => `${p[0]},${p[1]}`).join("L") + "Z";
+            }).join(" ");
+        };
+
+        try {
+            if (type === "Polygon") return renderPolygon(coordinates);
+            if (type === "MultiPolygon") return coordinates.map(poly => renderPolygon(poly)).join(" ");
+        } catch(e) { console.warn("GeoJSON Path Error", e); }
+        
         return "";
     };
 
@@ -236,28 +248,37 @@ const RajneetiMap: React.FC = () => {
                                 return (
                                     <g transform={`scale(1, -1) translate(0, -${centerY * 2})`}>
                                         <g className="country-layer">
-                                            {countryData.features.map((f, i) => (
-                                                <path key={`country-${i}`} d={getPath(f)} fill="#050a1d" stroke="url(#metallicGold)" strokeWidth="3000" strokeOpacity="0.3" />
-                                            ))}
+                                            {countryData.features.map((f, i) => {
+                                                const d = getPath(f);
+                                                if (!d || d.length < 5) return null;
+                                                return (
+                                                    <path key={`country-${i}`} d={d} fill="#050a1d" stroke="url(#metallicGold)" strokeWidth="3000" strokeOpacity="0.3" />
+                                                );
+                                            })}
                                         </g>
                                         <g className="state-layer">
                                             {stateData.features.map((f, i) => {
                                                 const stateId = f.properties.State_Name || i.toString();
                                                 const isSelected = selectedState === stateId;
                                                 const isHovered = hoveredState === stateId;
+                                                const d = getPath(f);
+                                                if (!d || d.length < 5) return null;
 
                                                 return (
                                                     <path
                                                         key={`state-${stateId}`}
-                                                        d={getPath(f)}
-                                                        fill={isSelected ? "#1e40af" : (isHovered ? "#ffffff22" : getStateColor(stateId))}
-                                                        stroke="#000"
-                                                        strokeWidth={isSelected ? "5000" : (isHovered ? "3000" : "800")}
-                                                        strokeOpacity={isSelected || isHovered ? 0.8 : 0.3}
-                                                        className="cursor-pointer transition-all duration-300"
+                                                        d={d}
+                                                        fill={isSelected ? "#3b82f6" : (isHovered ? "#60a5fa" : getStateColor(stateId))}
+                                                        stroke={isSelected || isHovered ? "#fff" : "#1e293b"}
+                                                        strokeWidth={isSelected ? "5000" : (isHovered ? "3000" : "1500")}
+                                                        strokeOpacity={isSelected || isHovered ? 1 : 0.6}
+                                                        filter={isSelected || isHovered ? "url(#stateGlow)" : ""}
+                                                        className="cursor-pointer transition-all duration-500 hover:brightness-125"
                                                         style={{
-                                                            opacity: 0.9,
-                                                            transform: isSelected ? 'translate(0, 40000)' : (isHovered ? 'translate(0, 10000)' : 'none'),
+                                                            opacity: isSelected ? 1 : 0.85,
+                                                            transform: isSelected ? 'translate(0, 40000) scale(1.02)' : (isHovered ? 'translate(0, 10000) scale(1.02)' : 'scale(1)'),
+                                                            transformOrigin: 'center center',
+                                                            transformBox: 'fill-box'
                                                         }}
                                                         onMouseEnter={() => !selectedState && setHoveredState(stateId)}
                                                         onMouseLeave={() => setHoveredState(null)}

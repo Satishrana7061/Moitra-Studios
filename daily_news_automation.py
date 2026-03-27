@@ -149,7 +149,8 @@ Here are today's news articles:
 {articles_text}
 
 TASK:
-Pick the {MAX_EVENTS} most politically significant articles from the list above.
+Pick the {MAX_EVENTS} most politically significant articles from the list above. 
+CRITICAL REQUIREMENT: Focus exclusively on political news regarding the current 5 state elections (e.g., Maharashtra, Jharkhand, Haryana, Jammu & Kashmir, Delhi). If an article doesn't relate to these regions or their prominent leaders, ignore it or adapt national news to how it impacts these specific states.
 For each, produce a JSON object with these EXACT keys:
 {{
   "leader": "<candidate name from the list above>",
@@ -197,7 +198,7 @@ def call_openai(prompt: str) -> str:
 # ── Gemini Fallback ──────────────────────────────────────────────
 def call_gemini(prompt: str) -> str:
     """Call Google Gemini API as a fallback."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
     resp = requests.post(
         url,
         headers={"Content-Type": "application/json"},

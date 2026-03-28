@@ -17,28 +17,36 @@ const PageLoader = () => (
   </div>
 );
 
+const ScrollToTop = ({ mainRef }: { mainRef: React.RefObject<HTMLElement> }) => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    const resetScroll = () => {
+      if (mainRef.current) mainRef.current.scrollTo({ top: 0, behavior: 'auto' });
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+    resetScroll();
+    // Second pass to catch after Suspense finishes rendering the lazy chunk
+    const timer = setTimeout(resetScroll, 50);
+    return () => clearTimeout(timer);
+  }, [pathname, mainRef]);
+  
+  return null;
+};
+
 const App: React.FC = () => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
 
-  // Scroll to top on every route change
-  useEffect(() => {
-    if (mainRef.current) {
-      mainRef.current.scrollTo(0, 0);
-    }
-    window.scrollTo(0, 0);
-  }, [location.pathname]);
-
   return (
     <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden">
+      <ScrollToTop mainRef={mainRef} />
       <div className={`${isMapPage ? 'absolute top-0' : 'relative'} w-full z-50`}>
         <Navbar />
       </div>
       <main
         ref={mainRef}
         className="flex-1 w-full relative overflow-y-auto overflow-x-hidden"
-        style={{ scrollBehavior: 'smooth' }}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes>

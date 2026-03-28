@@ -200,7 +200,7 @@ class CampaignService {
     return CAMPAIGNS_DATA.filter(c => c.status === 'closed') as any;
   }
 
-  async castVote(campaignId: string, selectedStyle: string, ownSolution?: string) {
+  async castVote(campaignId: string, selectedStyle: string, ownSolution?: string): Promise<{ success: boolean; errorMsg?: string }> {
     const sessionId = this.getOrCreateSessionId();
 
     if (supabase) {

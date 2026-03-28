@@ -219,11 +219,15 @@ def call_gemini(prompt: str) -> str:
 
 # ── JSON Cleanup ─────────────────────────────────────────────────
 def clean_json(raw: str) -> list[dict]:
-    """Strip markdown fences and parse JSON array."""
-    cleaned = re.sub(r"^```(?:json)?\s*", "", raw)
-    cleaned = re.sub(r"\s*```$", "", cleaned)
-    cleaned = cleaned.strip()
-    return json.loads(cleaned)
+    """Strip markdown fences, conversational text, and parse JSON array."""
+    import re
+    # Find the largest bracketed structure that looks like a JSON array
+    match = re.search(r"(\[.*\])", raw, re.DOTALL)
+    if match:
+        cleaned = match.group(1)
+        return json.loads(cleaned)
+    # Fallback to direct parsing
+    return json.loads(raw)
 
 
 # ── Main ─────────────────────────────────────────────────────────

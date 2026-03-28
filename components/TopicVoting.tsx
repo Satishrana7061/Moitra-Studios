@@ -50,6 +50,14 @@ const TopicVoting: React.FC<TopicVotingProps> = ({ round, onVoteComplete }) => {
                     <h2 className="text-2xl font-bold text-white mb-2 uppercase">Topic Vote Received!</h2>
                     <p className="text-slate-400">Thank you for participating. The most voted topic will go live shortly.</p>
                 </div>
+            ) : new Date(round.end_time || '') < new Date() ? (
+                <div className="bg-slate-900/40 border border-slate-500/20 rounded-3xl p-12 text-center animate-fade-in">
+                    <div className="w-16 h-16 bg-slate-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <AlertCircle className="w-8 h-8 text-slate-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2 uppercase">Selection Closed</h2>
+                    <p className="text-slate-400">The voting window has closed. The next campaign is being generated.</p>
+                </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {round.options.map((option) => (

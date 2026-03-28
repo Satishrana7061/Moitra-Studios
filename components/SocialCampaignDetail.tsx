@@ -349,12 +349,19 @@ const SocialCampaignDetail: React.FC = () => {
                                 )}
 
                                 {!hasVoted ? (
-                                    <div className="max-w-md mx-auto space-y-4">
-                                        {campaign.approaches?.map((app) => (
-                                            <button 
-                                                key={app.id}
-                                                onClick={() => handleVote(app.style)}
-                                                disabled={voteLoading}
+                                    new Date(campaign.end_time || '') < new Date() ? (
+                                        <div className="text-center py-10">
+                                            <AlertCircle className="w-16 h-16 text-slate-500 mx-auto mb-4" />
+                                            <h3 className="text-2xl font-bold text-white mb-2 uppercase">Voting Closed</h3>
+                                            <p className="text-slate-400">This campaign has ended. Awaiting AI analysis of the results.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="max-w-md mx-auto space-y-4">
+                                            {campaign.approaches?.map((app) => (
+                                                <button 
+                                                    key={app.id}
+                                                    onClick={() => handleVote(app.style)}
+                                                    disabled={voteLoading}
                                                 className="w-full p-6 rounded-2xl bg-white/5 border border-white/10 text-left text-white hover:bg-white/10 hover:border-gameOrange/50 transition-all flex items-center justify-between group disabled:opacity-60 disabled:cursor-wait"
                                             >
                                                 <span className="font-bold text-lg">{app.leader_name} Approach</span>
@@ -378,6 +385,7 @@ const SocialCampaignDetail: React.FC = () => {
                                             </button>
                                         </div>
                                     </div>
+                                    )
                                 ) : (
                                     <div className="text-center py-10">
                                         {voteLoading ? (

@@ -1,24 +1,57 @@
 [
   {
-    "leader": "Nitish Kumar",
-    "state": "Bihar",
-    "sentiment_score": "+4.0",
-    "ticker_headline": "Bihar's Future Brightens: Nitish Kumar's Vision for a New Era",
-    "blog_title": "Nitish Kumar: The Architect of New Bihar's Political Landscape",
-    "blog_content": "In the grand arena of Bihar politics, Nitish Kumar continues to rally support with his compelling vision for a 'New Bihar.' As candidates gear up for the upcoming elections, Kumar's charisma is pivotal in solidifying alliances and securing votes. HQ Management teams are strategizing to amplify his achievements, turning rallies into powerful showcases of his governance. Action Points are being outlined to engage young voters, while Fundraising initiatives are aimed at boosting campaign resources. Booth Management is crucial—ensuring every polling station feels the impact of Kumar's legacy. With his reputation as a transformative leader, the stakes are high as Bihar stands on the brink of significant electoral shifts.",
-    "social_post": "Bihar is set for a transformation under Nitish Kumar's leadership! Can he secure another win? #NewBihar #NitishKumar #Election2026",
-    "original_url": "https://www.thehindu.com/news/national/bihar/bihar-will-remain-indebted-to-nitish-kumar-for-building-a-new-bihar-nitin-nabin/article70788368.ece",
-    "date": "2026-03-27"
+    "leader": "Rajnath Singh",
+    "state": "Uttar Pradesh",
+    "sentiment_score": "+2.5",
+    "ticker_headline": "Rajnath Singh Calls for Swift Decisions Amid West Asia Crisis",
+    "blog_title": "Rajnath's Rallying Call: A Strategic Move to Secure Votes!",
+    "blog_content": "As the West Asia crisis unfolds, Rajnath Singh takes center stage, rallying the BJP's forces in Uttar Pradesh. With a charisma that resonates across the state, Singh emphasizes swift decision-making and long-term strategies. The HQ is buzzing with action points as leaders gear up for a robust campaign. With fundraisers planned and booth management strategies in place, the BJP is poised to capitalize on this geopolitical turmoil. This could be a pivotal moment to consolidate support among voters who prioritize national security. Will Singh's leadership translate into electoral victories? Only time will tell!",
+    "social_post": "Rajnath Singh's leadership during the West Asia crisis could redefine BJP's campaign strategy in UP! #Election2026 #BJP #NationalSecurity #UttarPradesh #RajnathSingh",
+    "original_url": "https://www.thehindu.com/news/national/west-asia-crisis-rajnath-singh-calls-for-swift-decisions-long-term-readiness/article70797652.ece",
+    "date": "2026-03-29"
   },
   {
-    "leader": "Pinarayi Vijayan",
-    "state": "Kerala",
-    "sentiment_score": "+3.5",
-    "ticker_headline": "Kerala Assembly Elections: A Crucial Battle for Nine Key Seats",
-    "blog_title": "Nine Seats to Rule Them All: Kerala's Electoral Showdown",
-    "blog_content": "As the political climate heats up in Kerala, the upcoming assembly elections are set to be a fierce battleground. With Pinarayi Vijayan leading the charge for the LDF, strategic maneuvering is essential in these nine pivotal constituencies. Rallying grassroots support will be critical, and HQ Management is ramping up efforts to bolster voter outreach. Charisma will play a major role as candidates must charm undecided voters while managing their booth strategies to ensure maximum turnout. Action Points are being finalized for effective campaigning, and fundraising drives are crucial to fuel these intense battles. The fate of Kerala's governance may very well hinge on these nine electoral showdowns!",
-    "social_post": "The battle for Kerala's assembly elections is heating up! Which party will claim victory in the key nine seats? #KeralaElections #PinarayiVijayan #Election2026",
-    "original_url": "https://www.thehindu.com/elections/kerala-assembly/kerala-assembly-polls-2026-triangular-battle-on-the-cards-in-nine-seats-in-kerala/article70779616.ece",
-    "date": "2026-03-27"
+    "leader": "Nitish Kumar",
+    "state": "Bihar",
+    "sentiment_score": "-1.0",
+    "ticker_headline": "OBC and EBC Voters Displeased with Nitish Kumar's Rajya Sabha Move",
+    "blog_title": "Nitish's Exit: A Risky Gambit in Bihar's Political Chess!",
+    "blog_content": "In a surprising move, Nitish Kumar is set to transition to the Rajya Sabha, but is it costing him support in Bihar? OBC and EBC voters are reportedly unhappy, questioning his commitment to state politics. As Kumar's HQ reevaluates strategy, the opposition is ready to capitalize on this sentiment. Campaign rallies are being organized to sway the discontented voters back into the fold, but time is of the essence. Fundraising efforts must ramp up as they prepare for an intense electoral battle. Can Kumar regain trust or will this be a turning point for Bihar politics?",
+    "social_post": "Nitish Kumar's shift to Rajya Sabha raises eyebrows among Bihar voters! Can he win them back? #BiharPolitics #NitishKumar #Election2026 #VoterSentiment",
+    "original_url": "https://www.thehindu.com/news/national/bihar/obc-and-ebc-voters-are-not-happy-with-nitish-kumar-moving-to-rajya-sabha-says-anand-mohan/article70796405.ece",
+    "date": "2026-03-29"
+  },
+  {
+    "leader": "M.K. Stalin",
+    "state": "Tamil Nadu",
+    "sentiment_score": "+1.8",
+    "ticker_headline": "Palaniswami Claims Stalin is Campaigning for Udhayanidhi to Become CM",
+    "blog_title": "Udhayanidhi's Rise: Stalin's Strategic Play in Tamil Nadu Politics!",
+    "blog_content": "The political landscape in Tamil Nadu is heating up as Palaniswami claims M.K. Stalin is backing his son Udhayanidhi for the Chief Ministerial role! This bold move could redefine the DMK's campaign narrative. As party HQs strategize for upcoming rallies, the focus will be on building Udhayanidhi's charisma and connecting with the youth. Fundraising initiatives are in full swing, aiming to bolster their campaign resources. Will this father-son duo sway voters and secure a second term for DMK? The electoral chessboard is set, and every move counts!",
+    "social_post": "Is Udhayanidhi Stalin the next CM of Tamil Nadu? The plot thickens! #TamilNadu #DMK #Election2026 #PoliticalDynasty",
+    "original_url": "https://www.thehindu.com/elections/tamil-nadu-assembly/tn-assembly-election-palaniswami-claims-stalin-is-campaigning-for-udhayanidhi-to-become-cm/article70797103.ece",
+    "date": "2026-03-29"
+  },
+  {
+    "leader": "Yogi Adityanath",
+    "state": "Uttar Pradesh",
+    "sentiment_score": "+3.0",
+    "ticker_headline": "Yogi Adityanath Gains Momentum with Development Initiatives",
+    "blog_title": "Yogi's Development Agenda: A Winning Strategy for UP Elections!",
+    "blog_content": "Yogi Adityanath is doubling down on development as the key to winning hearts in Uttar Pradesh! With an action-packed schedule filled with rallies and public engagements, he aims to showcase his government's achievements. The HQ is buzzing with excitement as fundraising campaigns target critical sectors to boost visibility. Voter outreach programs focusing on infrastructure and welfare schemes are being prioritized. Can Yogi's emphasis on development help secure a second term, or will the opposition's narratives gain traction? It's a battle of ideologies in the heart of UP!",
+    "social_post": "Yogi Adityanath's development initiatives could be the game changer in UP elections! #UttarPradesh #YogiAdityanath #Election2026 #Development",
+    "original_url": "https://www.thehindu.com/news/national/uttar-pradesh/governments-failure-responsible-for-supply-crunch-panic-among-people-says-pramod-tiwari/article70796852.ece",
+    "date": "2026-03-29"
+  },
+  {
+    "leader": "Arvind Kejriwal",
+    "state": "Delhi",
+    "sentiment_score": "+1.5",
+    "ticker_headline": "Kejriwal Focuses on Local Issues Ahead of Delhi Elections",
+    "blog_title": "Kejriwal's Local Connect: A Strategy to Reclaim Delhi!",
+    "blog_content": "As the Delhi elections approach, Arvind Kejriwal is hitting the ground running, emphasizing local issues to resonate with voters! His HQ is strategizing on grassroots campaigns targeting specific neighborhoods and community concerns. With an engaging rally plan in place, the AAP seeks to mobilize volunteers and maximize booth management effectiveness. Fundraising efforts are being directed towards community outreach initiatives, ensuring every voice is heard. Can Kejriwal's focus on local connect turn the tide in his favor, or will rivals overshadow his efforts? The electoral battle for Delhi is on!",
+    "social_post": "Kejriwal's focus on local issues aims to reclaim Delhi's trust! #DelhiElections #AAP #ArvindKejriwal #LocalIssues",
+    "original_url": "https://www.thehindu.com/news/national/telangana/thunderstorm-forecast-in-19-districts-of-telangana-on-march-29/article70795828.ece",
+    "date": "2026-03-29"
   }
 ]

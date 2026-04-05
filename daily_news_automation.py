@@ -149,13 +149,17 @@ def fetch_rss_articles():
 
 # ═══════════════════════════════════════════════════════════════
 # AI CALL (OpenAI primary, Gemini fallback)
+# Model priority: gpt-5.4-mini → gpt-4o-mini → Gemini
 # ═══════════════════════════════════════════════════════════════
-def call_openai(prompt):
+OPENAI_MODELS = ["gpt-5.4-mini", "gpt-4o-mini"]  # Try in order
+
+
+def call_openai(prompt, model="gpt-5.4-mini"):
     resp = requests.post(
         "https://api.openai.com/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
         json={
-            "model": "gpt-5.4-mini",
+            "model": model,
             "messages": [
                 {"role": "system", "content": "You output only valid JSON. No markdown, no commentary."},
                 {"role": "user", "content": prompt},
@@ -165,7 +169,14 @@ def call_openai(prompt):
         },
         timeout=90,
     )
-    resp.raise_for_status()
+    if resp.status_code >= 400:
+        error_detail = "unknown"
+        try:
+            error_detail = resp.json().get("error", {}).get("message", resp.text[:200])
+        except Exception:
+            error_detail = resp.text[:200]
+        print(f"  ⚠  OpenAI {model} → {resp.status_code}: {error_detail}", file=sys.stderr)
+        return None
     return resp.json()["choices"][0]["message"]["content"].strip()
 
 
@@ -185,13 +196,16 @@ def call_gemini(prompt):
 
 
 def call_ai(prompt):
+    """Try OpenAI models in order, then Gemini as final fallback."""
     if OPENAI_API_KEY:
-        try:
-            result = call_openai(prompt)
-            print("  ✅ AI response (OpenAI)")
-            return result
-        except Exception as exc:
-            print(f"  ⚠  OpenAI failed: {exc}", file=sys.stderr)
+        for model in OPENAI_MODELS:
+            try:
+                result = call_openai(prompt, model=model)
+                if result:
+                    print(f"  ✅ AI response (OpenAI/{model})")
+                    return result
+            except Exception as exc:
+                print(f"  ⚠  OpenAI {model} exception: {exc}", file=sys.stderr)
     if GEMINI_API_KEY:
         try:
             result = call_gemini(prompt)
@@ -200,6 +214,7 @@ def call_ai(prompt):
         except Exception as exc:
             print(f"  ❌ Gemini failed: {exc}", file=sys.stderr)
     return ""
+
 
 
 def clean_json(raw):

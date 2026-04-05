@@ -261,7 +261,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </div>
 
                                     <button
-                                        onClick={() => navigate(`/social-campaigns/${liveCampaign.slug}`)}
+                                        onClick={() => navigate(`/social-campaigns/${liveCampaign.slug || liveCampaign.id}`)}
                                         className="shrink-0 flex items-center gap-2 bg-gameOrange text-white px-6 py-3 rounded-full font-black uppercase tracking-widest text-xs hover:bg-orange-500 transition-all shadow-[0_4px_20px_rgba(255,107,0,0.3)] hover:shadow-[0_4px_30px_rgba(255,107,0,0.5)] hover:scale-105 active:scale-95"
                                     >
                                         Cast Your Vote <ArrowRight size={14} />

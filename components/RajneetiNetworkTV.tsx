@@ -57,6 +57,18 @@ const RajneetiNetworkTV: React.FC = () => {
         fetchLiveCampaign();
     }, []);
 
+    // Auto-scroll to the selected news item on initial load
+    useEffect(() => {
+        if (!loading && newsData && newsData.length > 0 && activeIndex > 0) {
+            setTimeout(() => {
+                const container = sidebarScrollRef.current;
+                const article = articleRefs.current[activeIndex];
+                if (container && article) {
+                    container.scrollTo({ top: article.offsetTop - container.offsetTop, behavior: 'smooth' });
+                }
+            }, 300); // Wait a bit for render
+        }
+    }, [loading, newsData]);
 
     const activeNews = newsData ? newsData[activeIndex] : null;
 

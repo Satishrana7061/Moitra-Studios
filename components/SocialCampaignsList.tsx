@@ -63,7 +63,7 @@ const SocialCampaignsList: React.FC = () => {
                 {/* FEATURED EXPERIENCE (LIVE OR TOPIC VOTING) */}
                 {currentExperience && currentExperience.type !== 'buffer' && (
                     <section className="mb-20">
-                        <div className="relative group cursor-pointer" onClick={() => navigate(currentExperience.type === 'campaign' ? `/social-campaigns/${currentExperience.data.slug}` : `/social-campaigns`)}>
+                        <div className="relative group cursor-pointer" onClick={() => navigate(currentExperience.type === 'campaign' ? `/social-campaigns/${currentExperience.data.slug || currentExperience.data.id}` : `/social-campaigns`)}>
                             <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                             <div className="relative bg-slate-900 border border-white/10 rounded-3xl p-8 md:p-12 overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8">

@@ -156,7 +156,7 @@ const SocialCampaignDetail: React.FC = () => {
                         <SocialCampaignSidebar 
                             campaigns={allCampaigns} 
                             onSelectCampaign={(slug) => navigate(`/social-campaigns/${slug}`)} 
-                            activeSlug={campaign.slug}
+                            activeSlug={campaign.slug || campaign.id}
                         />
                     </div>
 

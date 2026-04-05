@@ -71,9 +71,9 @@ const SocialCampaignSidebar: React.FC<SocialCampaignSidebarProps> = ({ campaigns
                     filteredCampaigns.map(campaign => (
                         <button
                             key={campaign.id}
-                            onClick={() => onSelectCampaign(campaign.slug)}
+                            onClick={() => onSelectCampaign(campaign.slug || campaign.id)}
                             className={`w-full text-left p-4 rounded-xl border transition-all group relative overflow-hidden ${
-                                activeSlug === campaign.slug
+                                activeSlug === (campaign.slug || campaign.id)
                                 ? 'bg-blue-600/10 border-blue-500/30'
                                 : 'bg-slate-900/40 border-white/5 hover:border-white/10 hover:bg-slate-800/40'
                             }`}
@@ -83,7 +83,7 @@ const SocialCampaignSidebar: React.FC<SocialCampaignSidebarProps> = ({ campaigns
                                 <span className="text-[9px] text-slate-500 font-bold">{new Date(campaign.end_time).toLocaleDateString()}</span>
                             </div>
                             <h3 className={`text-sm font-bold leading-tight mb-3 transition-colors relative z-10 ${
-                                activeSlug === campaign.slug ? 'text-white' : 'text-slate-300 group-hover:text-white'
+                                activeSlug === (campaign.slug || campaign.id) ? 'text-white' : 'text-slate-300 group-hover:text-white'
                             }`}>
                                 {campaign.title}
                             </h3>
@@ -96,7 +96,7 @@ const SocialCampaignSidebar: React.FC<SocialCampaignSidebarProps> = ({ campaigns
                             )}
 
                             <ChevronRight className={`absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-all ${
-                                activeSlug === campaign.slug ? 'text-white translate-x-0' : 'text-slate-700 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
+                                activeSlug === (campaign.slug || campaign.id) ? 'text-white translate-x-0' : 'text-slate-700 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0'
                             }`} />
                         </button>
                     ))

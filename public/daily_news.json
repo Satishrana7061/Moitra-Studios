@@ -1,57 +1,57 @@
 [
   {
-    "leader": "Yogi Adityanath",
-    "state": "Uttar Pradesh",
+    "leader": "Narendra Modi",
+    "state": "West Bengal",
     "sentiment_score": "+4.0",
-    "ticker_headline": "Yogi Adityanath champions zero dropout initiative in U.P.",
-    "blog_title": "Yogi's Education Revolution: A Zero Dropout Dream!",
-    "blog_content": "In a bold rallying cry for Uttar Pradesh's future, Chief Minister Yogi Adityanath has unveiled a zero dropout initiative aimed at ensuring every child is in school. With a charismatic appeal to society, Yogi is mobilizing support to reduce the dropout rate from a staggering 19% to an impressive 3%. This strategic move not only secures votes but showcases the BJP's commitment to education. HQ Management must prioritize funding for uniforms and educational materials, while grassroots teams engage communities to spread the word. Action Points are clear: enhance booth management efforts to highlight this educational reform. It's time to fundraise and rally the base around Yogi's vision for a brighter, educated U.P.!",
-    "social_post": "Yogi Adityanath is on a mission to ensure no child is left behind in U.P.! 🎓 #UPEducation #ZeroDropout #BJP #ChildEmpowerment",
-    "original_url": "https://www.thehindu.com/news/national/uttar-pradesh/up-cm-yogi-adityanath-pushes-for-zero-dropout-appeals-to-society-for-ensuring-no-child-is-left-out-of-school/article70823525.ece",
+    "ticker_headline": "Modi Launches BJP's Campaign in West Bengal with High Hopes",
+    "blog_title": "Modi's Charisma Sparks a Rally of Hope in Bengal!",
+    "blog_content": "As the BJP gears up for the West Bengal Assembly elections, Prime Minister Narendra Modi's charismatic presence in Cooch Behar has set the stage ablaze. With HQ management rallying the troops, every booth is primed for action. The campaign's focus on grassroots engagement is crucial as the party aims to fundraise effectively and bolster its local support. Action points include mobilizing volunteers, ensuring voter outreach, and countering opposition narratives. Modi's leadership is expected to galvanize party workers and attract undecided voters. The BJP is determined to turn promises into votes, making this election a pivotal moment in Bengal's political landscape.",
+    "social_post": "The countdown to Bengal Assembly elections begins! Modi's charisma is set to energize the campaign! #BJP #WestBengal #Elections2026 #ModiMagic #PoliticalRally",
+    "original_url": "https://www.thehindu.com/elections/state-assembly-elections-west-bengal-assam-kerala-puducherry-tamil-nadu-live-updates/article70825775.ece",
+    "date": "2026-04-05"
+  },
+  {
+    "leader": "Pinarayi Vijayan",
+    "state": "Kerala",
+    "sentiment_score": "+3.5",
+    "ticker_headline": "LDF Unveils Ambitious Manifesto to Transform Kerala",
+    "blog_title": "Manifesto Madness: LDF's Vision for a 'Nava Kerala'",
+    "blog_content": "In a strategic move, the LDF has launched a 60-point manifesto aimed at reshaping Kerala into a 'Nava Kerala'. This ambitious program outlines nearly 950 proposals designed to boost economic growth and eradicate poverty. HQ management is set to energize party cadres, ensuring that every booth is equipped with the manifesto's key points. Fundraising efforts will focus on community engagement and local initiatives to reinforce the party's commitment to development. Action points include mobilizing support for welfare pensions and showcasing ongoing projects. The stakes are high as the LDF seeks to maintain its dominance in the upcoming assembly polls.",
+    "social_post": "The LDF is ready to transform Kerala with its bold manifesto! Change is on the horizon! #NavaKerala #LDF #Elections2026 #Development #PoliticalVision",
+    "original_url": "https://www.thehindu.com/elections/kerala-assembly/kerala-assembly-polls-ldfs-manifesto-vows-to-eradicate-absolute-poverty-hike-welfare-pensions-to-3000/article70814666.ece",
+    "date": "2026-04-05"
+  },
+  {
+    "leader": "Mamata Banerjee",
+    "state": "West Bengal",
+    "sentiment_score": "-2.5",
+    "ticker_headline": "Farmer Distress Becomes Key Election Issue in Bengal",
+    "blog_title": "Farmers in Distress: A Challenge for Mamata's Leadership!",
+    "blog_content": "As the West Bengal elections approach, the plight of potato farmers has emerged as a pressing issue. Three farmer deaths linked to plummeting prices have sparked outrage, with both the ruling party and opposition trading barbs. Mamata Banerjee's leadership is under scrutiny as HQ management grapples with public sentiment. Action points involve addressing farmer grievances, enhancing booth management strategies, and launching fundraising initiatives to support agricultural reforms. The TMC's ability to connect with the farming community will be crucial in swaying voter sentiment and maintaining their hold on power in the state.",
+    "social_post": "The voices of Bengal's farmers cannot be ignored! Will Mamata address their plight before the polls? #FarmersIssue #WestBengal #Elections2026 #Mamata #PoliticalChallenge",
+    "original_url": "https://www.thehindu.com/news/national/west-bengal/price-crash-drives-bengal-potato-farmers-into-distress/article70822538.ece",
+    "date": "2026-04-05"
+  },
+  {
+    "leader": "Akhilesh Yadav",
+    "state": "Uttar Pradesh",
+    "sentiment_score": "-3.0",
+    "ticker_headline": "Election Commission Suspends Police Officers Over Lapses",
+    "blog_title": "Policing the Polls: A Setback for Akhilesh's Campaign?",
+    "blog_content": "In a surprising turn of events, the Election Commission has suspended four police officers due to lapses during a recent roadshow by Akhilesh Yadav. This incident could potentially impact the SP's campaign strategy, as effective booth management becomes paramount in light of increased scrutiny. HQ management will need to strategize around this setback, focusing on enhanced security measures and community outreach. Fundraising efforts must be recalibrated to address any negative fallout. Action points include rallying support from party loyalists and ensuring a robust presence at polling booths to counter any adverse effects from the incident.",
+    "social_post": "Akhilesh's campaign faces a hurdle with police suspensions! How will he navigate this challenge? #UttarPradesh #Elections2026 #AkhileshYadav #SP #PoliticalSetback",
+    "original_url": "https://www.thehindu.com/elections/west-bengal-assembly/election-commission-suspends-four-police-officers-over-lapses-atsuvenduadhikari-roadshow-inbhabanipur/article70823358.ece",
     "date": "2026-04-05"
   },
   {
     "leader": "Rahul Gandhi",
-    "state": "Uttar Pradesh",
-    "sentiment_score": "+2.5",
-    "ticker_headline": "Congress vows justice for downtrodden, honoring SC leaders.",
-    "blog_title": "Rahul's Rally for Justice: A Call to the Heart of U.P.",
-    "blog_content": "In a strategic move to bolster its position in Uttar Pradesh, Congress leader Rahul Gandhi has pledged to secure justice for the downtrodden, echoing the ideals of Jagjivan Ram. During a recent function, party leaders honored current and former SC MPs and MLAs, reinforcing the Congress narrative of empowerment. The sentiment is clear: it's time to rally the base and connect with the grassroots. Booth management strategies should focus on engaging SC voters and showcasing the party's commitment to social justice. HQ Management needs to strategize fundraisers that highlight these initiatives, making a strong case for why Congress is the party of the people in U.P.!",
-    "social_post": "Rahul Gandhi leads Congress in a powerful pledge for justice and empowerment in U.P.! ✊ #Congress #SocialJustice #UPElections #Empowerment",
-    "original_url": "https://www.thehindu.com/news/national/uttar-pradesh/following-the-ideals-of-jagjivan-ram-congress-to-secure-justice-for-downtrodden-says-party-leaders/article70823892.ece",
-    "date": "2026-04-05"
-  },
-  {
-    "leader": "M.K. Stalin",
-    "state": "Tamil Nadu",
-    "sentiment_score": "+3.5",
-    "ticker_headline": "M.K. Stalin's DMK rallies for Tamil Nadu's future!",
-    "blog_title": "Stalin's Vision: DMK's Grand Plan for Tamil Nadu!",
-    "blog_content": "As Tamil Nadu gears up for the next election, M.K. Stalin's DMK is ramping up efforts to solidify its influence. With a focus on transformative projects, the DMK is orchestrating a campaign that promises to resonate with the electorate. HQ Management must ensure that booth management strategies highlight the successes of past initiatives while fundraising efforts should spotlight the upcoming transformative plans. The DMK's ability to connect emotionally with voters will be key, as Stalin rallies support and sets action points for grassroots mobilization. This is not just an election; it's a movement for Tamil Nadu's progressive future!",
-    "social_post": "M.K. Stalin and the DMK are ready to transform Tamil Nadu! 🚀 #DMK #TamilNadu #Elections2026 #ProgressivePolitics",
-    "original_url": "https://www.thehindu.com/news/national/tamil-nadu/madras-university-syndicate-approves-disaffiliation-for-dr-mgr-janaki-college/article70823562.ece",
-    "date": "2026-04-05"
-  },
-  {
-    "leader": "Nirmala Sitharaman",
-    "state": "Tamil Nadu",
-    "sentiment_score": "+2.0",
-    "ticker_headline": "Nirmala Sitharaman eyes Tamil Nadu's economic growth!",
-    "blog_title": "Sitharaman's Economic Push: Tamil Nadu on the Fast Track!",
-    "blog_content": "With Tamil Nadu's economy in focus, Union Minister Nirmala Sitharaman is laying down a strategic roadmap for growth. Her proactive approach aims to attract investments and enhance infrastructure, making it a pivotal issue in the upcoming elections. HQ Management must coordinate with local BJP units to ensure that the economic narrative is well-communicated at every booth. Engaging local entrepreneurs and showcasing success stories will be crucial in fundraisers. As the campaign heats up, it's essential for the party to rally support around Sitharaman's vision for a prosperous Tamil Nadu. Let’s put the pedal to the metal and drive forward!",
-    "social_post": "Nirmala Sitharaman is leading the charge for Tamil Nadu's economic revival! 💼 #BJP #TamilNadu #EconomicGrowth #Elections2026",
-    "original_url": "https://www.thehindu.com/news/national/tamil-nadu/plastic-manufacturers-flags-raw-material-price-surge-alleges-cartelisation/article70823967.ece",
-    "date": "2026-04-05"
-  },
-  {
-    "leader": "Uddhav Thackeray",
-    "state": "Maharashtra",
+    "state": "National",
     "sentiment_score": "+1.5",
-    "ticker_headline": "Uddhav Thackeray rallies for Maharashtra's development!",
-    "blog_title": "Thackeray's Maharashtra: A Vision of Growth and Unity!",
-    "blog_content": "As the Maharashtra elections approach, Uddhav Thackeray is rallying his supporters with a vision focused on development and unity. His charismatic leadership promises to bridge divides and foster collaboration among diverse communities. HQ Management needs to amplify Thackeray's message through effective booth management and community engagement strategies. Fundraising efforts should emphasize the importance of a united Maharashtra under his leadership. Each rally should serve as a platform to connect emotionally with voters, reinforcing the need for stability and progressive governance. The stage is set for Thackeray's grand campaign to reclaim Maharashtra!",
-    "social_post": "Uddhav Thackeray is on a mission for a united and developed Maharashtra! 🌟 #Maharashtra #UddhavThackeray #Elections2026 #UnityInDiversity",
-    "original_url": "https://www.thehindu.com/news/national/maharashtra/uddhav-thackeray-rallies-for-maharashtras-development/article70823562.ece",
+    "ticker_headline": "Congress Targets BJP Over Allegations of Pakistan Links",
+    "blog_title": "Rahul's Rallying Cry: Countering BJP's Pakistan Narrative!",
+    "blog_content": "In a strategic move, Rahul Gandhi is set to counter the BJP's allegations linking Congress to Pakistan during the Assam polls. This narrative could shape voter perceptions, making it a critical focus for the Congress HQ. Action points include organizing rallies to debunk misinformation and enhance booth management strategies to ensure voter engagement. Fundraising efforts will be pivotal as the Congress seeks to galvanize grassroots support. With a sharpened focus on local issues and a commitment to transparency, Rahul aims to overturn the prevailing narrative and regain trust among voters ahead of the elections.",
+    "social_post": "Rahul Gandhi stands firm against BJP's Pakistan narrative! Will this strategy resonate with voters? #Congress #Elections2026 #RahulGandhi #PoliticalStrategy #AssamPolls",
+    "original_url": "https://www.thehindu.com/elections/assam-assembly/in-bjps-assam-poll-narrative-pakistan-is-the-protagonist-anti-national-a-leitmotif/article70817060.ece",
     "date": "2026-04-05"
   }
 ]

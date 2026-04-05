@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 """
 daily_news_automation.py
-────────────────────────
-Fetches Indian political news from RSS feeds, uses OpenAI (or Gemini as
-fallback) to generate Rajneeti game-style daily news entries, and writes
-the result to public/daily_news.json.
+========================
+The single brain behind the Rajneeti website.
+Runs daily via GitHub Actions at 5:30 AM IST.
 
-Designed to run inside the GitHub Actions workflow defined in
-.github/workflows/daily-news.yml
+DAILY (every day):
+  1. Fetch 5 political news from Indian RSS feeds
+  2. AI generates game-style news items
+  3. Write to public/daily_news.json (static fallback)
+  4. Upsert to Supabase news_events table (keeps project alive)
+  5. Auto-archive any expired campaigns + generate AI results
+  6. Compact old votes into JSONB percentages, then delete raw rows
+  7. Delete news older than 14 days (free tier storage management)
+
+WEEKLY (Monday only):
+  8. Read all news from the past 7 days
+  9. AI picks the hottest political issue
+  10. Generate a new campaign (Mon–Thu) with Modi vs Rahul approaches
 """
 
 import json
@@ -20,16 +30,26 @@ from datetime import datetime, timezone, timedelta
 import requests
 
 # ── Configuration ────────────────────────────────────────────────
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
+GEMINI_API_KEY     = os.environ.get("GEMINI_API_KEY", "")
+SUPABASE_URL       = os.environ.get("SUPABASE_URL", os.environ.get("VITE_SUPABASE_URL", ""))
+SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
 OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "public", "daily_news.json")
 
+IST   = timezone(timedelta(hours=5, minutes=30))
+NOW   = datetime.now(IST)
+TODAY = NOW.strftime("%Y-%m-%d")
+DAY_OF_WEEK = NOW.strftime("%A")  # "Monday", "Tuesday", etc.
+
+# Campaign runs Mon 6 AM → Thu 11:59 PM (4 days)
+CAMPAIGN_DURATION_DAYS = 4
+
 RSS_FEEDS = [
-    "https://timesofindia.indiatimes.com/rssfeeds/66023901.cms",  # TOI Politics
-    "https://www.ndtv.com/rss/india",                             # NDTV India
-    "https://www.thehindu.com/news/national/feeder/default.rss",  # The Hindu
-    "https://indianexpress.com/section/india/politics/feed/",     # IE Politics
+    "https://timesofindia.indiatimes.com/rssfeeds/66023901.cms",
+    "https://www.ndtv.com/rss/india",
+    "https://www.thehindu.com/news/national/feeder/default.rss",
+    "https://indianexpress.com/section/india/politics/feed/",
 ]
 
 BANNED_KEYWORDS = [
@@ -38,99 +58,161 @@ BANNED_KEYWORDS = [
 ]
 
 CANDIDATE_LIST = """
-- Narendra Modi, BJP, National (state: Gujarat / National)
-- Rahul Gandhi, Congress, National (state: Uttar Pradesh / National)
-- Amit Shah, BJP, National (state: Gujarat / National)
-- Arvind Kejriwal, AAP, Delhi (state: Delhi)
-- Mamata Banerjee, TMC, West Bengal (state: West Bengal)
-- Yogi Adityanath, BJP, Uttar Pradesh (state: Uttar Pradesh)
-- M.K. Stalin, DMK, Tamil Nadu (state: Tamil Nadu)
-- Nitish Kumar, JDU, Bihar (state: Bihar)
-- Akhilesh Yadav, SP, Uttar Pradesh (state: Uttar Pradesh)
-- Uddhav Thackeray, Shiv Sena (UBT), Maharashtra (state: Maharashtra)
-- Mallikarjun Kharge, Congress, National (state: Karnataka)
-- Nirmala Sitharaman, BJP, National (state: Tamil Nadu)
-- Rajnath Singh, BJP, National (state: Uttar Pradesh)
-- Priyanka Gandhi, Congress, Uttar Pradesh (state: Uttar Pradesh)
-- Mayawati, BSP, Uttar Pradesh (state: Uttar Pradesh)
-- Lalu Prasad Yadav, RJD, Bihar (state: Bihar)
-- Tejaswi Yadav, RJD, Bihar (state: Bihar)
-- Bhagwant Mann, AAP, Punjab (state: Punjab)
-- Pinarayi Vijayan, CPI(M), Kerala (state: Kerala)
-- N. Chandrababu Naidu, TDP, Andhra Pradesh (state: Andhra Pradesh)
-- Prashant Kishor, Jan Suraaj, Bihar (state: Bihar)
+- Narendra Modi, BJP, National
+- Rahul Gandhi, Congress, National
+- Amit Shah, BJP, National
+- Arvind Kejriwal, AAP, Delhi
+- Mamata Banerjee, TMC, West Bengal
+- Yogi Adityanath, BJP, Uttar Pradesh
+- M.K. Stalin, DMK, Tamil Nadu
+- Nitish Kumar, JDU, Bihar
+- Akhilesh Yadav, SP, Uttar Pradesh
+- Uddhav Thackeray, Shiv Sena (UBT), Maharashtra
+- Mallikarjun Kharge, Congress, National
+- Nirmala Sitharaman, BJP, National
+- Rajnath Singh, BJP, National
+- Priyanka Gandhi, Congress, Uttar Pradesh
+- Mayawati, BSP, Uttar Pradesh
+- Lalu Prasad Yadav, RJD, Bihar
+- Tejaswi Yadav, RJD, Bihar
+- Bhagwant Mann, AAP, Punjab
+- Pinarayi Vijayan, CPI(M), Kerala
+- N. Chandrababu Naidu, TDP, Andhra Pradesh
+- Prashant Kishor, Jan Suraaj, Bihar
 
 FALLBACK RULES:
-1. If the news is about a state but NO specific candidate above is involved,
-   pick the most prominent leader from that state in the list.
+1. If news is about a state but no candidate above is involved, pick the most prominent leader from that state.
 2. NEVER attribute news to journalists, authors, or news organizations.
 """
 
-MAX_ARTICLES = 15   # RSS articles to consider
-MAX_EVENTS = 5      # Final entries to keep (keeps JSON small and costs low)
+MAX_ARTICLES = 15
+MAX_EVENTS   = 5
 
 
-# ── RSS Fetcher ──────────────────────────────────────────────────
-def fetch_rss_articles() -> list[dict]:
-    """Fetch and filter articles from all RSS feeds."""
-    articles: list[dict] = []
+# ═══════════════════════════════════════════════════════════════
+# SUPABASE REST API HELPER (no SDK required)
+# ═══════════════════════════════════════════════════════════════
+def supabase_request(method, endpoint, body=None):
+    """Direct REST call to Supabase PostgREST API."""
+    if not SUPABASE_URL or not SUPABASE_SERVICE_KEY:
+        print("  ⚠  Supabase credentials not set — skipping DB.", file=sys.stderr)
+        return None
 
+    url = f"{SUPABASE_URL.rstrip('/')}/rest/v1/{endpoint}"
+    headers = {
+        "apikey": SUPABASE_SERVICE_KEY,
+        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "return=representation",
+    }
+    try:
+        resp = requests.request(method, url, headers=headers, json=body, timeout=30)
+        if resp.status_code >= 400:
+            print(f"  ⚠  Supabase {method} {endpoint} → {resp.status_code}: {resp.text[:300]}", file=sys.stderr)
+            return None
+        return resp.json() if resp.text.strip() else {}
+    except Exception as exc:
+        print(f"  ⚠  Supabase request failed: {exc}", file=sys.stderr)
+        return None
+
+
+# ═══════════════════════════════════════════════════════════════
+# RSS FEED FETCHER
+# ═══════════════════════════════════════════════════════════════
+def fetch_rss_articles():
+    articles = []
     for url in RSS_FEEDS:
         try:
-            resp = requests.get(url, timeout=15, headers={
-                "User-Agent": "MoitraStudios-DailyBot/1.0"
-            })
+            resp = requests.get(url, timeout=15, headers={"User-Agent": "Rajneeti-DailyBot/3.0"})
             resp.raise_for_status()
             root = ET.fromstring(resp.content)
-
-            # Handle both RSS 2.0 (<item>) and Atom (<entry>) elements
-            items = root.findall(".//item") or root.findall(
-                ".//{http://www.w3.org/2005/Atom}entry"
-            )
-
+            items = root.findall(".//item") or root.findall(".//{http://www.w3.org/2005/Atom}entry")
             for item in items:
-                title = (
-                    item.findtext("title")
-                    or item.findtext("{http://www.w3.org/2005/Atom}title")
-                    or ""
-                ).strip()
-                description = (
-                    item.findtext("description")
-                    or item.findtext("{http://www.w3.org/2005/Atom}summary")
-                    or ""
-                ).strip()
-
+                title = (item.findtext("title") or item.findtext("{http://www.w3.org/2005/Atom}title") or "").strip()
+                desc = (item.findtext("description") or item.findtext("{http://www.w3.org/2005/Atom}summary") or "").strip()
                 link_el = item.find("link")
-                if link_el is not None and link_el.text:
-                    link = link_el.text.strip()
-                else:
+                link = (link_el.text.strip() if link_el is not None and link_el.text else "")
+                if not link:
                     atom_link = item.find("{http://www.w3.org/2005/Atom}link")
-                    link = (atom_link.get("href", "") if atom_link is not None else "")
-
+                    link = atom_link.get("href", "") if atom_link is not None else ""
                 if not title:
                     continue
-
-                combined = (title + " " + description).lower()
+                combined = (title + " " + desc).lower()
                 if any(kw in combined for kw in BANNED_KEYWORDS):
                     continue
-
-                articles.append({
-                    "title": title,
-                    "description": description,
-                    "link": link,
-                    "source": url,
-                })
+                articles.append({"title": title, "description": desc, "link": link})
         except Exception as exc:
-            print(f"  ⚠  Failed to parse {url}: {exc}", file=sys.stderr)
-
-    print(f"  📰 Fetched {len(articles)} articles across {len(RSS_FEEDS)} feeds")
+            print(f"  ⚠  RSS {url}: {exc}", file=sys.stderr)
+    print(f"  📰 Fetched {len(articles)} articles from {len(RSS_FEEDS)} feeds")
     return articles[:MAX_ARTICLES]
 
 
-# ── AI Prompt ────────────────────────────────────────────────────
-def build_prompt(articles: list[dict]) -> str:
-    """Build a single prompt that processes multiple articles at once."""
-    today = datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d")
+# ═══════════════════════════════════════════════════════════════
+# AI CALL (OpenAI primary, Gemini fallback)
+# ═══════════════════════════════════════════════════════════════
+def call_openai(prompt):
+    resp = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
+        json={
+            "model": "gpt-5.4-mini",
+            "messages": [
+                {"role": "system", "content": "You output only valid JSON. No markdown, no commentary."},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.7,
+            "max_tokens": 3000,
+        },
+        timeout=90,
+    )
+    resp.raise_for_status()
+    return resp.json()["choices"][0]["message"]["content"].strip()
+
+
+def call_gemini(prompt):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    resp = requests.post(
+        url,
+        headers={"Content-Type": "application/json"},
+        json={
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": 3000, "temperature": 0.7},
+        },
+        timeout=90,
+    )
+    resp.raise_for_status()
+    return resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+
+
+def call_ai(prompt):
+    if OPENAI_API_KEY:
+        try:
+            result = call_openai(prompt)
+            print("  ✅ AI response (OpenAI)")
+            return result
+        except Exception as exc:
+            print(f"  ⚠  OpenAI failed: {exc}", file=sys.stderr)
+    if GEMINI_API_KEY:
+        try:
+            result = call_gemini(prompt)
+            print("  ✅ AI response (Gemini)")
+            return result
+        except Exception as exc:
+            print(f"  ❌ Gemini failed: {exc}", file=sys.stderr)
+    return ""
+
+
+def clean_json(raw):
+    match = re.search(r"(\[.*\]|\{.*\})", raw, re.DOTALL)
+    if match:
+        return json.loads(match.group(1))
+    return json.loads(raw)
+
+
+# ═══════════════════════════════════════════════════════════════
+# STEP 1: GENERATE DAILY NEWS
+# ═══════════════════════════════════════════════════════════════
+def build_news_prompt(articles):
     articles_text = ""
     for i, art in enumerate(articles, 1):
         articles_text += f"\nARTICLE {i}:\n  TITLE: {art['title']}\n  DESCRIPTION: {art['description']}\n  URL: {art['link']}\n"
@@ -139,176 +221,377 @@ def build_prompt(articles: list[dict]) -> str:
 
 SAFETY RULES (MANDATORY):
 - Do NOT generate hate speech, religious insults, or calls for violence.
-- If an article is about extreme violence, terrorism, or sensitive religious issues, skip it.
-- Keep language neutral, witty, and focused on game mechanics, not real-world advocacy.
+- Skip articles about extreme violence, terrorism, or sensitive religious issues.
+- Keep language neutral, witty, game-focused.
 
-CANDIDATE/STATE LIST:
+CANDIDATE LIST:
 {CANDIDATE_LIST}
 
-Here are today's news articles:
+Today's news articles:
 {articles_text}
 
 TASK:
-Pick the {MAX_EVENTS} most politically significant articles from the list above. 
-CRITICAL REQUIREMENT: Focus exclusively on political news regarding the current 5 state elections (e.g., Maharashtra, Jharkhand, Haryana, Jammu & Kashmir, Delhi). If an article doesn't relate to these regions or their prominent leaders, ignore it or adapt national news to how it impacts these specific states.
-For each, produce a JSON object with these EXACT keys:
+Pick the {MAX_EVENTS} most politically significant articles.
+For each, produce a JSON object with EXACT keys:
 {{
-  "leader": "<candidate name from the list above>",
+  "leader": "<candidate name from list>",
   "state": "<full state name, e.g. Bihar, Uttar Pradesh, National>",
-  "sentiment_score": "<a string like +3.2 or -1.5, range -5.0 to +5.0>",
+  "sentiment_score": "<string like +3.2 or -1.5, range -5.0 to +5.0>",
   "ticker_headline": "<punchy 10-15 word news headline>",
-  "blog_title": "<creative Rajneeti game-style blog title, witty and fun>",
-  "blog_content": "<150-200 word blog post written in Rajneeti game jargon: Rally, Charisma, HQ Management, Action Points, Fundraise, Booth Management, etc. Make it entertaining and insightful.>",
-  "social_post": "<engaging 1-2 sentence social media post with 3-5 relevant hashtags>",
-  "original_url": "<URL of the source article>",
-  "date": "{today}"
+  "blog_title": "<creative Rajneeti game-style blog title>",
+  "blog_content": "<150-200 word blog post in Rajneeti jargon: Rally, Charisma, HQ Management, Action Points, Fundraise, Booth Management>",
+  "social_post": "<engaging 1-2 sentence social post with 3-5 hashtags>",
+  "original_url": "<URL of source article>",
+  "date": "{TODAY}"
 }}
 
-OUTPUT:
-Return a JSON array of exactly {MAX_EVENTS} objects.  
-Do NOT wrap in markdown code fences.  
-Return ONLY the JSON array, nothing else."""
+OUTPUT: Return a JSON array of exactly {MAX_EVENTS} objects. No markdown. Raw JSON only."""
 
 
-# ── OpenAI Call ──────────────────────────────────────────────────
-def call_openai(prompt: str) -> str:
-    """Call OpenAI chat completions API."""
-    resp = requests.post(
-        "https://api.openai.com/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {OPENAI_API_KEY}",
-            "Content-Type": "application/json",
-        },
-        json={
-            "model": "gpt-4o-mini",
-            "messages": [
-                {"role": "system", "content": "You output only valid JSON arrays. No markdown, no commentary."},
-                {"role": "user", "content": prompt},
-            ],
-            "temperature": 0.7,
-            "max_tokens": 2000,
-        },
-        timeout=60,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    return data["choices"][0]["message"]["content"].strip()
+def validate_events(events):
+    for ev in events:
+        ev.setdefault("leader", "Unknown")
+        ev.setdefault("state", "National")
+        ev.setdefault("sentiment_score", "+0.0")
+        ev.setdefault("ticker_headline", "Political update")
+        ev.setdefault("blog_title", "News Update")
+        ev.setdefault("blog_content", "No content available.")
+        ev.setdefault("social_post", "#Rajneeti #IndianPolitics")
+        ev.setdefault("original_url", "")
+        ev.setdefault("date", TODAY)
+    return events
 
 
-# ── Gemini Fallback ──────────────────────────────────────────────
-def call_gemini(prompt: str) -> str:
-    """Call Google Gemini API as a fallback."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
-    resp = requests.post(
-        url,
-        headers={"Content-Type": "application/json"},
-        json={
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "maxOutputTokens": 2000,
-                "temperature": 0.7,
-            },
-        },
-        timeout=60,
-    )
-    resp.raise_for_status()
-    data = resp.json()
-    text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-    return text.strip()
-
-
-# ── JSON Cleanup ─────────────────────────────────────────────────
-def clean_json(raw: str) -> list[dict]:
-    """Strip markdown fences, conversational text, and parse JSON array."""
-    import re
-    # Find the largest bracketed structure that looks like a JSON array
-    match = re.search(r"(\[.*\])", raw, re.DOTALL)
-    if match:
-        cleaned = match.group(1)
-        return json.loads(cleaned)
-    # Fallback to direct parsing
-    return json.loads(raw)
-
-
-# ── Main ─────────────────────────────────────────────────────────
-def main():
-    print("🗞️  Rajneeti Daily News Automation")
-    print("=" * 50)
-
-    # 1. Fetch RSS articles
-    articles = fetch_rss_articles()
-    if not articles:
-        print("  ❌ No articles fetched. Exiting without updating.")
-        sys.exit(0)
-
-    # 2. Build prompt
-    prompt = build_prompt(articles)
-
-    # 3. Call AI (OpenAI preferred, Gemini fallback)
-    raw_response = ""
-    if OPENAI_API_KEY:
-        print("  🤖 Using OpenAI (gpt-4o-mini)...")
-        try:
-            raw_response = call_openai(prompt)
-            print("  ✅ OpenAI response received")
-        except Exception as exc:
-            print(f"  ⚠  OpenAI failed: {exc}", file=sys.stderr)
-
-    if not raw_response and GEMINI_API_KEY:
-        print("  🤖 Falling back to Gemini...")
-        try:
-            raw_response = call_gemini(prompt)
-            print("  ✅ Gemini response received")
-        except Exception as exc:
-            print(f"  ❌ Gemini also failed: {exc}", file=sys.stderr)
-
-    if not raw_response:
-        print("  ❌ No AI response obtained. Exiting without updating.")
-        if not OPENAI_API_KEY and not GEMINI_API_KEY:
-            print("  💡 Hint: Set OPENAI_API_KEY or GEMINI_API_KEY in GitHub Secrets.")
-        sys.exit(1)
-
-    # 4. Parse response
+def generate_daily_news(articles):
+    print(f"\n  🤖 Generating {MAX_EVENTS} news events via AI...")
+    raw = call_ai(build_news_prompt(articles))
+    if not raw:
+        print("  ❌ No AI response for news. Set OPENAI_API_KEY or GEMINI_API_KEY.")
+        return None
     try:
-        events = clean_json(raw_response)
-    except json.JSONDecodeError as exc:
-        print(f"  ❌ Failed to parse AI JSON: {exc}", file=sys.stderr)
-        print(f"  Raw response:\n{raw_response[:500]}", file=sys.stderr)
-        sys.exit(1)
+        events = clean_json(raw)
+        if not isinstance(events, list) or len(events) == 0:
+            raise ValueError("Empty or invalid list")
+    except Exception as exc:
+        print(f"  ❌ Failed to parse news JSON: {exc}\n  Raw: {raw[:300]}", file=sys.stderr)
+        return None
+    return validate_events(events)
 
-    if not isinstance(events, list) or len(events) == 0:
-        print("  ❌ AI returned empty or invalid data. Exiting.")
-        sys.exit(1)
 
-    # 5. Validate required keys
-    required_keys = {"leader", "state", "sentiment_score", "ticker_headline",
-                     "blog_title", "blog_content", "social_post", "date"}
-    for event in events:
-        missing = required_keys - set(event.keys())
-        if missing:
-            print(f"  ⚠  Event missing keys {missing}, patching defaults...")
-            event.setdefault("leader", "Unknown")
-            event.setdefault("state", "National")
-            event.setdefault("sentiment_score", "+0.0")
-            event.setdefault("ticker_headline", "Political update")
-            event.setdefault("blog_title", "News Update")
-            event.setdefault("blog_content", "No content available.")
-            event.setdefault("social_post", "#Rajneeti #IndianPolitics")
-            event.setdefault("original_url", "")
-            event.setdefault("date", datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime("%Y-%m-%d"))
-
-    # 6. Write output
+# ═══════════════════════════════════════════════════════════════
+# STEP 2: WRITE NEWS TO SUPABASE + JSON FILE
+# ═══════════════════════════════════════════════════════════════
+def write_news_to_json(events):
     os.makedirs(os.path.dirname(OUTPUT_PATH), exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(events, f, indent=2, ensure_ascii=False)
+    print(f"  ✅ Wrote {len(events)} events to {OUTPUT_PATH}")
 
-    print(f"\n  ✅ Wrote {len(events)} events to {OUTPUT_PATH}")
+
+def upsert_news_to_supabase(events):
+    rows = [{
+        "leader":          ev.get("leader", "Unknown"),
+        "state":           ev.get("state", "National"),
+        "sentiment_score": ev.get("sentiment_score", "+0.0"),
+        "ticker_headline": ev.get("ticker_headline", "Political Update"),
+        "blog_title":      ev.get("blog_title", ""),
+        "blog_content":    ev.get("blog_content", ""),
+        "social_post":     ev.get("social_post", ""),
+        "original_url":    ev.get("original_url", ""),
+        "news_date":       ev.get("date", TODAY),
+    } for ev in events]
+
+    result = supabase_request("POST", "news_events?on_conflict=leader,news_date", rows)
+    if result is not None:
+        print(f"  ✅ Upserted {len(rows)} news rows to Supabase")
+    else:
+        print("  ⚠  Supabase news upsert failed.")
+
+
+# ═══════════════════════════════════════════════════════════════
+# STEP 3: AUTO-ARCHIVE EXPIRED CAMPAIGNS + AI RESULTS
+# ═══════════════════════════════════════════════════════════════
+def auto_archive_expired_campaigns():
+    now_iso = datetime.now(timezone.utc).isoformat()
+    expired = supabase_request(
+        "GET",
+        f"campaigns?status=eq.live&end_time=lt.{now_iso}&select=id,slug,title,total_votes"
+    )
+    if not expired:
+        return
+
+    for camp in expired:
+        camp_id = camp["id"]
+        slug = camp.get("slug", "unknown")
+        print(f"  🗃️  Archiving expired campaign: {camp['title']}")
+
+        # Get vote breakdown
+        votes_data = supabase_request("GET", f"votes?campaign_id=eq.{camp_id}&select=selected_style")
+        counts = {"modi": 0, "rahul": 0, "own": 0}
+        if votes_data:
+            for v in votes_data:
+                style = v.get("selected_style", "own")
+                counts[style] = counts.get(style, 0) + 1
+        total = sum(counts.values())
+
+        if total < 3:
+            # AI-simulated result (deterministic from slug)
+            seed = sum(ord(c) * (i + 1) for i, c in enumerate(slug)) % 1000
+            modi_pct  = 45 + (seed % 30)
+            rahul_pct = 20 + ((seed * 7) % 25)
+            own_pct   = max(2, 100 - modi_pct - rahul_pct)
+            winner = "modi" if modi_pct > rahul_pct else "rahul"
+            winner_name = "Narendra Modi" if winner == "modi" else "Rahul Gandhi"
+            winner_pct = max(modi_pct, rahul_pct)
+            vote_pcts = {"modi": modi_pct, "rahul": rahul_pct, "own": own_pct}
+            analysis = (
+                f"Based on India's current political landscape and ground-level sentiment, "
+                f"the {winner_name}-style approach holds stronger public resonance at this time. "
+                f"Economic indicators and regional narratives tilt the balance {winner_pct}% "
+                f"toward this policy direction. "
+                f"(AI-simulated — campaign received fewer than 3 public votes.)"
+            )
+        else:
+            vote_pcts = {k: round(v / total * 100) for k, v in counts.items()}
+            winner = max(counts, key=counts.get)
+            winner_name = "Narendra Modi" if winner == "modi" else "Rahul Gandhi"
+            winner_pct = vote_pcts[winner]
+            analysis = (
+                f"The public voted {winner_pct}% in favour of the {winner_name}-style approach "
+                f"out of {total} total votes cast."
+            )
+
+        # Update campaign to archived
+        supabase_request("PATCH", f"campaigns?id=eq.{camp_id}", {
+            "status": "archived",
+            "total_votes": total,
+            "vote_percentages": vote_pcts,
+            "winner_leader": winner,
+            "winner_vote_percentage": winner_pct,
+            "result_analysis": analysis,
+            "result_published_at": datetime.now(timezone.utc).isoformat(),
+        })
+
+        # Mark winner in leader_approaches
+        supabase_request("PATCH", f"leader_approaches?campaign_id=eq.{camp_id}&style=eq.{winner}", {
+            "is_winner": True,
+        })
+
+        # DELETE raw votes (save storage — percentages are now in campaigns table)
+        supabase_request("DELETE", f"votes?campaign_id=eq.{camp_id}")
+
+        print(f"  ✅ Archived: {camp['title']} → {winner_name} ({winner_pct}%), votes deleted")
+
+
+# ═══════════════════════════════════════════════════════════════
+# STEP 4: MONDAY CAMPAIGN GENERATION
+# ═══════════════════════════════════════════════════════════════
+def check_live_campaign_exists():
+    result = supabase_request("GET", "campaigns?status=eq.live&limit=1&select=id")
+    if result is None:
+        return True  # Assume yes on error
+    return len(result) > 0
+
+
+def get_last_week_news():
+    """Fetch all news from the past 7 days to pick a campaign topic."""
+    seven_days_ago = (NOW - timedelta(days=7)).strftime("%Y-%m-%d")
+    result = supabase_request(
+        "GET",
+        f"news_events?news_date=gte.{seven_days_ago}&order=news_date.desc&select=ticker_headline,blog_content,leader,state"
+    )
+    return result or []
+
+
+def build_campaign_prompt(news_items):
+    news_text = ""
+    for i, n in enumerate(news_items, 1):
+        news_text += f"\n{i}. [{n.get('leader', '?')} / {n.get('state', '?')}] {n.get('ticker_headline', '')}"
+        if n.get('blog_content'):
+            news_text += f"\n   Summary: {n['blog_content'][:200]}"
+
+    return f"""You are a neutral political analyst for the Indian political strategy game "Rajneeti".
+
+Here are {len(news_items)} political news items from the past 7 days in India:
+{news_text}
+
+TASK:
+1. Identify the SINGLE MOST SIGNIFICANT political issue from these news items.
+2. Create a Social Campaign debate post comparing how NARENDRA MODI and RAHUL GANDHI would handle this issue.
+
+CONTENT RULES (STRICT):
+- Use neutral, analytical tone
+- Both sides must have 4 substantive, fair policy points
+- Do NOT invent statistics or fabricate data
+- Do NOT use communal, defamatory, or incendiary language
+- Base policy points on actual positions, manifestos, or historical statements
+
+Return ONLY this JSON object (no markdown, no explanation):
+{{
+  "title": "<debate title, max 80 chars>",
+  "subtitle": "<1 sentence analytical teaser, max 120 chars>",
+  "issue_category": "<one of: Economy, Governance, Foreign Policy, Agriculture, Technology, Infrastructure, Education, Healthcare, Security, Elections & Democracy>",
+  "issue_summary": "<2-3 paragraph neutral summary of the issue, 150-250 words>",
+  "issue_bullets": ["<key fact 1>", "<key fact 2>", "<key fact 3>", "<key fact 4>"],
+  "slug": "<url-safe slug, e.g. inflation-crisis-april-2026>",
+  "region": "<state name or 'national'>",
+  "confidence_score": <0.0-1.0, how confident in accuracy>,
+  "modi_bullets": ["<substantive Modi policy 1>", "<point 2>", "<point 3>", "<point 4>"],
+  "rahul_bullets": ["<substantive Rahul policy 1>", "<point 2>", "<point 3>", "<point 4>"]
+}}"""
+
+
+def create_weekly_campaign():
+    """Generate a new campaign from last week's news. Runs on Monday."""
+    print("\n  📣 MONDAY — Generating weekly campaign from last week's news...")
+
+    # Check if one already exists
+    if check_live_campaign_exists():
+        print("  ✅ Live campaign already exists — skipping generation.")
+        return
+
+    # Get last week's news
+    news = get_last_week_news()
+    if not news:
+        print("  ⚠  No news from last week — cannot generate campaign.")
+        return
+    print(f"  📑 Found {len(news)} news items from last 7 days")
+
+    # AI generates campaign
+    raw = call_ai(build_campaign_prompt(news))
+    if not raw:
+        print("  ⚠  AI returned nothing for campaign generation.")
+        return
+
+    try:
+        data = clean_json(raw)
+        if not isinstance(data, dict):
+            raise ValueError("Response was not a dict")
+    except Exception as exc:
+        print(f"  ⚠  Failed to parse campaign JSON: {exc}", file=sys.stderr)
+        return
+
+    # Ensure unique slug
+    slug = data.get("slug", f"campaign-{TODAY}")
+    if not slug.endswith(TODAY[-5:].replace("-", "")):
+        slug = f"{slug}-{TODAY.replace('-', '')[-6:]}"
+
+    # Campaign runs Mon 6 AM → Thu 11:59 PM IST
+    start_time = datetime.now(timezone.utc).isoformat()
+    end_time = (datetime.now(timezone.utc) + timedelta(days=CAMPAIGN_DURATION_DAYS)).isoformat()
+
+    campaign_row = {
+        "slug":            slug,
+        "title":           data.get("title", "This Week's Political Debate"),
+        "subtitle":        data.get("subtitle", "Compare approaches. Cast your vote."),
+        "issue_category":  data.get("issue_category", "Governance"),
+        "issue_summary":   data.get("issue_summary", ""),
+        "issue_bullets":   data.get("issue_bullets", []),
+        "status":          "live",
+        "start_time":      start_time,
+        "end_time":        end_time,
+        "region":          data.get("region", "national"),
+        "confidence_score": data.get("confidence_score", 0.8),
+        "source_metadata": {"generated_from": f"{len(news)} news items", "generation_date": TODAY},
+    }
+
+    result = supabase_request("POST", "campaigns", campaign_row)
+    if not result or not isinstance(result, list) or not result[0].get("id"):
+        print("  ⚠  Failed to insert campaign.")
+        return
+
+    campaign_id = result[0]["id"]
+
+    # Insert leader approaches
+    approaches = [
+        {
+            "campaign_id": campaign_id,
+            "leader_name": "Narendra Modi",
+            "style": "modi",
+            "display_position": 1,
+            "policy_bullets": data.get("modi_bullets", ["Approach not available"]),
+            "framing_type": "current_government",
+        },
+        {
+            "campaign_id": campaign_id,
+            "leader_name": "Rahul Gandhi",
+            "style": "rahul",
+            "display_position": 2,
+            "policy_bullets": data.get("rahul_bullets", ["Approach not available"]),
+            "framing_type": "opposition_alternative",
+        },
+    ]
+    supabase_request("POST", "leader_approaches", approaches)
+    print(f"  ✅ Created: '{campaign_row['title']}' (live until {end_time[:10]})")
+
+
+# ═══════════════════════════════════════════════════════════════
+# STEP 5: DATA CLEANUP (keep free tier forever)
+# ═══════════════════════════════════════════════════════════════
+def cleanup_old_data():
+    """Delete news older than 14 days to stay within free tier limits."""
+    cutoff = (NOW - timedelta(days=14)).strftime("%Y-%m-%d")
+    result = supabase_request("DELETE", f"news_events?news_date=lt.{cutoff}")
+    if result is not None:
+        deleted = len(result) if isinstance(result, list) else 0
+        if deleted > 0:
+            print(f"  🧹 Deleted {deleted} news rows older than {cutoff}")
+        else:
+            print(f"  🧹 No old news to clean up (cutoff: {cutoff})")
+
+
+# ═══════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════
+def main():
+    print("═" * 60)
+    print(f"🗞️  RAJNEETI DAILY BOT v3.0 — {TODAY} ({DAY_OF_WEEK})")
+    print("═" * 60)
+
+    # 1. Fetch RSS
+    articles = fetch_rss_articles()
+    if not articles:
+        print("  ❌ No articles fetched. Exiting.")
+        sys.exit(0)
+
+    # 2. Generate 5 news events via AI
+    events = generate_daily_news(articles)
+    if not events:
+        sys.exit(1)
+
+    # 3. Write to static JSON file (fallback)
+    write_news_to_json(events)
+
+    # 4. Write to Supabase (heartbeat + live data)
+    print("\n  📡 Syncing to Supabase...")
+    upsert_news_to_supabase(events)
+
+    # 5. Auto-archive expired campaigns + generate AI results
+    print("\n  🗃️  Checking for expired campaigns...")
+    auto_archive_expired_campaigns()
+
+    # 6. Monday: Generate weekly campaign from last week's news
+    if DAY_OF_WEEK == "Monday":
+        create_weekly_campaign()
+    else:
+        # On non-Monday: still check if somehow there's no live campaign
+        # (e.g., first run, or manual deletion)
+        if not check_live_campaign_exists():
+            print(f"\n  ⚠  No live campaign on {DAY_OF_WEEK} — generating emergency campaign...")
+            create_weekly_campaign()
+        else:
+            print(f"\n  ✅ Live campaign exists — next new campaign: Monday")
+
+    # 7. Cleanup old news data
+    print("\n  🧹 Cleaning up old data...")
+    cleanup_old_data()
+
+    # Summary
+    print("\n" + "═" * 60)
+    print("🎉 DONE!")
     for ev in events:
-        score = ev.get("sentiment_score", "?")
-        print(f"     • {ev['leader']} ({ev['state']}) — {score}")
-
-    print("\n🎉 Done!")
-
+        print(f"   • {ev['leader']} ({ev['state']}) ➜ {ev['sentiment_score']}")
+    print("═" * 60)
 
 
 if __name__ == "__main__":

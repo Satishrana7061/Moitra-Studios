@@ -1,4 +1,11 @@
 // services/newsService.ts
+// ─────────────────────────────────────────────────────────────────
+// Fetch priority:
+//   1. Supabase news_events table (today's news — keeps project alive)
+//   2. public/daily_news.json    (static file written by GitHub Actions)
+//   3. Mock data fallback        (always works offline)
+// ─────────────────────────────────────────────────────────────────
+import { supabase } from '../lib/supabase';
 import { RAJNEETI_EVENTS } from "../components/RajneetiMockData";
 
 export interface BreakingNewsEvent {
@@ -16,92 +23,109 @@ export interface BreakingNewsEvent {
     createdAt: string;
 }
 
-const API_BASE = "http://localhost:4000";
+/** Convert a raw DB/JSON news row into a BreakingNewsEvent */
+function mapNewsRow(data: any, idx: number): BreakingNewsEvent {
+    const deltaVal = parseFloat(data.sentiment_score || "0");
+    return {
+        id: data.id || `daily_news_auto_${idx}`,
+        stateCode: (data.state || "NA").slice(0, 2).toUpperCase(),
+        stateName: data.state || "National",
+        politicianName: data.leader || "Unknown",
+        partyName: "Unknown",
+        delta: deltaVal,
+        sentiment: deltaVal > 0 ? "positive" : deltaVal < 0 ? "negative" : "neutral",
+        summary: data.ticker_headline || "Political Update",
+        blogTitle: data.blog_title || "News Update",
+        mainPhrase: (data.ticker_headline || "Political Update").slice(0, 20) + "...",
+        shareUrl: data.original_url || "",
+        createdAt: data.news_date || data.date || new Date().toISOString(),
+    };
+}
 
 /**
- * Fetch breaking news from the backend.
- * Falls back to mock data if the backend is unreachable.
+ * Try to get today's news from the Supabase news_events table.
+ * Returns null if Supabase is unavailable or has no today's news.
+ */
+async function fetchFromSupabase(): Promise<BreakingNewsEvent[] | null> {
+    if (!supabase) return null;
+    try {
+        const today = new Date().toISOString().split("T")[0]; // "2026-04-04"
+        const { data, error } = await supabase
+            .from("news_events")
+            .select("*")
+            .eq("news_date", today)
+            .order("created_at", { ascending: true })
+            .limit(10);
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+            console.log(`✅ News loaded from Supabase: ${data.length} items for ${today}`);
+            return data.map(mapNewsRow);
+        }
+
+        // No news for today yet — try yesterday (catches runs before midnight)
+        const yesterday = new Date(Date.now() - 86_400_000).toISOString().split("T")[0];
+        const { data: prev, error: prevErr } = await supabase
+            .from("news_events")
+            .select("*")
+            .eq("news_date", yesterday)
+            .order("created_at", { ascending: true })
+            .limit(10);
+
+        if (prevErr) throw prevErr;
+        if (prev && prev.length > 0) {
+            console.log(`✅ News loaded from Supabase (yesterday ${yesterday}): ${prev.length} items`);
+            return prev.map(mapNewsRow);
+        }
+
+        return null; // Nothing in Supabase — fall through to JSON
+    } catch (err) {
+        console.warn("Supabase news fetch failed, falling back:", err);
+        return null;
+    }
+}
+
+/**
+ * Try to load news from the static public/daily_news.json file.
+ */
+async function fetchFromJsonFile(): Promise<BreakingNewsEvent[] | null> {
+    const paths = [
+        `${import.meta.env.BASE_URL}daily_news.json`,
+        '/Moitra-Studios/daily_news.json',
+        '/daily_news.json',
+        './daily_news.json',
+    ];
+    for (const path of paths) {
+        try {
+            const res = await fetch(`${path}?t=${Date.now()}`);
+            if (res.ok) {
+                const rawData = await res.json();
+                const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+                if (dataArray.length > 0) {
+                    console.log(`✅ News loaded from JSON file: ${path}`);
+                    return dataArray.map(mapNewsRow);
+                }
+            }
+        } catch { /* try next */ }
+    }
+    return null;
+}
+
+/**
+ * Main export — fetches breaking news with a 3-tier fallback chain.
  */
 export async function fetchBreakingNews(): Promise<BreakingNewsEvent[]> {
-    let dailyNewsEvents: BreakingNewsEvent[] = [];
-    try {
-        const paths = [
-            `${import.meta.env.BASE_URL}daily_news.json`, 
-            '/Moitra-Studios/daily_news.json',
-            '/daily_news.json',
-            './daily_news.json'
-        ];
-        for (const path of paths) {
-            try {
-                const dnRes = await fetch(path);
-                if (dnRes.ok) {
-                    const rawData = await dnRes.json();
-                    const dataArray = Array.isArray(rawData) ? rawData : [rawData];
+    // Tier 1: Supabase (live, always fresh)
+    const fromDb = await fetchFromSupabase();
+    if (fromDb && fromDb.length > 0) return fromDb;
 
-                    dailyNewsEvents = dataArray.map((data: any, idx: number) => {
-                        const deltaVal = parseFloat(data.sentiment_score || "0");
-                        return {
-                            id: `daily_news_auto_${idx}`,
-                            stateCode: (data.state || "NA").slice(0, 2).toUpperCase(),
-                            stateName: data.state || "National",
-                            politicianName: data.leader || "Unknown",
-                            partyName: 'Unknown',
-                            delta: deltaVal,
-                            sentiment: deltaVal >= 0 ? "positive" : "negative",
-                            summary: data.ticker_headline || "Political Update",
-                            blogTitle: data.blog_title || "News Update",
-                            mainPhrase: (data.ticker_headline || "Political Update").slice(0, 20) + "...",
-                            shareUrl: data.original_url || '',
-                            createdAt: data.date || new Date().toISOString(),
-                        };
-                    });
-                    break;
-                }
-            } catch (err) {}
-        }
-    } catch (err) {
-        console.warn("Could not fetch daily news for ticker", err);
-    }
+    // Tier 2: Static JSON file (written daily by GitHub Actions)
+    const fromJson = await fetchFromJsonFile();
+    if (fromJson && fromJson.length > 0) return fromJson;
 
-    if (dailyNewsEvents.length > 0) {
-        return dailyNewsEvents;
-    }
-
-    let backendEvents: BreakingNewsEvent[] = [];
-    try {
-        // Only try this if daily_news.json failed (prevents hanging in prod)
-        const res = await fetch(`${API_BASE}/api/rajneeti-events`, {
-            signal: AbortSignal.timeout(3000), // Reduced timeout to prevent long hangs
-        });
-
-        if (res.ok) {
-            const data = await res.json();
-            if (data.events && data.events.length > 0) {
-                backendEvents = data.events.map((ev: any) => ({
-                    id: ev.id,
-                    stateCode: ev.stateCode,
-                    stateName: ev.stateName,
-                    politicianName: ev.politicianName,
-                    partyName: ev.partyName,
-                    delta: ev.delta,
-                    sentiment: ev.sentiment,
-                    summary: ev.summary,
-                    mainPhrase: ev.mainPhrase || (ev.summary?.slice(0, 20) + "..."),
-                    shareUrl: ev.shareUrl,
-                    createdAt: ev.createdAt || new Date().toISOString(),
-                }));
-            }
-        }
-    } catch (err) {
-        console.warn("Breaking news API unreachable, tracking back to local data", err);
-    }
-
-    if (backendEvents.length > 0) {
-        return backendEvents;
-    }
-
-    // Fallback: convert mock data to BreakingNewsEvent[]
-    const fallbackEvents = RAJNEETI_EVENTS.map((ev) => ({
+    // Tier 3: Hardcoded mock data (always available as last resort)
+    console.warn("⚠️ Using mock news data — Supabase and JSON both unavailable");
+    return RAJNEETI_EVENTS.map((ev) => ({
         id: ev.id,
         stateCode: ev.stateCode,
         stateName: ev.stateName,
@@ -110,10 +134,8 @@ export async function fetchBreakingNews(): Promise<BreakingNewsEvent[]> {
         delta: ev.delta,
         sentiment: ev.sentiment as "positive" | "negative" | "neutral",
         summary: ev.summary,
-        mainPhrase: ev.mainPhrase || (ev.summary?.slice(0, 20) + "..."),
+        mainPhrase: ev.mainPhrase || ev.summary?.slice(0, 20) + "...",
         shareUrl: ev.shareUrl,
         createdAt: new Date().toISOString(),
     }));
-
-    return fallbackEvents;
 }

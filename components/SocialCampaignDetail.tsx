@@ -203,7 +203,7 @@ const SocialCampaignDetail: React.FC = () => {
                             {/* Center Timer Area */}
                             {campaign.status === 'live' && (
                                 <div className="mt-8 flex justify-center py-6 border-t border-white/5">
-                                    <CountdownTimer targetDate={campaign.end_time} label="VOTING CLOSES IN" />
+                                    <CountdownTimer targetDate={campaign.end_time || (campaign as any).endDate} label="VOTING CLOSES IN" />
                                 </div>
                             )}
                         </div>
@@ -224,7 +224,7 @@ const SocialCampaignDetail: React.FC = () => {
                                     for(let i=0; i<str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
                                     return h;
                                 };
-                                const s = Math.abs(seed(campaign.slug + approach.style));
+                                const s = Math.abs(seed((campaign.slug || campaign.id) + approach.style));
                                 
                                 // Base biases: Modi leans infra/econ, Rahul leans welfare
                                 const isModi = approach.style === 'modi';
@@ -266,7 +266,7 @@ const SocialCampaignDetail: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="space-y-4 mb-8">
-                                        {(approach.policy_bullets || []).map((point: string, i: number) => (
+                                        {(approach.policy_bullets || (approach as any).bullets || []).map((point: string, i: number) => (
                                             <div key={i} className="flex gap-4">
                                                 <span className={`${accentColor === 'orange' ? 'text-gameOrange' : 'text-blue-500'} font-bold font-mono py-0.5`}>0{i+1}.</span>
                                                 <p className="text-slate-300 text-sm leading-relaxed">{point}</p>
@@ -374,7 +374,7 @@ const SocialCampaignDetail: React.FC = () => {
                                 )}
 
                                 {!hasVoted ? (
-                                    new Date(campaign.end_time || '') < new Date() ? (
+                                    new Date(campaign.end_time || (campaign as any).endDate || '') < new Date() ? (
                                         // Campaign expired — show AI result immediately instead of dead-end message
                                         (() => {
                                             const result = getSimulatedResult(campaign);

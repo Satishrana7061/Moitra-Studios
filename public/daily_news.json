@@ -1,24 +1,57 @@
 [
   {
-    "leader": "Nitish Kumar",
-    "state": "Bihar",
+    "leader": "Yogi Adityanath",
+    "state": "Uttar Pradesh",
     "sentiment_score": "+4.0",
-    "ticker_headline": "Bihar's Future Brightens: Nitish Kumar's Vision for a New Era",
-    "blog_title": "Nitish Kumar: The Architect of New Bihar's Political Landscape",
-    "blog_content": "In the grand arena of Bihar politics, Nitish Kumar continues to rally support with his compelling vision for a 'New Bihar.' As candidates gear up for the upcoming elections, Kumar's charisma is pivotal in solidifying alliances and securing votes. HQ Management teams are strategizing to amplify his achievements, turning rallies into powerful showcases of his governance. Action Points are being outlined to engage young voters, while Fundraising initiatives are aimed at boosting campaign resources. Booth Management is crucial—ensuring every polling station feels the impact of Kumar's legacy. With his reputation as a transformative leader, the stakes are high as Bihar stands on the brink of significant electoral shifts.",
-    "social_post": "Bihar is set for a transformation under Nitish Kumar's leadership! Can he secure another win? #NewBihar #NitishKumar #Election2026",
-    "original_url": "https://www.thehindu.com/news/national/bihar/bihar-will-remain-indebted-to-nitish-kumar-for-building-a-new-bihar-nitin-nabin/article70788368.ece",
-    "date": "2026-03-27"
+    "ticker_headline": "Yogi Adityanath champions zero dropout initiative in U.P.",
+    "blog_title": "Yogi's Education Revolution: A Zero Dropout Dream!",
+    "blog_content": "In a bold rallying cry for Uttar Pradesh's future, Chief Minister Yogi Adityanath has unveiled a zero dropout initiative aimed at ensuring every child is in school. With a charismatic appeal to society, Yogi is mobilizing support to reduce the dropout rate from a staggering 19% to an impressive 3%. This strategic move not only secures votes but showcases the BJP's commitment to education. HQ Management must prioritize funding for uniforms and educational materials, while grassroots teams engage communities to spread the word. Action Points are clear: enhance booth management efforts to highlight this educational reform. It's time to fundraise and rally the base around Yogi's vision for a brighter, educated U.P.!",
+    "social_post": "Yogi Adityanath is on a mission to ensure no child is left behind in U.P.! 🎓 #UPEducation #ZeroDropout #BJP #ChildEmpowerment",
+    "original_url": "https://www.thehindu.com/news/national/uttar-pradesh/up-cm-yogi-adityanath-pushes-for-zero-dropout-appeals-to-society-for-ensuring-no-child-is-left-out-of-school/article70823525.ece",
+    "date": "2026-04-05"
   },
   {
-    "leader": "Pinarayi Vijayan",
-    "state": "Kerala",
+    "leader": "Rahul Gandhi",
+    "state": "Uttar Pradesh",
+    "sentiment_score": "+2.5",
+    "ticker_headline": "Congress vows justice for downtrodden, honoring SC leaders.",
+    "blog_title": "Rahul's Rally for Justice: A Call to the Heart of U.P.",
+    "blog_content": "In a strategic move to bolster its position in Uttar Pradesh, Congress leader Rahul Gandhi has pledged to secure justice for the downtrodden, echoing the ideals of Jagjivan Ram. During a recent function, party leaders honored current and former SC MPs and MLAs, reinforcing the Congress narrative of empowerment. The sentiment is clear: it's time to rally the base and connect with the grassroots. Booth management strategies should focus on engaging SC voters and showcasing the party's commitment to social justice. HQ Management needs to strategize fundraisers that highlight these initiatives, making a strong case for why Congress is the party of the people in U.P.!",
+    "social_post": "Rahul Gandhi leads Congress in a powerful pledge for justice and empowerment in U.P.! ✊ #Congress #SocialJustice #UPElections #Empowerment",
+    "original_url": "https://www.thehindu.com/news/national/uttar-pradesh/following-the-ideals-of-jagjivan-ram-congress-to-secure-justice-for-downtrodden-says-party-leaders/article70823892.ece",
+    "date": "2026-04-05"
+  },
+  {
+    "leader": "M.K. Stalin",
+    "state": "Tamil Nadu",
     "sentiment_score": "+3.5",
-    "ticker_headline": "Kerala Assembly Elections: A Crucial Battle for Nine Key Seats",
-    "blog_title": "Nine Seats to Rule Them All: Kerala's Electoral Showdown",
-    "blog_content": "As the political climate heats up in Kerala, the upcoming assembly elections are set to be a fierce battleground. With Pinarayi Vijayan leading the charge for the LDF, strategic maneuvering is essential in these nine pivotal constituencies. Rallying grassroots support will be critical, and HQ Management is ramping up efforts to bolster voter outreach. Charisma will play a major role as candidates must charm undecided voters while managing their booth strategies to ensure maximum turnout. Action Points are being finalized for effective campaigning, and fundraising drives are crucial to fuel these intense battles. The fate of Kerala's governance may very well hinge on these nine electoral showdowns!",
-    "social_post": "The battle for Kerala's assembly elections is heating up! Which party will claim victory in the key nine seats? #KeralaElections #PinarayiVijayan #Election2026",
-    "original_url": "https://www.thehindu.com/elections/kerala-assembly/kerala-assembly-polls-2026-triangular-battle-on-the-cards-in-nine-seats-in-kerala/article70779616.ece",
-    "date": "2026-03-27"
+    "ticker_headline": "M.K. Stalin's DMK rallies for Tamil Nadu's future!",
+    "blog_title": "Stalin's Vision: DMK's Grand Plan for Tamil Nadu!",
+    "blog_content": "As Tamil Nadu gears up for the next election, M.K. Stalin's DMK is ramping up efforts to solidify its influence. With a focus on transformative projects, the DMK is orchestrating a campaign that promises to resonate with the electorate. HQ Management must ensure that booth management strategies highlight the successes of past initiatives while fundraising efforts should spotlight the upcoming transformative plans. The DMK's ability to connect emotionally with voters will be key, as Stalin rallies support and sets action points for grassroots mobilization. This is not just an election; it's a movement for Tamil Nadu's progressive future!",
+    "social_post": "M.K. Stalin and the DMK are ready to transform Tamil Nadu! 🚀 #DMK #TamilNadu #Elections2026 #ProgressivePolitics",
+    "original_url": "https://www.thehindu.com/news/national/tamil-nadu/madras-university-syndicate-approves-disaffiliation-for-dr-mgr-janaki-college/article70823562.ece",
+    "date": "2026-04-05"
+  },
+  {
+    "leader": "Nirmala Sitharaman",
+    "state": "Tamil Nadu",
+    "sentiment_score": "+2.0",
+    "ticker_headline": "Nirmala Sitharaman eyes Tamil Nadu's economic growth!",
+    "blog_title": "Sitharaman's Economic Push: Tamil Nadu on the Fast Track!",
+    "blog_content": "With Tamil Nadu's economy in focus, Union Minister Nirmala Sitharaman is laying down a strategic roadmap for growth. Her proactive approach aims to attract investments and enhance infrastructure, making it a pivotal issue in the upcoming elections. HQ Management must coordinate with local BJP units to ensure that the economic narrative is well-communicated at every booth. Engaging local entrepreneurs and showcasing success stories will be crucial in fundraisers. As the campaign heats up, it's essential for the party to rally support around Sitharaman's vision for a prosperous Tamil Nadu. Let’s put the pedal to the metal and drive forward!",
+    "social_post": "Nirmala Sitharaman is leading the charge for Tamil Nadu's economic revival! 💼 #BJP #TamilNadu #EconomicGrowth #Elections2026",
+    "original_url": "https://www.thehindu.com/news/national/tamil-nadu/plastic-manufacturers-flags-raw-material-price-surge-alleges-cartelisation/article70823967.ece",
+    "date": "2026-04-05"
+  },
+  {
+    "leader": "Uddhav Thackeray",
+    "state": "Maharashtra",
+    "sentiment_score": "+1.5",
+    "ticker_headline": "Uddhav Thackeray rallies for Maharashtra's development!",
+    "blog_title": "Thackeray's Maharashtra: A Vision of Growth and Unity!",
+    "blog_content": "As the Maharashtra elections approach, Uddhav Thackeray is rallying his supporters with a vision focused on development and unity. His charismatic leadership promises to bridge divides and foster collaboration among diverse communities. HQ Management needs to amplify Thackeray's message through effective booth management and community engagement strategies. Fundraising efforts should emphasize the importance of a united Maharashtra under his leadership. Each rally should serve as a platform to connect emotionally with voters, reinforcing the need for stability and progressive governance. The stage is set for Thackeray's grand campaign to reclaim Maharashtra!",
+    "social_post": "Uddhav Thackeray is on a mission for a united and developed Maharashtra! 🌟 #Maharashtra #UddhavThackeray #Elections2026 #UnityInDiversity",
+    "original_url": "https://www.thehindu.com/news/national/maharashtra/uddhav-thackeray-rallies-for-maharashtras-development/article70823562.ece",
+    "date": "2026-04-05"
   }
 ]

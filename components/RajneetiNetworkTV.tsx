@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock, Video, X, Maximize2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
+import { getLeaderAvatar } from '../lib/utils';
 
 interface DailyNews {
     leader: string;
@@ -14,6 +15,13 @@ interface DailyNews {
     date: string;
 }
 
+const parseBulletPoints = (text: string): string[] => {
+    if (!text) return [];
+    return text.split(/(?<=[.!?])\s+/)
+               .map(s => s.trim())
+               .filter(s => s.length > 15);
+};
+
 const RajneetiNetworkTV: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
@@ -23,8 +31,233 @@ const RajneetiNetworkTV: React.FC = () => {
     const [activeIndex, setActiveIndex] = useState(initialStateIndex);
     const [loading, setLoading] = useState(true);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
+    const [isStudioMode, setIsStudioMode] = useState(false);
+    const [slideIndex, setSlideIndex] = useState(0);
+    const [isRecording, setIsRecording] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const [exportProgress, setExportProgress] = useState(0);
+    
+    const recorderRef = useRef<MediaRecorder | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const chunksRef = useRef<Blob[]>([]);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
     const articleRefs = useRef<(HTMLDivElement | null)[]>([]);
     const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
+
+    // Helper for canvas text wrapping
+    const wrapText = (ctx: CanvasRenderingContext2D, text: string, x: number, y: number, maxWidth: number, lineHeight: number) => {
+        const words = text.split(' ');
+        let line = '';
+        let currentY = y;
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + words[n] + ' ';
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+            if (testWidth > maxWidth && n > 0) {
+                ctx.fillText(line, x, currentY);
+                line = words[n] + ' ';
+                currentY += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        ctx.fillText(line, x, currentY);
+        return currentY;
+    };
+
+    const generateDirectReel = async () => {
+        if (!activeNews || !slides.length) return;
+        setIsExporting(true);
+        setExportProgress(0);
+        
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) return;
+
+        // Pre-load avatar
+        const avatarImg = new Image();
+        avatarImg.crossOrigin = "anonymous";
+        avatarImg.src = getLeaderAvatar(activeNews.leader, activeNews.state);
+        await new Promise((resolve) => { avatarImg.onload = resolve; avatarImg.onerror = resolve; });
+
+        const stream = (canvas as any).captureStream(30); // 30 FPS
+        const recorder = new MediaRecorder(stream, { 
+            mimeType: 'video/webm;codecs=vp9',
+            videoBitsPerSecond: 5000000 // 5Mbps for high quality
+        });
+        const chunks: Blob[] = [];
+        
+        recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Rajneeti-Reel-${activeNews.leader.replace(/\s+/g, '-')}-${Date.now()}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+            setIsExporting(false);
+        };
+
+        recorder.start();
+        const totalDuration = slides.length * 8000;
+        const startTime = performance.now();
+        
+        const renderFrame = (now: number) => {
+            if (!isExporting) return;
+            const elapsed = now - startTime;
+            
+            if (elapsed >= totalDuration) {
+                if (recorder.state !== 'inactive') recorder.stop();
+                return;
+            }
+
+            const currentSlideIdx = Math.floor(elapsed / 8000);
+            const slideProgress = (elapsed % 8000) / 8000;
+            setExportProgress(Math.floor((elapsed / totalDuration) * 100));
+
+            // 1. Background (Premium Dark Gradient)
+            ctx.fillStyle = '#020617';
+            ctx.fillRect(0, 0, 1080, 1920);
+            
+            // Background Accents (Glow)
+            const grad = ctx.createRadialGradient(540, 960, 0, 540, 960, 1200);
+            grad.addColorStop(0, '#1e293b');
+            grad.addColorStop(1, '#020617');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1080, 1920);
+
+            // 2. Header "LIVE" & Info
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(80, 120, 160, 70);
+            ctx.fillStyle = 'white';
+            ctx.font = '900 40px Rajdhani, sans-serif';
+            ctx.fillText('LIVE', 115, 170);
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.font = '700 32px Rajdhani, sans-serif';
+            ctx.fillText(`${activeNews.date} | ${activeNews.state.toUpperCase()}`, 80, 240);
+
+            // 3. Leader Avatar (Circle)
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(160, 420, 80, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            if (avatarImg.complete) {
+                ctx.drawImage(avatarImg, 80, 340, 160, 160);
+            }
+            ctx.restore();
+            ctx.strokeStyle = '#dc2626';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            // 4. Slide Content
+            const slide = slides[currentSlideIdx];
+            if (slide) {
+                // Slide Tag
+                ctx.fillStyle = slide.type === 'headline' ? '#dc2626' : '#2563eb';
+                ctx.fillRect(80, 600, slide.type === 'headline' ? 440 : 400, 65);
+                ctx.fillStyle = 'white';
+                ctx.font = '900 36px Rajdhani, sans-serif';
+                ctx.fillText(slide.type === 'headline' ? 'BREAKING NEWS' : `KEY POINT ${currentSlideIdx}`, 110, 645);
+
+                // Slide Content
+                ctx.fillStyle = 'white';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 20;
+                
+                if (slide.type === 'headline') {
+                    ctx.font = '900 92px Rajdhani, sans-serif';
+                    wrapText(ctx, slide.content.toUpperCase(), 80, 800, 920, 110);
+                } else {
+                    ctx.font = '700 68px Rajdhani, sans-serif';
+                    wrapText(ctx, slide.content, 80, 800, 920, 90);
+                }
+                ctx.shadowBlur = 0;
+            }
+
+            // 5. Footer Progress & Branding
+            ctx.fillStyle = 'rgba(255,255,255,0.1)';
+            ctx.fillRect(80, 1600, 920, 8);
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(80, 1600, 920 * slideProgress, 8);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '900 56px Rajdhani, sans-serif';
+            ctx.fillText(activeNews.blog_title, 80, 1720);
+            
+            ctx.fillStyle = '#fb923c'; // gameOrange
+            ctx.font = '900 36px Rajdhani, sans-serif';
+            ctx.fillText(`SENTIMENT: ${activeNews.sentiment_score}`, 80, 1790);
+
+            requestAnimationFrame(renderFrame);
+        };
+
+        requestAnimationFrame(renderFrame);
+    };
+
+    const startRecording = async () => {
+        try {
+            // Ask user to select the current tab for recording
+            const stream = await navigator.mediaDevices.getDisplayMedia({
+                video: { 
+                    displaySurface: 'browser' as any,
+                    width: { ideal: 1920 },
+                    height: { ideal: 1080 }
+                },
+                audio: false
+            });
+
+            const recorder = new MediaRecorder(stream, {
+                mimeType: 'video/webm;codecs=vp9'
+            });
+
+            chunksRef.current = [];
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunksRef.current.push(e.data);
+            };
+
+            recorder.onstop = () => {
+                const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Rajneeti-News-${activeNews?.blog_title.substring(0, 20)}-${Date.now()}.webm`;
+                a.click();
+                URL.revokeObjectURL(url);
+                setIsRecording(false);
+                
+                // Stop all tracks to remove the recording indicator in browser
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            recorderRef.current = recorder;
+            streamRef.current = stream;
+            
+            // Start recording
+            recorder.start();
+            setIsRecording(true);
+            
+            // Reset slideshow so recording starts from frame 1
+            setSlideIndex(0);
+
+        } catch (err) {
+            console.error("Recording failed:", err);
+            setIsRecording(false);
+        }
+    };
+
+    const stopRecording = () => {
+        if (recorderRef.current && recorderRef.current.state !== 'inactive') {
+            recorderRef.current.stop();
+        }
+    };
 
     useEffect(() => {
         document.title = "Rajneeti TV Network | Live Indian Political News & Updates";
@@ -57,9 +290,9 @@ const RajneetiNetworkTV: React.FC = () => {
         fetchLiveCampaign();
     }, []);
 
-    // Auto-scroll to the selected news item on initial load
+    // Auto-scroll to the selected news item on initial load AND when activeIndex changes
     useEffect(() => {
-        if (!loading && newsData && newsData.length > 0 && activeIndex > 0) {
+        if (!loading && newsData && newsData.length > 0) {
             setTimeout(() => {
                 const container = sidebarScrollRef.current;
                 const article = articleRefs.current[activeIndex];
@@ -68,9 +301,40 @@ const RajneetiNetworkTV: React.FC = () => {
                 }
             }, 300); // Wait a bit for render
         }
-    }, [loading, newsData]);
+    }, [loading, newsData, activeIndex]);
+
+    // Sync activeIndex with location state (e.g. when coming from Home Map)
+    useEffect(() => {
+        if (location.state?.activeIndex !== undefined && location.state.activeIndex !== activeIndex) {
+            setActiveIndex(location.state.activeIndex);
+        }
+    }, [location.state]);
 
     const activeNews = newsData ? newsData[activeIndex] : null;
+
+    const slides = useMemo(() => {
+        if (!activeNews) return [];
+        return [
+            { type: 'headline', content: activeNews.ticker_headline },
+            ...parseBulletPoints(activeNews.blog_content).map(b => ({ type: 'bullet', content: b }))
+        ];
+    }, [activeNews]);
+
+    // Reset slide index when changing news
+    useEffect(() => {
+        setSlideIndex(0);
+    }, [activeIndex]);
+
+    // Auto-advance slides - SLOWED DOWN TO 8 SECONDS
+    useEffect(() => {
+        if (slides.length <= 1) return;
+        
+        const timer = setInterval(() => {
+            setSlideIndex(prev => (prev + 1) % slides.length);
+        }, 8000);
+        return () => clearInterval(timer);
+    }, [slides]);
+
 
     return (
         <div className="min-h-screen bg-black text-slate-200 font-sans flex flex-col overflow-x-hidden">
@@ -96,26 +360,42 @@ const RajneetiNetworkTV: React.FC = () => {
                     </div>
                 ) : (
                     <div className="relative z-10 flex flex-col gap-6 pb-20">
-                        {/* Main Video + Sidebar */}
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                            {/* Top/Main Video Area */}
                             <div className="lg:col-span-8 flex flex-col gap-0">
                                 <div className="bg-slate-900 border border-white/10 rounded-t-xl overflow-hidden shadow-2xl flex flex-col relative h-[460px]">
                                     <div className="flex-1 bg-black flex items-center justify-center relative overflow-hidden group">
-                                        {/* Fake background for the news broadcast */}
                                         <div className="absolute inset-0 bg-blue-900/20 flex items-center justify-center">
                                             <div className="w-[120%] h-[120%] border-[20px] border-white/5 rounded-full animate-spin-slow absolute"></div>
                                             <div className="w-[80%] h-[80%] border-t-4 border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
                                         </div>
                                         <div className="absolute inset-0 bg-gradient-to-t from-red-950/90 to-transparent"></div>
 
-                                        <div className="relative text-center px-6 md:px-12 w-full">
-                                            <div className="inline-block bg-red-600 text-white px-3 py-1 text-sm font-black uppercase tracking-widest mb-4 shadow-[0_0_10px_rgba(220,38,38,0.8)]">
-                                                Breaking
-                                            </div>
-                                            <h2 className="text-3xl md:text-5xl font-black text-white font-rajdhani leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]">
-                                                {activeNews.ticker_headline}
-                                            </h2>
+                                        <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 z-20">
+                                            <div 
+                                                key={`${activeIndex}-${slideIndex}`}
+                                                className="h-full bg-red-600 animate-[progress_8s_linear_forwards]"
+                                            />
+                                        </div>
+
+                                        <div key={activeIndex} className="relative text-center px-6 md:px-12 w-full flex items-center justify-center min-h-[180px] overflow-hidden">
+                                            {slides.map((slide, i) => (
+                                                <div 
+                                                    key={`${activeIndex}-${i}`} 
+                                                    className={`absolute w-full px-4 md:px-12 transition-all duration-700 ease-out transform ${
+                                                        i === slideIndex ? 'translate-x-0 opacity-100 scale-100 relative' : 
+                                                        i < slideIndex ? '-translate-x-[150%] opacity-0 scale-95 absolute' : 'translate-x-[150%] opacity-0 scale-95 absolute'
+                                                    }`}
+                                                >
+                                                    <div className={`inline-block text-white px-3 py-1 text-sm font-black uppercase tracking-widest mb-4 shadow-[0_0_10px_rgba(0,0,0,0.5)] ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
+                                                        {slide.type === 'headline' ? 'Breaking' : `Key Point ${i}`}
+                                                    </div>
+                                                    <h2 className={`font-rajdhani leading-tight drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] mx-auto ${
+                                                        slide.type === 'headline' ? 'text-3xl md:text-5xl font-black text-white' : 'text-2xl md:text-4xl font-bold text-slate-100'
+                                                    }`}>
+                                                        {slide.content}
+                                                    </h2>
+                                                </div>
+                                            ))}
                                         </div>
 
                                         <div className="absolute bottom-4 left-2 right-2 md:left-4 md:right-4 flex flex-col sm:flex-row justify-between items-center sm:items-end gap-3 pointer-events-none">
@@ -140,7 +420,6 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Bottom Ticker bar — outside the video container so it's always visible */}
                                 <div className="h-14 bg-blue-950 flex items-center relative overflow-hidden flex-shrink-0 rounded-b-xl border border-t-0 border-white/10">
                                     <div className="absolute left-0 top-0 bottom-0 bg-red-600 w-32 md:w-40 flex items-center justify-center z-10 shadow-lg border-r-2 border-white/20">
                                         <span className="text-white font-black text-sm md:text-lg tracking-widest">RN TICKER</span>
@@ -149,149 +428,234 @@ const RajneetiNetworkTV: React.FC = () => {
                                         <span className="text-white">{activeNews.ticker_headline}</span> &nbsp;&bull;&nbsp; <span className="text-gameOrange">{activeNews.blog_title}</span> &nbsp;&bull;&nbsp; {activeNews.leader} reports a sentiment shift of {activeNews.sentiment_score}
                                     </div>
                                 </div>
+
+                                <button 
+                                    onClick={() => setIsStudioMode(true)}
+                                    className="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-black font-rajdhani tracking-widest uppercase py-4 rounded-xl border border-white/10 transition-all shadow-lg group relative overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-gameOrange/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                    <Video className="w-5 h-5 text-gameOrange group-hover:scale-110 transition-transform relative z-10" />
+                                    <span className="relative z-10">Enter Reel Studio (Download 9:16)</span>
+                                    <Maximize2 className="w-4 h-4 ml-2 opacity-50 relative z-10" />
+                                </button>
                             </div>
 
-                            {/* Sidebar Details mapped array */}
                             <div className="lg:col-span-4 bg-slate-900/60 border border-white/20 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[500px]">
                                 <div className="p-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10">
                                     <span className="font-black text-white tracking-widest text-xs lg:text-sm uppercase flex items-center gap-2">
                                         <Newspaper size={16} /> Latest Briefings
                                     </span>
-                                    <span className="text-[10px] text-white/80 uppercase tracking-widest font-bold">Scroll inside</span>
                                 </div>
-                                <div ref={sidebarScrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scroll-smooth pr-2 pb-10" style={{ scrollbarWidth: 'thin', scrollbarColor: '#dc2626 rgba(0,0,0,0.2)' }}>
+                                <div ref={sidebarScrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scroll-smooth pr-2 pb-10 custom-scrollbar">
                                     {newsData.map((news, idx) => {
-                                        const isPos = !news.sentiment_score.includes('-');
                                         const isActive = idx === activeIndex;
                                         return (
                                             <article
                                                 key={idx}
                                                 ref={(el) => { articleRefs.current[idx] = el; }}
-                                                onClick={() => {
-                                                    setActiveIndex(idx);
-                                                    setTimeout(() => {
-                                                        const container = sidebarScrollRef.current;
-                                                        const article = articleRefs.current[idx];
-                                                        if (container && article) {
-                                                            container.scrollTo({ top: article.offsetTop - container.offsetTop, behavior: 'smooth' });
-                                                        }
-                                                    }, 100);
-                                                }}
-                                                className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100 scale-[1.01]' : 'opacity-50 hover:opacity-100'}`}
+                                                onClick={() => setActiveIndex(idx)}
+                                                className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
                                             >
-                                                    <header className="relative">
-                                                        <h3 className="text-gameOrange font-bold text-xs tracking-widest uppercase mb-2">
-                                                            Anchor's Desk
-                                                        </h3>
-                                                        <h2 className="text-[22px] font-rajdhani font-bold text-white mb-3 leading-tight" title={news.blog_title}>
-                                                            {news.blog_title}
-                                                        </h2>
-                                                    </header>
-                                                    <div className={`text-slate-300 font-sans normal-case text-base md:text-lg leading-relaxed ${!isActive && 'line-clamp-3'}`}>
-                                                        <p className="mb-2">{news.blog_content}</p>
-                                                    </div>
-
-                                                <div className="relative pt-2">
-                                                    <h3 className="text-emerald-500 font-bold text-xs tracking-widest uppercase mb-2">
-                                                        Political Impact
+                                                <header className="relative">
+                                                    <h3 className="text-gameOrange font-bold text-xs tracking-widest uppercase mb-2">
+                                                        {news.state} | {news.date}
                                                     </h3>
-                                                    <div className="flex items-center justify-between bg-black/50 p-3 rounded border border-white/5">
-                                                        <div>
-                                                            <div className="text-slate-400 text-[10px] font-bold uppercase mb-1 tracking-wider">Key Leader</div>
-                                                            <div className="text-white font-black text-sm font-cinzel">{news.leader}</div>
-                                                        </div>
-                                                        <div className={`flex flex-col items-center justify-center gap-1 px-3 py-1 rounded font-black text-sm border ${isPos ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'}`}>
-                                                            {isPos ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                                                            {news.sentiment_score}
-                                                        </div>
-                                                    </div>
+                                                    <h2 className="text-[22px] font-rajdhani font-bold text-white mb-3 leading-tight">
+                                                        {news.blog_title}
+                                                    </h2>
+                                                </header>
+                                                <div className={`text-slate-300 font-sans normal-case text-base leading-relaxed ${!isActive && 'line-clamp-2'}`}>
+                                                    <p>{news.blog_content}</p>
                                                 </div>
                                             </article>
                                         );
                                     })}
-
-                                    {/* Google Ads Placeholder */}
-                                    <div className="mt-4 mb-4 bg-black/40 border border-dashed border-white/20 rounded-lg p-4 text-center text-white/40 text-sm min-h-[120px] flex flex-col items-center justify-center shrink-0">
-                                        <span className="uppercase tracking-widest font-bold text-xs mb-1">Advertisement</span>
-                                        <span className="text-[10px]">Google Ad space (Integration pending)</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* â”€â”€â”€ LIVE SOCIAL CAMPAIGN BANNER â”€â”€â”€ */}
                         {liveCampaign && (
-                            <div className="relative rounded-2xl overflow-hidden border border-gameOrange/20 bg-gradient-to-r from-slate-900 to-black">
-                                {/* Animated accent line at top */}
-                                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-gameOrange via-yellow-400 to-gameOrange animate-pulse" />
-
-                                <div className="p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                    <div className="flex items-start gap-4 flex-1">
-                                        {/* Live indicator */}
-                                        <div className="shrink-0 flex flex-col items-center gap-1 pt-1">
-                                            <div className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
-                                            <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Megaphone size={14} className="text-gameOrange shrink-0" />
-                                                <span className="text-[10px] font-black text-gameOrange uppercase tracking-widest">
-                                                    Social Campaign Â· {liveCampaign.issue_category}
-                                                    {liveCampaign.region && liveCampaign.region !== 'national' && (
-                                                        <span className="ml-2 text-slate-400">Â· {liveCampaign.region.replace('state:', '')}</span>
-                                                    )}
-                                                </span>
-                                            </div>
-                                            <h3 className="text-white font-black font-rajdhani text-xl md:text-2xl uppercase leading-tight mb-2 truncate">
-                                                {liveCampaign.title}
-                                            </h3>
-                                            <p className="text-slate-400 text-sm line-clamp-2 normal-case">
-                                                {liveCampaign.subtitle}
-                                            </p>
-                                            {liveCampaign.end_time && (
-                                                <div className="flex items-center gap-1.5 mt-3 text-slate-500 text-xs font-bold">
-                                                    <Clock size={11} />
-                                                    <span className="uppercase tracking-widest">
-                                                        Voting closes: {new Date(liveCampaign.end_time).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                                    </span>
-                                                </div>
-                                            )}
-                                        </div>
+                            <div className="relative rounded-2xl overflow-hidden border border-gameOrange/20 bg-gradient-to-r from-slate-900 to-black p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="text-white font-black font-rajdhani text-xl uppercase leading-tight mb-2">
+                                            {liveCampaign.title}
+                                        </h3>
+                                        <p className="text-slate-400 text-sm line-clamp-1">{liveCampaign.subtitle}</p>
                                     </div>
-
-                                    <button
-                                        onClick={() => navigate(`/social-campaigns/${liveCampaign.slug || liveCampaign.id}`)}
-                                        className="shrink-0 flex items-center gap-2 bg-gameOrange text-white px-6 py-3 rounded-full font-black uppercase tracking-widest text-xs hover:bg-orange-500 transition-all shadow-[0_4px_20px_rgba(255,107,0,0.3)] hover:shadow-[0_4px_30px_rgba(255,107,0,0.5)] hover:scale-105 active:scale-95"
-                                    >
-                                        Cast Your Vote <ArrowRight size={14} />
-                                    </button>
                                 </div>
+                                <button
+                                    onClick={() => navigate(`/social-campaigns/${liveCampaign.id}`)}
+                                    className="shrink-0 flex items-center gap-2 bg-gameOrange text-white px-6 py-3 rounded-full font-black uppercase tracking-widest text-xs hover:bg-orange-500 transition-all shadow-xl hover:scale-105"
+                                >
+                                    Cast Your Vote <ArrowRight size={14} />
+                                </button>
                             </div>
                         )}
                     </div>
                 )}
             </main>
 
+            {isStudioMode && activeNews && (
+                <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-0 md:p-8 animate-fade-in backdrop-blur-3xl">
+                    <div className="w-full max-w-[500px] flex items-center justify-between mb-2 md:mb-6 px-4 absolute top-4 md:relative md:top-auto z-[110]">
+                        <div className="flex flex-col">
+                            <span className="font-rajdhani font-black text-white text-lg tracking-widest uppercase italic">REEL STUDIO</span>
+                            <span className="text-gameOrange font-bold text-[9px] uppercase tracking-tighter opacity-70 italic">● Viral Content Generator</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 md:gap-4">
+                            <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 mr-2">
+                                <button 
+                                    onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
+                                    disabled={activeIndex === 0}
+                                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
+                                >
+                                    <ArrowRight className="w-4 h-4 rotate-180" />
+                                </button>
+                                <span className="text-white font-black font-rajdhani text-sm px-3">
+                                    {activeIndex + 1} / {newsData?.length}
+                                </span>
+                                <button 
+                                    onClick={() => setActiveIndex(prev => Math.min((newsData?.length || 1) - 1, prev + 1))}
+                                    disabled={activeIndex === (newsData?.length || 1) - 1}
+                                    className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
+                                >
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {isExporting ? (
+                                <div className="flex items-center gap-3 bg-white/10 px-4 py-2 rounded-full border border-gameOrange/30 backdrop-blur-md">
+                                    <div className="w-4 h-4 border-2 border-gameOrange border-t-transparent rounded-full animate-spin" />
+                                    <span className="text-white text-[10px] font-black uppercase tracking-widest leading-none">
+                                        Generating Reel {exportProgress}%
+                                    </span>
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={generateDirectReel}
+                                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
+                                >
+                                    <Video className="w-4 h-4" /> Download Reel
+                                </button>
+                            )}
+                            
+                            <button 
+                                onClick={() => setIsStudioMode(false)}
+                                className="bg-white/10 hover:bg-red-600 text-white p-2.5 rounded-full backdrop-blur-md transition-all group"
+                            >
+                                <X className="w-5 h-5 group-hover:scale-110" />
+                            </button>
+                        </div>
+                    </div>
+
+                    <div key={activeIndex} className="relative bg-slate-900 border border-white/5 overflow-hidden shadow-2xl w-full max-w-[500px]"
+                         style={{ aspectRatio: '9/16', height: '90vh', maxHeight: '1920px' }}>
+                        
+                        <div className="absolute inset-0 bg-blue-900/20 flex flex-col items-center justify-center space-y-8 opacity-50">
+                            <div className="w-[150%] aspect-square border-[40px] border-white/5 rounded-full animate-spin-slow absolute"></div>
+                            <div className="w-[100%] aspect-square border-t-[8px] border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
+                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+
+                        <div className="relative h-full flex flex-col justify-between p-8 md:p-10 z-10 w-full">
+                            <div className="mt-8 flex flex-col gap-2 relative z-20">
+                                <div className="flex items-center gap-2 self-start bg-red-600 text-white font-black px-4 py-1.5 text-sm md:text-base uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
+                                    <Radio size={16} className="animate-pulse" /> LIVE
+                                </div>
+                                <div className="text-white/80 font-bold uppercase tracking-widest text-[10px] md:text-xs bg-black/40 px-3 py-1 rounded w-fit backdrop-blur-sm">
+                                    {activeNews.date} | {activeNews.state}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 flex flex-col justify-center relative min-h-[50%] mt-8 z-10">
+                                {slides.map((slide, i) => (
+                                    <div 
+                                        key={`${activeIndex}-${i}`} 
+                                        className={`absolute w-full transition-all duration-700 ease-out transform ${
+                                            i === slideIndex ? 'translate-x-0 opacity-100 scale-100' : 
+                                            i < slideIndex ? '-translate-x-[150%] opacity-0 scale-95' : 'translate-x-[150%] opacity-0 scale-95'
+                                        }`}
+                                    >
+                                        <div className={`inline-block text-white px-4 py-1.5 font-black uppercase tracking-widest mb-6 shadow-lg text-[10px] md:text-xs ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
+                                            {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                                        </div>
+                                        <h2 className={`font-rajdhani leading-tight drop-shadow-xl ${
+                                            slide.type === 'headline' ? 'text-4xl md:text-5xl font-black text-white px-1' : 'text-2xl md:text-3xl font-bold text-slate-100 px-1'
+                                        }`}>
+                                            {slide.content}
+                                        </h2>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mb-4 relative z-20">
+                                <div className="w-full h-[3px] bg-white/20 mb-6 rounded-full overflow-hidden">
+                                    <div 
+                                        key={`${activeIndex}-${slideIndex}`} 
+                                        className="h-full bg-red-600 animate-[progress_8s_linear_forwards]"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="bg-red-600 text-white text-[10px] md:text-xs font-black px-3 py-1 uppercase tracking-widest w-fit shadow-lg">
+                                        RN Update
+                                    </div>
+                                    <h3 className="text-white font-bold font-sans text-lg md:text-xl leading-tight line-clamp-3 mb-2 drop-shadow-md">
+                                        {activeNews.blog_title}
+                                    </h3>
+                                    <p className="text-gameOrange font-black font-rajdhani tracking-widest text-xs uppercase bg-black/40 px-3 py-1.5 rounded backdrop-blur-sm border border-gameOrange/20 w-fit">
+                                        Sentiment Score: {activeNews.sentiment_score}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <canvas ref={canvasRef} width="1080" height="1920" className="hidden" />
+
             <style>{`
-        @keyframes marquee { 
-          0% { transform: translateX(100%); } 
-          100% { transform: translateX(-150%); } 
-        }
-        .animate-reverse-spin {
-          animation: reverse-spin 20s linear infinite;
-        }
-        @keyframes reverse-spin {
-          from { transform: rotate(360deg); }
-          to { transform: rotate(0deg); }
-        }
-        .animate-spin-slow {
-          animation: spin 30s linear infinite;
-        }
-      `}</style>
+                @keyframes marquee { 
+                  0% { transform: translateX(100%); } 
+                  100% { transform: translateX(-150%); } 
+                }
+                @keyframes progress {
+                  0% { width: 0%; }
+                  100% { width: 100%; }
+                }
+                .animate-reverse-spin {
+                  animation: reverse-spin 20s linear infinite;
+                }
+                @keyframes reverse-spin {
+                  from { transform: rotate(360deg); }
+                  to { transform: rotate(0deg); }
+                }
+                .animate-spin-slow {
+                  animation: spin 30s linear infinite;
+                }
+                @keyframes fade-in {
+                  from { opacity: 0; }
+                  to { opacity: 1; }
+                }
+                .animate-fade-in {
+                  animation: fade-in 0.3s ease-out forwards;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                  width: 4px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                  background: rgba(0,0,0,0.1);
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                  background: #dc2626;
+                  border-radius: 10px;
+                }
+            `}</style>
         </div>
     );
 };
 
 export default RajneetiNetworkTV;
-

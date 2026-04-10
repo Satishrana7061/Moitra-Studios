@@ -4,6 +4,8 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
+import { AdBanner } from './AdBanner';
+
 
 interface DailyNews {
     leader: string;
@@ -220,11 +222,14 @@ const RajneetiNetworkTV: React.FC = () => {
 
             ctx.fillStyle = 'white';
             ctx.font = '900 56px Rajdhani, sans-serif';
-            ctx.fillText(activeNews.blog_title, 80, 1720);
+            wrapText(ctx, activeNews.blog_title, 80, 1680, 920, 60);
             
-            ctx.fillStyle = '#fb923c'; // gameOrange
-            ctx.font = '900 36px Rajdhani, sans-serif';
-            ctx.fillText(`SENTIMENT: ${activeNews.sentiment_score}`, 80, 1790);
+            // Watermark
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.font = '900 48px Rajdhani, sans-serif';
+            const wm = "RAJNEETI TV NETWORK";
+            const wmMetrics = ctx.measureText(wm);
+            ctx.fillText(wm, 1080 - wmMetrics.width - 40, 1860);
 
             requestAnimationFrame(renderFrame);
         };
@@ -502,12 +507,12 @@ const RajneetiNetworkTV: React.FC = () => {
                                     {newsData.map((news, idx) => {
                                         const isActive = idx === activeIndex;
                                         return (
-                                            <article
-                                                key={idx}
-                                                ref={(el) => { articleRefs.current[idx] = el; }}
-                                                onClick={() => setActiveIndex(idx)}
-                                                className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
-                                            >
+                                            <React.Fragment key={idx}>
+                                                <article
+                                                    ref={(el) => { articleRefs.current[idx] = el; }}
+                                                    onClick={() => setActiveIndex(idx)}
+                                                    className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
+                                                >
                                                 <header className="relative">
                                                     <h3 className="text-gameOrange font-bold text-xs tracking-widest uppercase mb-2">
                                                         {news.state} | {news.date}
@@ -519,7 +524,11 @@ const RajneetiNetworkTV: React.FC = () => {
                                                 <div className={`text-slate-300 font-sans normal-case text-base leading-relaxed ${!isActive && 'line-clamp-2'}`}>
                                                     <p>{news.blog_content}</p>
                                                 </div>
-                                            </article>
+                                                </article>
+                                                {idx > 0 && idx % 3 === 0 && (
+                                                    <AdBanner layoutArea="sidebar" className="my-4" />
+                                                )}
+                                            </React.Fragment>
                                         );
                                     })}
                                 </div>
@@ -546,6 +555,7 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
                         )}
                     </div>
+                    <AdBanner layoutArea="leaderboard" className="mt-8 mb-4 max-w-5xl mx-auto" />
                 )}
             </main>
 
@@ -606,11 +616,26 @@ const RajneetiNetworkTV: React.FC = () => {
                     <div key={activeIndex} className="relative bg-slate-900 border border-white/5 overflow-hidden shadow-2xl w-full max-w-[500px]"
                          style={{ aspectRatio: '9/16', height: '90vh', maxHeight: '1920px' }}>
                         
-                        <div className="absolute inset-0 bg-blue-900/20 flex flex-col items-center justify-center space-y-8 opacity-50">
+                        {isExporting && (
+                            <div className="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-6 backdrop-blur-md">
+                                <AdBanner layoutArea="interstitial" className="mb-8 w-full max-w-sm" />
+                                <div className="flex flex-col items-center gap-4 text-white p-6 bg-slate-900/80 rounded-xl border border-white/10">
+                                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                                    <span className="font-rajdhani font-bold text-lg md:text-xl uppercase tracking-widest text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]">
+                                        Encoding Reel {exportProgress}%
+                                    </span>
+                                    <p className="text-slate-400 text-xs md:text-sm text-center max-w-xs leading-relaxed">
+                                        Please wait while we render your custom 9:16 reel directly to your device.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="absolute inset-0 bg-blue-900/20 flex flex-col items-center justify-center space-y-8 opacity-50 pointer-events-none">
                             <div className="w-[150%] aspect-square border-[40px] border-white/5 rounded-full animate-spin-slow absolute"></div>
                             <div className="w-[100%] aspect-square border-t-[8px] border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
                         </div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
 
                         <div className="relative h-full flex flex-col justify-between p-8 md:p-10 z-10 w-full">
                             <div className="mt-8 flex flex-col gap-2 relative z-20">
@@ -657,11 +682,14 @@ const RajneetiNetworkTV: React.FC = () => {
                                     <h3 className="text-white font-bold font-sans text-lg md:text-xl leading-tight line-clamp-3 mb-2 drop-shadow-md">
                                         {activeNews.blog_title}
                                     </h3>
-                                    <p className="text-gameOrange font-black font-rajdhani tracking-widest text-xs uppercase bg-black/40 px-3 py-1.5 rounded backdrop-blur-sm border border-gameOrange/20 w-fit">
-                                        Sentiment Score: {activeNews.sentiment_score}
-                                    </p>
                                 </div>
                             </div>
+                        </div>
+                        {/* React UI Overlay Watermark */}
+                        <div className="absolute bottom-4 right-4 opacity-50 z-20 pointer-events-none">
+                            <span className="font-rajdhani font-black text-white/50 text-[10px] md:text-xs tracking-widest uppercase">
+                                RAJNEETI TV NETWORK
+                            </span>
                         </div>
                     </div>
                 </div>

@@ -8,6 +8,26 @@ const SocialCampaignsList: React.FC = () => {
     const [campaigns, setCampaigns] = useState<SocialCampaign[]>([]);
     const [currentExperience, setCurrentExperience] = useState<{ type: string, data: any } | null>(null);
     const [loading, setLoading] = useState(true);
+    const [timeLeftStr, setTimeLeftStr] = useState<string>("Calculaing...");
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            if (currentExperience?.type === 'campaign' && currentExperience.data?.end_time) {
+                const diff = +new Date(currentExperience.data.end_time) - +new Date();
+                if (diff > 0) {
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const mins = Math.floor((diff / (1000 * 60)) % 60);
+                    setTimeLeftStr(`Closes in ${hours}h ${mins}m`);
+                } else {
+                    setTimeLeftStr("Voting Closed");
+                }
+            } else if (currentExperience?.type === 'topic_round') {
+                setTimeLeftStr("Voting Closes Soon");
+            }
+        }, 1000);
+        return () => clearInterval(timer);
+    }, [currentExperience]);
+
 
     useEffect(() => {
         document.title = "Campaign Hub | Rajneeti";
@@ -93,7 +113,7 @@ const SocialCampaignsList: React.FC = () => {
                                         </button>
                                         <div className="flex items-center gap-3 px-6 py-4 rounded-full bg-white/5 border border-white/5 text-slate-300">
                                             <Clock size={16} className="text-indigo-400" />
-                                            <span className="text-xs font-bold uppercase tracking-widest">Closes in 48 Hours</span>
+                                            <span className="text-xs font-bold uppercase tracking-widest">{timeLeftStr}</span>
                                         </div>
                                     </div>
                                 </div>

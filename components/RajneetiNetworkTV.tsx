@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock, Video, X, Maximize2 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
+import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 
 interface DailyNews {
@@ -83,10 +84,31 @@ const RajneetiNetworkTV: React.FC = () => {
         await new Promise((resolve) => { avatarImg.onload = resolve; avatarImg.onerror = resolve; });
 
         const stream = (canvas as any).captureStream(30); // 30 FPS
-        const recorder = new MediaRecorder(stream, { 
-            mimeType: 'video/webm;codecs=vp9',
-            videoBitsPerSecond: 5000000 // 5Mbps for high quality
-        });
+        let mimeTypes = [
+            'video/webm;codecs=vp9',
+            'video/webm;codecs=vp8',
+            'video/webm',
+            'video/mp4'
+        ];
+        let selectedMimeType = '';
+        for (let mt of mimeTypes) {
+            if (MediaRecorder.isTypeSupported(mt)) {
+                selectedMimeType = mt;
+                break;
+            }
+        }
+        
+        let recorder: MediaRecorder;
+        try {
+            recorder = new MediaRecorder(stream, { 
+                mimeType: selectedMimeType,
+                videoBitsPerSecond: 5000000 // 5Mbps for high quality
+            });
+        } catch (e) {
+            console.error("MediaRecorder init failed:", e);
+            setIsExporting(false);
+            return;
+        }
         const chunks: Blob[] = [];
         
         recorder.ondataavailable = (e) => {
@@ -107,13 +129,15 @@ const RajneetiNetworkTV: React.FC = () => {
         recorder.start();
         const totalDuration = slides.length * 8000;
         const startTime = performance.now();
+        let localIsExporting = true;
         
         const renderFrame = (now: number) => {
-            if (!isExporting) return;
+            if (!localIsExporting) return;
             const elapsed = now - startTime;
             
             if (elapsed >= totalDuration) {
                 if (recorder.state !== 'inactive') recorder.stop();
+                localIsExporting = false;
                 return;
             }
 
@@ -263,10 +287,32 @@ const RajneetiNetworkTV: React.FC = () => {
         document.title = "Rajneeti TV Network | Live Indian Political News & Updates";
         const fetchDailyNews = async () => {
             try {
-                const response = await fetch(`${import.meta.env.BASE_URL}daily_news.json?t=${Date.now()}`);
-                const data = await response.json();
-                if (data) {
-                    setNewsData(Array.isArray(data) ? data : [data]);
+                let finalData = null;
+                if (supabase) {
+                    const { data, error } = await supabase
+                        .from('news_events')
+                        .select('*')
+                        .order('news_date', { ascending: false })
+                        .limit(10);
+                        
+                    if (!error && data && data.length > 0) {
+                        // Map news_date to date for the frontend
+                        finalData = data.map(item => ({
+                            ...item,
+                            date: item.news_date
+                        }));
+                    }
+                }
+                
+                // Fallback to static JSON if Supabase fails or isn't used
+                if (!finalData) {
+                    const response = await fetch(`${import.meta.env.BASE_URL}daily_news.json?t=${Date.now()}`);
+                    const data = await response.json();
+                    if (data) finalData = Array.isArray(data) ? data : [data];
+                }
+                
+                if (finalData) {
+                    setNewsData(finalData);
                 }
             } catch (error) {
                 console.error("Error loading TV news:", error);

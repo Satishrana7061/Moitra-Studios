@@ -373,8 +373,7 @@ const SocialCampaignDetail: React.FC = () => {
                                     </div>
                                 )}
 
-                                {!hasVoted ? (
-                                    new Date(campaign.end_time || (campaign as any).endDate || '') < new Date() ? (
+                                {new Date(campaign.end_time || (campaign as any).endDate || '') < new Date() ? (
                                         // Campaign expired — show AI result immediately instead of dead-end message
                                         (() => {
                                             const result = getSimulatedResult(campaign);
@@ -427,7 +426,7 @@ const SocialCampaignDetail: React.FC = () => {
                                                 </div>
                                             );
                                         })()
-                                    ) : (
+                                    ) : !hasVoted ? (
                                         <div className="max-w-md mx-auto space-y-4">
                                             {campaign.approaches?.map((app) => (
                                                 <button 
@@ -457,7 +456,6 @@ const SocialCampaignDetail: React.FC = () => {
                                             </button>
                                         </div>
                                     </div>
-                                    )
                                 ) : (
                                     <div className="text-center py-10">
                                         {voteLoading ? (

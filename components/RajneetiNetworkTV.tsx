@@ -85,10 +85,11 @@ const RajneetiNetworkTV: React.FC = () => {
 
         const stream = (canvas as any).captureStream(30); // 30 FPS
         let mimeTypes = [
+            'video/mp4',
+            'video/webm;codecs=h264',
             'video/webm;codecs=vp9',
             'video/webm;codecs=vp8',
-            'video/webm',
-            'video/mp4'
+            'video/webm'
         ];
         let selectedMimeType = '';
         for (let mt of mimeTypes) {
@@ -116,11 +117,16 @@ const RajneetiNetworkTV: React.FC = () => {
         };
 
         recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
+            // Force MP4 format where possible, as WhatsApp natively rejects .webm
+            const isMp4Compatible = selectedMimeType.includes('mp4') || selectedMimeType.includes('h264');
+            const blobType = isMp4Compatible ? 'video/mp4' : 'video/webm';
+            const extension = isMp4Compatible ? 'mp4' : 'webm';
+            
+            const blob = new Blob(chunks, { type: blobType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Rajneeti-Reel-${activeNews.leader.replace(/\s+/g, '-')}-${Date.now()}.webm`;
+            a.download = `Rajneeti-Reel-${activeNews.leader.replace(/\s+/g, '-')}-${Date.now()}.${extension}`;
             a.click();
             URL.revokeObjectURL(url);
             setIsExporting(false);

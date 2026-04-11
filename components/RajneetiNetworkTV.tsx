@@ -554,8 +554,10 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </button>
                             </div>
                         )}
+                        
+                        {/* Leaderboard Ad integration */}
+                        <AdBanner layoutArea="leaderboard" className="mt-8 mb-4 w-full" />
                     </div>
-                    <AdBanner layoutArea="leaderboard" className="mt-8 mb-4 max-w-5xl mx-auto" />
                 )}
             </main>
 

@@ -44,7 +44,7 @@ jobs:
 
         if [[ `git status --porcelain` ]]; then
           git add public/daily_news.json
-          git commit -m "chore: auto-update daily news [skip ci]"
+          git commit -m "chore: auto-update daily news"
           git push
         else
           echo "No changes to daily_news.json"

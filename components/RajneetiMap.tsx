@@ -369,7 +369,7 @@ const RajneetiMap: React.FC = () => {
                 </div>
                 <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
                     <AdBanner layoutArea="interstitial" className="flex-shrink-0 !h-[250px]" />
-                    <AdBanner layoutArea="skyscraper" className="flex-1" />
+                    <AdBanner layoutArea="skyscraper" dataAdSlot="5773005388" className="flex-1" />
                 </div>
             </div>
         </div>

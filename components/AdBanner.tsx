@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
 
 interface AdBannerProps {
-  layoutArea: 'sidebar' | 'leaderboard' | 'interstitial';
+  layoutArea: 'sidebar' | 'leaderboard' | 'interstitial' | 'skyscraper';
   className?: string;
 }
 
@@ -22,6 +22,7 @@ export const AdBanner: React.FC<AdBannerProps> = ({ layoutArea, className = '' }
     sidebar: 'w-full h-[250px]',
     leaderboard: 'w-full h-[90px] md:h-[120px]',
     interstitial: 'w-full h-[300px] md:h-[400px]',
+    skyscraper: 'w-full h-full min-h-[300px]',
   };
 
   const adStyles = dimensions[layoutArea];

@@ -4,6 +4,7 @@ import BreakingNewsTicker from './BreakingNewsTicker';
 import { fetchBreakingNews, BreakingNewsEvent } from '../services/newsService';
 import InteractiveParticles from './InteractiveParticles';
 import { X } from 'lucide-react';
+import { AdBanner } from './AdBanner';
 
 interface GeoJSONFeature {
     type: string;
@@ -356,7 +357,21 @@ const RajneetiMap: React.FC = () => {
                 </div>
             </section>
 
+            {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <BreakingNewsTicker events={allEvents} />
+            
+            {/* DESKTOP RIGHT SPONSOR SIDEBAR */}
+            <div className="hidden md:flex absolute right-0 top-20 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
+                <div className="pb-3 border-b border-white/5 mx-2 pointer-events-auto">
+                    <span className="font-rajdhani font-black text-white/50 tracking-wideset text-[10px] uppercase">
+                        Premium Sponsors
+                    </span>
+                </div>
+                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
+                    <AdBanner layoutArea="interstitial" className="flex-shrink-0 !h-[250px]" />
+                    <AdBanner layoutArea="skyscraper" className="flex-1" />
+                </div>
+            </div>
         </div>
     );
 };

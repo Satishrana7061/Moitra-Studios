@@ -4,19 +4,27 @@ import { AlertCircle } from 'lucide-react';
 interface AdBannerProps {
   layoutArea: 'sidebar' | 'leaderboard' | 'interstitial' | 'skyscraper';
   className?: string;
+  dataAdSlot?: string;
 }
 
-export const AdBanner: React.FC<AdBannerProps> = ({ layoutArea, className = '' }) => {
-  // TODO: When Google AdSense is approved, uncomment the useEffect logic below to initialize ads correctly.
-  /*
+// Add the window.adsbygoogle type to avoid TS errors
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
+
+export const AdBanner: React.FC<AdBannerProps> = ({ layoutArea, className = '', dataAdSlot }) => {
   useEffect(() => {
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (e) {
-      console.warn("AdSense error", e);
+    // Only push if there's a live slot and ad slot is provided
+    if (dataAdSlot) {
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (e) {
+        console.warn("AdSense error", e);
+      }
     }
-  }, []);
-  */
+  }, [dataAdSlot]);
 
   const dimensions = {
     sidebar: 'w-full h-[250px]',
@@ -27,24 +35,23 @@ export const AdBanner: React.FC<AdBannerProps> = ({ layoutArea, className = '' }
 
   const adStyles = dimensions[layoutArea];
 
-  return (
-    <div className={`relative bg-slate-900 border border-white/5 rounded-xl flex flex-col items-center justify-center overflow-hidden group ${adStyles} ${className}`}>
-      
-      {/* 
-        =====================================================================
-        HOW TO IMPLEMENT GOOGLE ADSENSE:
-        Once your AdSense account is approved, replace this entire <div className="absolute inset-0..."> 
-        with the snippet provided by Google. It should look something like this:
-
-        <ins className="adsbygoogle"
+  // If a dataAdSlot is provided, we transition to a live AdSense renderer
+  if (dataAdSlot) {
+    return (
+      <div className={`relative flex flex-col items-center justify-center overflow-hidden container-ad ${adStyles} ${className}`}>
+        <ins className="adsbygoogle w-full h-full"
              style={{ display: 'block' }}
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="1234567890"
+             data-ad-client="ca-pub-5388311417259055"
+             data-ad-slot={dataAdSlot}
              data-ad-format="auto"
              data-full-width-responsive="true" />
-        =====================================================================
-      */}
-      
+      </div>
+    );
+  }
+
+  // Otherwise fallback to placeholder UI below
+  return (
+    <div className={`relative bg-slate-900 border border-white/5 rounded-xl flex flex-col items-center justify-center overflow-hidden group ${adStyles} ${className}`}>
       <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-10 bg-gradient-to-br from-slate-900/80 to-black/80">
         <span className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold mb-2">Advertisement Placeholder</span>
         {layoutArea === 'interstitial' ? (

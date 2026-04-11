@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://satishrana7061.github.io/Moitra-Studios/sitemap.xml
+Sitemap: https://moitrastudios.com/sitemap.xml

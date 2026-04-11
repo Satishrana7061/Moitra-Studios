@@ -91,7 +91,7 @@ async function fetchFromSupabase(): Promise<BreakingNewsEvent[] | null> {
 async function fetchFromJsonFile(): Promise<BreakingNewsEvent[] | null> {
     const paths = [
         `${import.meta.env.BASE_URL}daily_news.json`,
-        '/Moitra-Studios/daily_news.json',
+        '/daily_news.json',
         '/daily_news.json',
         './daily_news.json',
     ];

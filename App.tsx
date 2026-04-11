@@ -55,8 +55,8 @@ const App: React.FC = () => {
             <Route path="/privacy-policy" element={<PrivacyPolicy onBack={() => window.history.back()} />} />
             <Route path="/contact-us" element={<ContactSection />} />
             <Route path="/rajneeti-tv-network" element={<RajneetiNetworkTV />} />
-            <Route path="/social-campaigns" element={<SocialCampaignsList />} />
-            <Route path="/social-campaigns/:id" element={<SocialCampaignDetail />} />
+            <Route path="/social-campaign" element={<SocialCampaignsList />} />
+            <Route path="/social-campaign/:id" element={<SocialCampaignDetail />} />
             <Route path="*" element={<RajneetiMap />} />
           </Routes>
         </Suspense>

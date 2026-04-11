@@ -37,7 +37,7 @@ const RajneetiMap: React.FC = () => {
         const fetchMapData = async () => {
             try {
                 const paths = [
-                    '/Moitra-Studios/india_country_FINAL_game.geojson',
+                    '/india_country_FINAL_game.geojson',
                     '/india_country_FINAL_game.geojson',
                     './india_country_FINAL_game.geojson'
                 ];
@@ -54,7 +54,7 @@ const RajneetiMap: React.FC = () => {
                 }
 
                 const statePaths = [
-                    '/Moitra-Studios/india_states_FINAL_game.geojson',
+                    '/india_states_FINAL_game.geojson',
                     '/india_states_FINAL_game.geojson',
                     './india_states_FINAL_game.geojson'
                 ];

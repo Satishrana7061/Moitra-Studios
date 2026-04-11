@@ -126,7 +126,7 @@ const SocialCampaignDetail: React.FC = () => {
         if (activeExperience?.type === 'topic_round') {
             return (
                 <div className="min-h-screen pt-24 pb-12 bg-slate-950">
-                    <TopicVoting round={activeExperience.data} onVoteComplete={() => navigate('/social-campaigns')} />
+                    <TopicVoting round={activeExperience.data} onVoteComplete={() => navigate('/social-campaign')} />
                 </div>
             );
         }
@@ -137,7 +137,7 @@ const SocialCampaignDetail: React.FC = () => {
                 <h1 className="text-3xl font-cinzel font-bold text-white mb-2">Campaign Not Found</h1>
                 <p className="text-slate-400 mb-8">This policy debate may have been moved or archived.</p>
                 <button 
-                    onClick={() => navigate('/social-campaigns')}
+                    onClick={() => navigate('/social-campaign')}
                     className="bg-gameOrange text-white px-8 py-3 rounded-full font-bold uppercase tracking-widest hover:bg-orange-600 transition-all shadow-[0_4px_15px_rgba(255,107,0,0.3)]"
                 >
                     Back to Hub
@@ -155,7 +155,7 @@ const SocialCampaignDetail: React.FC = () => {
                     <div className="hidden lg:block lg:col-span-1 h-[calc(100vh-160px)] sticky top-32">
                         <SocialCampaignSidebar 
                             campaigns={allCampaigns} 
-                            onSelectCampaign={(slug) => navigate(`/social-campaigns/${slug}`)} 
+                            onSelectCampaign={(slug) => navigate(`/social-campaign/${slug}`)} 
                             activeSlug={campaign.slug || campaign.id}
                         />
                     </div>

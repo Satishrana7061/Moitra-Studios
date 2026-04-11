@@ -83,7 +83,7 @@ const SocialCampaignsList: React.FC = () => {
                 {/* FEATURED EXPERIENCE (LIVE OR TOPIC VOTING) */}
                 {currentExperience && currentExperience.type !== 'buffer' && (
                     <section className="mb-20">
-                        <div className="relative group cursor-pointer" onClick={() => navigate(currentExperience.type === 'campaign' ? `/social-campaigns/${currentExperience.data.slug || currentExperience.data.id}` : `/social-campaigns`)}>
+                        <div className="relative group cursor-pointer" onClick={() => navigate(currentExperience.type === 'campaign' ? `/social-campaign/${currentExperience.data.slug || currentExperience.data.id}` : `/social-campaign`)}>
                             <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
                             <div className="relative bg-slate-900 border border-white/10 rounded-3xl p-8 md:p-12 overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8">
@@ -141,7 +141,7 @@ const SocialCampaignsList: React.FC = () => {
                             <div 
                                 key={campaign.id}
                                 className="group bg-slate-900/40 border border-white/5 hover:border-indigo-500/30 rounded-2xl p-6 md:p-8 transition-all hover:-translate-y-1 cursor-pointer relative overflow-hidden"
-                                onClick={() => navigate(`/social-campaigns/${campaign.slug}`)}
+                                onClick={() => navigate(`/social-campaign/${campaign.slug}`)}
                             >
                                 <div className="flex justify-between items-start mb-4">
                                     <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">{campaign.issue_category}</span>

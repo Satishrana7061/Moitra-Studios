@@ -32,8 +32,8 @@ export const CAMPAIGNS_DATA: SocialCampaign[] = [
             "India imports over 80% of its crude oil, making domestic petrol and LPG prices highly vulnerable to international swings.",
             "Rising fuel costs are increasing transportation expenses, which in turn drives up inflation on daily groceries and household budgets in both cities and villages."
         ],
-        startDate: new Date().toISOString(), // Today
-        endDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days from now
+        startDate: "2026-04-01T00:00:00.000Z",
+        endDate: "2026-12-31T23:59:59.000Z",
         status: 'live',
         approaches: [
 

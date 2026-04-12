@@ -238,6 +238,7 @@ SAFETY RULES (MANDATORY):
 - Do NOT generate hate speech, religious insults, or calls for violence.
 - Skip articles about extreme violence, terrorism, or sensitive religious issues.
 - Keep language neutral, witty, game-focused.
+- STRICT FACTUALITY: NEVER hallucinate, manipulate, or invent facts. You MUST strictly base your output ONLY on the facts present in the provided article descriptions. Do not invent context or attribute actions to political parties unless explicitly stated in the source.
 
 CANDIDATE LIST:
 {CANDIDATE_LIST}

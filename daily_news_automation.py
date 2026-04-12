@@ -247,8 +247,9 @@ Today's news articles:
 {articles_text}
 
 TASK:
-Pick the {MAX_EVENTS} most politically significant articles.
-For each, produce a JSON object with EXACT keys:
+Pick the {MAX_EVENTS} most politically significant articles from the mainstream media feed provided below.
+PRIORITIZATION RULE: You MUST heavily prioritize news entries that involve high-profile ongoing events (like West Bengal elections), top national leaders (Narendra Modi, Rahul Gandhi), and major battleground states (Uttar Pradesh, Maharashtra).
+For each chosen article, produce a JSON object with EXACT keys:
 {{
   "leader": "<candidate name from list>",
   "state": "<full state name, e.g. Bihar, Uttar Pradesh, National>",

@@ -228,13 +228,10 @@ const RajneetiMap: React.FC = () => {
                         <svg
                             ref={svgRef}
                             viewBox={viewBox}
-                            className="w-full h-full drop-shadow-[0_0_80px_rgba(0,0,0,0.8)] transition-all duration-700 ease-out"
+                            className="w-full h-full transition-all duration-700 ease-out"
                             onClick={stopBubbling}
                         >
                             <defs>
-                                <filter id="liftShadow" x="-50%" y="-50%" width="200%" height="200%">
-                                    <feDropShadow dx="1500" dy="-6000" stdDeviation="3500" floodColor="#000000" floodOpacity="0.8" />
-                                </filter>
                                 <linearGradient id="metallicGold" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" style={{ stopColor: '#d97706', stopOpacity: 1 }} />
                                     <stop offset="50%" style={{ stopColor: '#fbbf24', stopOpacity: 1 }} />
@@ -283,17 +280,16 @@ const RajneetiMap: React.FC = () => {
                                                         key={`state-${stateId}`}
                                                         d={d}
                                                         fill={isSelected ? "#3b82f6" : (isHovered ? "#60a5fa" : getStateColor(stateId))}
-                                                        stroke={isActive ? "#fff" : "#1e293b"}
-                                                        strokeWidth={isActive ? "2000" : "1500"}
+                                                        stroke={isActive ? "#ffffff" : "#1e293b"}
+                                                        strokeWidth={isActive ? "2500" : "1500"}
                                                         strokeOpacity={isActive ? 1 : 0.6}
-                                                        filter={isActive ? "url(#liftShadow)" : ""}
-                                                        className="cursor-pointer hover:brightness-[1.15]"
+                                                        className="cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                                                         style={{
-                                                            transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.3s ease, filter 0.3s ease',
-                                                            opacity: isSelected ? 1 : 0.9,
-                                                            transform: isActive ? 'translate(-1000px, 15000px) scale(1.02)' : 'translate(0px, 0px) scale(1)',
+                                                            opacity: isSelected ? 1 : (isHovered ? 1 : 0.9),
+                                                            transform: isActive ? 'translate(0px, 35000px) scale(1.05)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
-                                                            transformBox: 'fill-box'
+                                                            transformBox: 'fill-box',
+                                                            filter: isActive ? 'drop-shadow(0px -30px 30px rgba(0,0,0,0.9)) brightness(1.15)' : 'drop-shadow(0px -2px 5px rgba(0,0,0,0.5))'
                                                         }}
                                                         onMouseEnter={() => !selectedState && setHoveredState(stateId)}
                                                         onMouseLeave={() => setHoveredState(null)}

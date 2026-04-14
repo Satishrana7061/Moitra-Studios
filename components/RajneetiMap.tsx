@@ -291,7 +291,7 @@ const RajneetiMap: React.FC = () => {
                                                         className="cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                                                         style={{
                                                             opacity: isSelected ? 1 : (isHovered ? 1 : 0.9),
-                                                            transform: isActive ? 'translate(0px, 70000px) scale(1.08)' : 'translate(0px, 0px) scale(1)',
+                                                            transform: isActive ? 'translate(0px, 150000px) scale(1.15)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
                                                             transformBox: 'fill-box'
                                                         }}

@@ -232,9 +232,8 @@ const RajneetiMap: React.FC = () => {
                             onClick={stopBubbling}
                         >
                             <defs>
-                                <filter id="stateGlow" x="-20%" y="-20%" width="140%" height="140%">
-                                    <feGaussianBlur stdDeviation="15000" result="blur" />
-                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                <filter id="liftShadow" x="-50%" y="-50%" width="200%" height="200%">
+                                    <feDropShadow dx="1500" dy="-6000" stdDeviation="3500" floodColor="#000000" floodOpacity="0.8" />
                                 </filter>
                                 <linearGradient id="metallicGold" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" style={{ stopColor: '#d97706', stopOpacity: 1 }} />
@@ -246,6 +245,19 @@ const RajneetiMap: React.FC = () => {
                             {(() => {
                                 const vb = viewBox.split(' ').map(Number);
                                 const centerY = vb[1] + vb[3] / 2;
+                                
+                                // Sort features to push hovered/selected states to the END of the array
+                                // This solves the 'Z-index' issue in SVGs, ensuring the lifted state is drawn ON TOP
+                                const sortedStates = [...stateData.features].sort((a, b) => {
+                                    const aId = a.properties.State_Name;
+                                    const bId = b.properties.State_Name;
+                                    const aActive = selectedState === aId || hoveredState === aId;
+                                    const bActive = selectedState === bId || hoveredState === bId;
+                                    if (aActive && !bActive) return 1;
+                                    if (!aActive && bActive) return -1;
+                                    return 0;
+                                });
+
                                 return (
                                     <g transform={`scale(1, -1) translate(0, -${centerY * 2})`}>
                                         <g className="country-layer">
@@ -258,10 +270,11 @@ const RajneetiMap: React.FC = () => {
                                             })}
                                         </g>
                                         <g className="state-layer">
-                                            {stateData.features.map((f, i) => {
+                                            {sortedStates.map((f, i) => {
                                                 const stateId = f.properties.State_Name || i.toString();
                                                 const isSelected = selectedState === stateId;
                                                 const isHovered = hoveredState === stateId;
+                                                const isActive = isSelected || isHovered;
                                                 const d = getPath(f);
                                                 if (!d || d.length < 5) return null;
 
@@ -270,14 +283,15 @@ const RajneetiMap: React.FC = () => {
                                                         key={`state-${stateId}`}
                                                         d={d}
                                                         fill={isSelected ? "#3b82f6" : (isHovered ? "#60a5fa" : getStateColor(stateId))}
-                                                        stroke={isSelected || isHovered ? "#fff" : "#1e293b"}
-                                                        strokeWidth={isSelected ? "5000" : (isHovered ? "3000" : "1500")}
-                                                        strokeOpacity={isSelected || isHovered ? 1 : 0.6}
-                                                        filter={isSelected || isHovered ? "url(#stateGlow)" : ""}
-                                                        className="cursor-pointer transition-all duration-500 hover:brightness-125"
+                                                        stroke={isActive ? "#fff" : "#1e293b"}
+                                                        strokeWidth={isActive ? "2000" : "1500"}
+                                                        strokeOpacity={isActive ? 1 : 0.6}
+                                                        filter={isActive ? "url(#liftShadow)" : ""}
+                                                        className="cursor-pointer hover:brightness-[1.15]"
                                                         style={{
-                                                            opacity: isSelected ? 1 : 0.85,
-                                                            transform: isSelected ? 'translate(0, 40000) scale(1.02)' : (isHovered ? 'translate(0, 10000) scale(1.02)' : 'scale(1)'),
+                                                            transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), fill 0.3s ease, filter 0.3s ease',
+                                                            opacity: isSelected ? 1 : 0.9,
+                                                            transform: isActive ? 'translate(-1000px, 15000px) scale(1.02)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
                                                             transformBox: 'fill-box'
                                                         }}

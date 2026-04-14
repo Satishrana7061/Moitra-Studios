@@ -140,7 +140,12 @@ const RajneetiMap: React.FC = () => {
     };
 
     const getStateColor = (stateId: string) => {
-        const colors = ['#FFD700', '#4CAF50', '#FF6B00', '#00BEFF', '#9D4EDD', '#E63946'];
+        const colors = [
+            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', 
+            '#22c55e', '#10b981', '#14b8a6', '#06b6d4', '#0ea5e9', 
+            '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7', '#d946ef', 
+            '#ec4899', '#f43f5e', '#fbbf24', '#34d399', '#a78bfa'
+        ];
         let hash = 0;
         for (let i = 0; i < stateId.length; i++) {
             hash = stateId.charCodeAt(i) + ((hash << 5) - hash);
@@ -286,7 +291,7 @@ const RajneetiMap: React.FC = () => {
                                                         className="cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]"
                                                         style={{
                                                             opacity: isSelected ? 1 : (isHovered ? 1 : 0.9),
-                                                            transform: isActive ? 'translate(0px, 35000px) scale(1.05)' : 'translate(0px, 0px) scale(1)',
+                                                            transform: isActive ? 'translate(0px, 70000px) scale(1.08)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
                                                             transformBox: 'fill-box'
                                                         }}

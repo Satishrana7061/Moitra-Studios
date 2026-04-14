@@ -149,12 +149,12 @@ def fetch_rss_articles():
 
 # ═══════════════════════════════════════════════════════════════
 # AI CALL (OpenAI primary, Gemini fallback)
-# Model priority: gpt-5.4-mini → gpt-4o-mini → Gemini
+# Model priority: gpt-5.4 → Gemini
 # ═══════════════════════════════════════════════════════════════
-OPENAI_MODELS = ["gpt-5.4-mini", "gpt-4o-mini"]  # Try in order
+OPENAI_MODELS = ["gpt-5.4"]  # Force use of GPT-5.4
 
 
-def call_openai(prompt, model="gpt-5.4-mini"):
+def call_openai(prompt, model="gpt-5.4"):
     resp = requests.post(
         "https://api.openai.com/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},

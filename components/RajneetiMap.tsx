@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { STATE_INTEL, DEFAULT_STATE_DATA, StateData } from './stateIntel';
 import BreakingNewsTicker from './BreakingNewsTicker';
-import { fetchBreakingNews, BreakingNewsEvent } from '../services/newsService';
+import { fetchBreakingNews, fetchNewsByState, fetchNationalNews, BreakingNewsEvent } from '../services/newsService';
 import InteractiveParticles from './InteractiveParticles';
-import { X } from 'lucide-react';
+import { X, Newspaper, ArrowRight } from 'lucide-react';
 import { AdBanner } from './AdBanner';
+import { useNavigate } from 'react-router-dom';
 
 interface GeoJSONFeature {
     type: string;
@@ -30,8 +31,11 @@ const RajneetiMap: React.FC = () => {
     const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
     const [selectedNewsEvent, setSelectedNewsEvent] = useState<BreakingNewsEvent | null>(null);
     const [allEvents, setAllEvents] = useState<BreakingNewsEvent[]>([]);
+    const [stateNews, setStateNews] = useState<BreakingNewsEvent[]>([]);
+    const [loadingStateNews, setLoadingStateNews] = useState(false);
 
     const svgRef = useRef<SVGSVGElement>(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchMapData = async () => {
@@ -84,6 +88,8 @@ const RajneetiMap: React.FC = () => {
         };
         fetchMapData();
         loadEvents();
+        // Load national news by default for the left panel
+        fetchNationalNews().then(news => setStateNews(news));
         const interval = setInterval(loadEvents, 60000); // Check every minute
         return () => clearInterval(interval);
     }, []);
@@ -160,10 +166,19 @@ const RajneetiMap: React.FC = () => {
         if (selectedState === stateId) {
             setSelectedState(null);
             setSelectedNewsEvent(null);
+            // Reset to national news when deselecting
+            fetchNationalNews().then(news => setStateNews(news));
             return;
         }
 
         setSelectedState(stateId);
+
+        // Fetch state-specific news for the left panel
+        setLoadingStateNews(true);
+        fetchNewsByState(stateId).then(news => {
+            setStateNews(news);
+            setLoadingStateNews(false);
+        });
 
         // Find the most recent news event for this state
         const matchingEvent = allEvents.find(ev =>
@@ -227,6 +242,7 @@ const RajneetiMap: React.FC = () => {
                     className="absolute inset-0 z-0 flex items-center justify-center pb-16 md:pb-0"
                     onClick={() => {
                         setSelectedState(null);
+                        fetchNationalNews().then(news => setStateNews(news));
                     }}
                 >
                     <div className="relative w-full h-full flex items-center justify-center p-4 md:p-8">
@@ -328,6 +344,65 @@ const RajneetiMap: React.FC = () => {
                     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
+
+            {/* LEFT SIDE NEWS PANEL */}
+            <div className="absolute left-0 top-16 bottom-24 w-[300px] lg:w-[340px] z-40 hidden md:flex flex-col p-4 gap-3 pointer-events-none" onClick={stopBubbling}>
+                <div className="pointer-events-auto bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden flex flex-col max-h-full shadow-2xl">
+                    {/* Panel Header */}
+                    <div className="px-4 py-3 bg-gradient-to-r from-red-600 to-red-700 flex items-center gap-2 flex-shrink-0">
+                        <Newspaper size={14} className="text-white" />
+                        <span className="font-rajdhani font-black text-white tracking-widest text-[11px] uppercase">
+                            {selectedState ? selectedState : 'National'} News
+                        </span>
+                        <div className="ml-auto w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    </div>
+
+                    {/* News Cards */}
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 flex flex-col gap-2.5">
+                        {loadingStateNews ? (
+                            <div className="flex items-center justify-center py-8">
+                                <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                            </div>
+                        ) : stateNews.length > 0 ? (
+                            stateNews.map((news, idx) => {
+                                const sentiment = news.delta > 0 ? 'positive' : news.delta < 0 ? 'negative' : 'neutral';
+                                const sentColor = sentiment === 'positive' ? 'text-emerald-400' : sentiment === 'negative' ? 'text-rose-400' : 'text-slate-400';
+                                const sentBg = sentiment === 'positive' ? 'bg-emerald-500/10' : sentiment === 'negative' ? 'bg-rose-500/10' : 'bg-slate-500/10';
+                                return (
+                                    <button
+                                        key={news.id || idx}
+                                        onClick={() => navigate('/rajneeti-tv', { state: { activeIndex: idx, filterState: selectedState || 'National' } })}
+                                        className={`text-left group w-full p-3 rounded-xl border border-white/5 hover:border-white/20 ${sentBg} transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]`}
+                                    >
+                                        <div className="flex items-start gap-2 mb-1.5">
+                                            <span className={`text-[10px] font-bold uppercase tracking-wider ${sentColor}`}>
+                                                {news.politicianName}
+                                            </span>
+                                            <span className={`ml-auto text-[10px] font-mono font-bold ${sentColor}`}>
+                                                {news.delta > 0 ? '+' : ''}{news.delta.toFixed(1)}
+                                            </span>
+                                        </div>
+                                        <p className="text-white text-xs font-semibold leading-snug line-clamp-2 mb-2">
+                                            {news.summary}
+                                        </p>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] text-slate-500">{news.createdAt?.split('T')[0]}</span>
+                                            <span className="text-[9px] text-gameOrange font-bold flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                                                Watch on TV <ArrowRight size={8} />
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-8 text-center">
+                                <Newspaper size={24} className="text-slate-600 mb-2" />
+                                <p className="text-slate-500 text-xs">No news available for<br/><span className="text-white font-semibold">{selectedState || 'National'}</span></p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
 
             <div className="relative z-10 w-full flex justify-center py-6 mt-auto">

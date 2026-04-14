@@ -85,8 +85,8 @@ FALLBACK RULES:
 2. NEVER attribute news to journalists, authors, or news organizations.
 """
 
-MAX_ARTICLES = 15
-MAX_EVENTS   = 5
+MAX_ARTICLES = 30
+MAX_EVENTS_PER_BATCH = 10  # 2 batches × 10 = 20 news items/day
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -165,7 +165,7 @@ def call_openai(prompt, model="gpt-5.4"):
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.7,
-            "max_tokens": 3000,
+            "max_tokens": 6000,
         },
         timeout=90,
     )
@@ -225,44 +225,50 @@ def clean_json(raw):
 
 
 # ═══════════════════════════════════════════════════════════════
-# STEP 1: GENERATE DAILY NEWS
+# STEP 1: GENERATE DAILY NEWS (20 items in 2 batches of 10)
 # ═══════════════════════════════════════════════════════════════
-def build_news_prompt(articles):
+def build_news_prompt(articles, batch_num=1):
     articles_text = ""
     for i, art in enumerate(articles, 1):
         articles_text += f"\nARTICLE {i}:\n  TITLE: {art['title']}\n  DESCRIPTION: {art['description']}\n  URL: {art['link']}\n"
 
-    return f"""You are a content generator for the Indian political strategy game "Rajneeti" by Moitra Studios.
+    diversity_hint = ""
+    if batch_num == 2:
+        diversity_hint = "\nIMPORTANT: This is the SECOND batch. Focus on news from DIFFERENT states than the first batch. Prioritize regional and state-level stories."
 
-SAFETY RULES (MANDATORY):
+    return f"""You are a professional Indian political news editor for "Rajneeti TV Network".
+
+STRICT RULES (MANDATORY):
 - Do NOT generate hate speech, religious insults, or calls for violence.
 - Skip articles about extreme violence, terrorism, or sensitive religious issues.
-- Keep language neutral, witty, game-focused.
-- STRICT FACTUALITY: NEVER hallucinate, manipulate, or invent facts. You MUST strictly base your output ONLY on the facts present in the provided article descriptions. Do not invent context or attribute actions to political parties unless explicitly stated in the source.
+- Use neutral, professional journalist language. NO game jargon.
+- STRICT FACTUALITY: NEVER hallucinate, manipulate, or invent facts. You MUST strictly base your output ONLY on the facts present in the provided article descriptions below. Do not invent context or attribute actions to political parties unless explicitly stated in the source.
+- Each news item MUST be tagged with the correct Indian state or "National" for country-wide news.
+- Cover as many DIFFERENT states as possible across the {MAX_EVENTS_PER_BATCH} items.
 
-CANDIDATE LIST:
+CANDIDATE REFERENCE LIST:
 {CANDIDATE_LIST}
 
 Today's news articles:
 {articles_text}
-
+{diversity_hint}
 TASK:
-Pick the {MAX_EVENTS} most politically significant articles from the mainstream media feed provided below.
-PRIORITIZATION RULE: You MUST heavily prioritize news entries that involve high-profile ongoing events (like West Bengal elections), top national leaders (Narendra Modi, Rahul Gandhi), and major battleground states (Uttar Pradesh, Maharashtra).
+Pick the {MAX_EVENTS_PER_BATCH} most politically significant articles.
+PRIORITIZATION: Heavily prioritize mainstream news — West Bengal elections, top national leaders (Modi, Rahul Gandhi), and major states (UP, Maharashtra, Bihar, Tamil Nadu, Delhi).
 For each chosen article, produce a JSON object with EXACT keys:
 {{
-  "leader": "<candidate name from list>",
-  "state": "<full state name, e.g. Bihar, Uttar Pradesh, National>",
+  "leader": "<politician name from candidate list>",
+  "state": "<full state name, e.g. Bihar, Uttar Pradesh, West Bengal, National>",
   "sentiment_score": "<string like +3.2 or -1.5, range -5.0 to +5.0>",
-  "ticker_headline": "<punchy 10-15 word news headline>",
-  "blog_title": "<creative Rajneeti game-style blog title>",
-  "blog_content": "<150-200 word blog post in Rajneeti jargon: Rally, Charisma, HQ Management, Action Points, Fundraise, Booth Management>",
+  "ticker_headline": "<punchy 10-15 word factual news headline>",
+  "blog_title": "<professional news article title>",
+  "blog_content": "<150-200 word factual news summary in neutral journalist tone. NO game references.>",
   "social_post": "<engaging 1-2 sentence social post with 3-5 hashtags>",
   "original_url": "<URL of source article>",
   "date": "{TODAY}"
 }}
 
-OUTPUT: Return a JSON array of exactly {MAX_EVENTS} objects. No markdown. Raw JSON only."""
+OUTPUT: Return a JSON array of exactly {MAX_EVENTS_PER_BATCH} objects. No markdown. Raw JSON only."""
 
 
 def validate_events(events):
@@ -273,26 +279,49 @@ def validate_events(events):
         ev.setdefault("ticker_headline", "Political update")
         ev.setdefault("blog_title", "News Update")
         ev.setdefault("blog_content", "No content available.")
-        ev.setdefault("social_post", "#Rajneeti #IndianPolitics")
+        ev.setdefault("social_post", "#RajneetiTV #IndianPolitics")
         ev.setdefault("original_url", "")
         ev.setdefault("date", TODAY)
     return events
 
 
 def generate_daily_news(articles):
-    print(f"\n  🤖 Generating {MAX_EVENTS} news events via AI...")
-    raw = call_ai(build_news_prompt(articles))
-    if not raw:
-        print("  ❌ No AI response for news. Set OPENAI_API_KEY or GEMINI_API_KEY.")
+    """Generate 20 news items in 2 batches of 10 for maximum state coverage."""
+    all_events = []
+    mid = len(articles) // 2
+    batches = [articles[:mid], articles[mid:]]
+
+    for batch_num, batch_articles in enumerate(batches, 1):
+        if not batch_articles:
+            continue
+        print(f"\n  🤖 Generating batch {batch_num}/2 ({MAX_EVENTS_PER_BATCH} news items)...")
+        raw = call_ai(build_news_prompt(batch_articles, batch_num=batch_num))
+        if not raw:
+            print(f"  ❌ No AI response for batch {batch_num}. Skipping.")
+            continue
+        try:
+            events = clean_json(raw)
+            if not isinstance(events, list) or len(events) == 0:
+                raise ValueError("Empty or invalid list")
+            all_events.extend(validate_events(events))
+        except Exception as exc:
+            print(f"  ❌ Failed to parse batch {batch_num} JSON: {exc}\n  Raw: {raw[:300]}", file=sys.stderr)
+
+    if not all_events:
+        print("  ❌ Both batches failed. Set OPENAI_API_KEY or GEMINI_API_KEY.")
         return None
-    try:
-        events = clean_json(raw)
-        if not isinstance(events, list) or len(events) == 0:
-            raise ValueError("Empty or invalid list")
-    except Exception as exc:
-        print(f"  ❌ Failed to parse news JSON: {exc}\n  Raw: {raw[:300]}", file=sys.stderr)
-        return None
-    return validate_events(events)
+
+    # Deduplicate by headline (in case both batches picked the same article)
+    seen_headlines = set()
+    unique_events = []
+    for ev in all_events:
+        headline = ev.get("ticker_headline", "").lower().strip()
+        if headline not in seen_headlines:
+            seen_headlines.add(headline)
+            unique_events.append(ev)
+
+    print(f"  ✅ Total unique news items generated: {len(unique_events)}")
+    return unique_events
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -318,7 +347,7 @@ def upsert_news_to_supabase(events):
         "news_date":       ev.get("date", TODAY),
     } for ev in events]
 
-    result = supabase_request("POST", "news_events?on_conflict=leader,news_date", rows)
+    result = supabase_request("POST", "news_events?on_conflict=ticker_headline,news_date", rows)
     if result is not None:
         print(f"  ✅ Upserted {len(rows)} news rows to Supabase")
     else:
@@ -562,7 +591,7 @@ def cleanup_old_data():
 # ═══════════════════════════════════════════════════════════════
 def main():
     print("═" * 60)
-    print(f"🗞️  RAJNEETI DAILY BOT v3.0 — {TODAY} ({DAY_OF_WEEK})")
+    print(f"🗞️  RAJNEETI DAILY BOT v4.0 — {TODAY} ({DAY_OF_WEEK})")
     print("═" * 60)
 
     # 1. Fetch RSS
@@ -571,7 +600,7 @@ def main():
         print("  ❌ No articles fetched. Exiting.")
         sys.exit(0)
 
-    # 2. Generate 5 news events via AI
+    # 2. Generate 20 state-tagged news events via AI (2 batches of 10)
     events = generate_daily_news(articles)
     if not events:
         sys.exit(1)

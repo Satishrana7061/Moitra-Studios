@@ -1,10 +1,20 @@
-import React, { useEffect, useState, useRef, useMemo } from 'react';
-import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock, Video, X, Maximize2 } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock, Video, X, Maximize2, MapPin } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 import { AdBanner } from './AdBanner';
+
+const INDIAN_STATES = [
+    'All States', 'National', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
+    'Chhattisgarh', 'Delhi', 'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh',
+    'Jharkhand', 'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+    'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim',
+    'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand',
+    'West Bengal', 'Jammu and Kashmir', 'Ladakh', 'Puducherry',
+    'Chandigarh', 'Andaman and Nicobar Islands', 'Lakshadweep'
+];
 
 
 interface DailyNews {
@@ -29,10 +39,12 @@ const RajneetiNetworkTV: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const initialStateIndex = location.state?.activeIndex ?? 0;
+    const initialFilterState = location.state?.filterState || 'All States';
 
     const [newsData, setNewsData] = useState<DailyNews[] | null>(null);
     const [activeIndex, setActiveIndex] = useState(initialStateIndex);
     const [loading, setLoading] = useState(true);
+    const [selectedFilter, setSelectedFilter] = useState(initialFilterState);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
     const [slideIndex, setSlideIndex] = useState(0);
@@ -297,14 +309,21 @@ const RajneetiNetworkTV: React.FC = () => {
     useEffect(() => {
         document.title = "Rajneeti TV Network | Live Indian Political News & Updates";
         const fetchDailyNews = async () => {
+            setLoading(true);
             try {
                 let finalData = null;
                 if (supabase) {
-                    const { data, error } = await supabase
+                    let query = supabase
                         .from('news_events')
                         .select('*')
-                        .order('news_date', { ascending: false })
-                        .limit(10);
+                        .order('news_date', { ascending: false });
+
+                    // Apply state filter if not "All States"
+                    if (selectedFilter && selectedFilter !== 'All States') {
+                        query = query.ilike('state', selectedFilter);
+                    }
+
+                    const { data, error } = await query.limit(20);
                         
                     if (!error && data && data.length > 0) {
                         // Map news_date to date for the frontend
@@ -319,11 +338,23 @@ const RajneetiNetworkTV: React.FC = () => {
                 if (!finalData) {
                     const response = await fetch(`${import.meta.env.BASE_URL}daily_news.json?t=${Date.now()}`);
                     const data = await response.json();
-                    if (data) finalData = Array.isArray(data) ? data : [data];
+                    if (data) {
+                        let jsonData = Array.isArray(data) ? data : [data];
+                        // Apply client-side filter for JSON fallback
+                        if (selectedFilter && selectedFilter !== 'All States') {
+                            jsonData = jsonData.filter(item => 
+                                item.state?.toLowerCase() === selectedFilter.toLowerCase()
+                            );
+                        }
+                        finalData = jsonData;
+                    }
                 }
                 
                 if (finalData) {
                     setNewsData(finalData);
+                    setActiveIndex(0); // Reset to first item when filter changes
+                } else {
+                    setNewsData([]);
                 }
             } catch (error) {
                 console.error("Error loading TV news:", error);
@@ -339,13 +370,13 @@ const RajneetiNetworkTV: React.FC = () => {
                     setLiveCampaign(experience.data as SocialCampaign);
                 }
             } catch (e) {
-                // Silently ignore â€” this is a bonus UI element
+                // Silently ignore — this is a bonus UI element
             }
         };
 
         fetchDailyNews();
         fetchLiveCampaign();
-    }, []);
+    }, [selectedFilter]);
 
     // Auto-scroll to the selected news item on initial load AND when activeIndex changes
     useEffect(() => {
@@ -398,16 +429,32 @@ const RajneetiNetworkTV: React.FC = () => {
             <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 pt-0 md:pt-4 pb-4 relative">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(50,20,20,0.5)_0%,rgba(0,0,0,0.9)_100%)] pointer-events-none z-0"></div>
 
-                <header className="relative z-10 flex items-center justify-between border-b-2 border-red-600 pb-2 mb-4 shrink-0">
+                <header className="relative z-10 flex items-center justify-between border-b-2 border-red-600 pb-2 mb-4 shrink-0 flex-wrap gap-2">
                     <div className="flex items-center gap-4">
                         <div className="bg-red-600 text-white font-black text-[10px] md:text-2xl px-2 md:px-4 py-1 rounded shadow-[0_0_15px_rgba(220,38,38,0.6)] flex items-center gap-2 uppercase">
                             <MonitorPlay size={24} />
                             RAJNEETI TV NETWORK
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-1 rounded bg-red-600/20 border border-red-500/50 text-red-500 animate-pulse">
-                        <Radio size={16} />
-                        <span className="text-sm font-bold tracking-[0.2em] hidden md:inline">LIVE BROADCAST</span>
+                    <div className="flex items-center gap-3">
+                        {/* State Filter Dropdown */}
+                        <div className="relative flex items-center gap-1.5 bg-slate-900 border border-white/10 rounded-lg px-2 py-1">
+                            <MapPin size={12} className="text-gameOrange" />
+                            <select
+                                value={selectedFilter}
+                                onChange={(e) => setSelectedFilter(e.target.value)}
+                                className="bg-transparent text-white text-xs font-bold appearance-none cursor-pointer pr-4 outline-none"
+                            >
+                                {INDIAN_STATES.map(state => (
+                                    <option key={state} value={state} className="bg-slate-900 text-white">{state}</option>
+                                ))}
+                            </select>
+                            <svg className="w-3 h-3 text-slate-400 absolute right-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </div>
+                        <div className="flex items-center gap-2 px-3 py-1 rounded bg-red-600/20 border border-red-500/50 text-red-500 animate-pulse">
+                            <Radio size={16} />
+                            <span className="text-sm font-bold tracking-[0.2em] hidden md:inline">LIVE BROADCAST</span>
+                        </div>
                     </div>
                 </header>
 

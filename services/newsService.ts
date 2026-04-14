@@ -139,3 +139,43 @@ export async function fetchBreakingNews(): Promise<BreakingNewsEvent[]> {
         createdAt: new Date().toISOString(),
     }));
 }
+
+/**
+ * Fetch news filtered by a specific Indian state name.
+ * Uses case-insensitive matching to handle GeoJSON uppercase vs DB title-case.
+ */
+export async function fetchNewsByState(stateName: string): Promise<BreakingNewsEvent[]> {
+    if (!supabase) return [];
+    try {
+        const { data, error } = await supabase
+            .from("news_events")
+            .select("*")
+            .ilike("state", stateName)
+            .order("news_date", { ascending: false })
+            .limit(5);
+        if (error || !data || data.length === 0) return [];
+        return data.map(mapNewsRow);
+    } catch {
+        return [];
+    }
+}
+
+/**
+ * Fetch national-level news (state = "National").
+ * Shown by default when no state is selected on the map.
+ */
+export async function fetchNationalNews(): Promise<BreakingNewsEvent[]> {
+    if (!supabase) return [];
+    try {
+        const { data, error } = await supabase
+            .from("news_events")
+            .select("*")
+            .ilike("state", "National")
+            .order("news_date", { ascending: false })
+            .limit(5);
+        if (error || !data || data.length === 0) return [];
+        return data.map(mapNewsRow);
+    } catch {
+        return [];
+    }
+}

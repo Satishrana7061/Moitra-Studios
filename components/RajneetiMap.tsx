@@ -288,8 +288,7 @@ const RajneetiMap: React.FC = () => {
                                                             opacity: isSelected ? 1 : (isHovered ? 1 : 0.9),
                                                             transform: isActive ? 'translate(0px, 35000px) scale(1.05)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
-                                                            transformBox: 'fill-box',
-                                                            filter: isActive ? 'drop-shadow(0px -30px 30px rgba(0,0,0,0.9)) brightness(1.15)' : 'drop-shadow(0px -2px 5px rgba(0,0,0,0.5))'
+                                                            transformBox: 'fill-box'
                                                         }}
                                                         onMouseEnter={() => !selectedState && setHoveredState(stateId)}
                                                         onMouseLeave={() => setHoveredState(null)}

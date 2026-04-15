@@ -4,9 +4,13 @@ import { ChevronUp, ChevronDown, RefreshCw, Newspaper } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getLeaderAvatar } from "../lib/utils";
 
+import { MapPin } from "lucide-react";
+
 interface Props {
     onSelectState?: (event: BreakingNewsEvent) => void;
     events?: BreakingNewsEvent[];
+    selectedStateName?: string;
+    loadingStateNews?: boolean;
 }
 
 const POLL_INTERVAL = 60_000;
@@ -17,7 +21,7 @@ const sentimentConfig = {
     neutral: { arrow: "●", text: "text-slate-400", bg: "bg-slate-500/10", border: "border-slate-500/30", glow: "" },
 };
 
-const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvents }) => {
+const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvents, selectedStateName, loadingStateNews }) => {
     const [localEvents, setLocalEvents] = useState<BreakingNewsEvent[]>([]);
     const [loading, setLoading] = useState(!propsEvents);
     const [tickerIdx, setTickerIdx] = useState(0);
@@ -87,7 +91,11 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                 {/* Header */}
                 <div className="pt-7 pb-3 px-3 flex items-center justify-between z-10 pointer-events-auto">
                     <span className="font-black text-white tracking-widest text-xs lg:text-sm uppercase flex items-center gap-2">
-                        <Newspaper size={16} /> Latest Briefings
+                        {selectedStateName ? (
+                            <><MapPin size={14} className="text-gameOrange" /> {selectedStateName} News</>
+                        ) : (
+                            <><Newspaper size={16} /> Latest Briefings</>
+                        )}
                     </span>
                     <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_8px_#ffffff] animate-[bnPulse_2s_infinite]"></span>
@@ -109,10 +117,20 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
                 {/* Scrollable Feed */}
                 <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scrollbar pointer-events-auto">
-                    {loading ? (
+                    {loadingStateNews ? (
+                        <div className="h-full flex flex-col items-center justify-center gap-4 opacity-50">
+                            <RefreshCw className="w-6 h-6 animate-spin text-emerald-500" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Loading {selectedStateName} News...</span>
+                        </div>
+                    ) : loading ? (
                         <div className="h-full flex flex-col items-center justify-center gap-4 opacity-50">
                             <RefreshCw className="w-6 h-6 animate-spin text-emerald-500" />
                             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Scanning Feeds...</span>
+                        </div>
+                    ) : events.length === 0 ? (
+                        <div className="h-40 flex flex-col items-center justify-center gap-2 opacity-60">
+                            <Newspaper size={24} className="text-slate-600" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">No news found for {selectedStateName || 'this region'}</span>
                         </div>
                     ) : events.map((ev) => {
                         const sc = getSentimentConfig(ev.delta, ev.sentiment);
@@ -143,7 +161,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
                 {/* Footer */}
                 <div className="p-4 flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-transparent">
-                    <span>{events.length} Active Events</span>
+                    <span>{events.length} {selectedStateName ? `${selectedStateName} Stories` : 'Active Events'}</span>
                     <button onClick={loadNews} className="hover:text-emerald-400 transition-colors uppercase italic flex items-center gap-1">
                         <RefreshCw size={10} /> Refresh
                     </button>

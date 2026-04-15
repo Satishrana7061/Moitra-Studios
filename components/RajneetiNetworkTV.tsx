@@ -437,23 +437,26 @@ const RajneetiNetworkTV: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        {/* State Filter Dropdown */}
-                        <div className="relative flex items-center gap-1.5 bg-slate-900 border border-white/10 rounded-lg px-2 py-1">
-                            <MapPin size={12} className="text-gameOrange" />
-                            <select
-                                value={selectedFilter}
-                                onChange={(e) => setSelectedFilter(e.target.value)}
-                                className="bg-transparent text-white text-xs font-bold appearance-none cursor-pointer pr-4 outline-none"
-                            >
-                                {INDIAN_STATES.map(state => (
-                                    <option key={state} value={state} className="bg-slate-900 text-white">{state}</option>
-                                ))}
-                            </select>
-                            <svg className="w-3 h-3 text-slate-400 absolute right-2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        {/* State Filter Dropdown — Premium Design */}
+                        <div className="relative group">
+                            <div className="absolute -inset-[1px] bg-gradient-to-r from-gameOrange/50 via-red-500/30 to-gameOrange/50 rounded-xl blur-sm opacity-60 group-hover:opacity-100 transition-opacity" />
+                            <div className="relative flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-xl pl-3 pr-2 py-2 group-hover:border-gameOrange/30 transition-all">
+                                <MapPin size={14} className="text-gameOrange flex-shrink-0" />
+                                <select
+                                    value={selectedFilter}
+                                    onChange={(e) => setSelectedFilter(e.target.value)}
+                                    className="bg-transparent text-white text-xs md:text-sm font-bold appearance-none cursor-pointer pr-6 outline-none min-w-[100px] md:min-w-[140px]"
+                                >
+                                    {INDIAN_STATES.map(state => (
+                                        <option key={state} value={state} className="bg-slate-900 text-white py-2">{state}</option>
+                                    ))}
+                                </select>
+                                <svg className="w-3.5 h-3.5 text-gameOrange absolute right-2.5 pointer-events-none transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2 px-3 py-1 rounded bg-red-600/20 border border-red-500/50 text-red-500 animate-pulse">
-                            <Radio size={16} />
-                            <span className="text-sm font-bold tracking-[0.2em] hidden md:inline">LIVE BROADCAST</span>
+                        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-600/20 border border-red-500/50 text-red-500 animate-pulse">
+                            <Radio size={14} />
+                            <span className="text-xs font-bold tracking-[0.2em] hidden md:inline">LIVE</span>
                         </div>
                     </div>
                 </header>

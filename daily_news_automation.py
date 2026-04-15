@@ -149,9 +149,9 @@ def fetch_rss_articles():
 
 # ═══════════════════════════════════════════════════════════════
 # AI CALL (OpenAI primary, Gemini fallback)
-# Model priority: gpt-5.4 → Gemini
+# Model priority: gpt-5.4 → gpt-4o-mini → Gemini
 # ═══════════════════════════════════════════════════════════════
-OPENAI_MODELS = ["gpt-5.4"]  # Force use of GPT-5.4
+OPENAI_MODELS = ["gpt-5.4", "gpt-4o-mini"]  # Try gpt-5.4 first, fallback to gpt-4o-mini
 
 
 def call_openai(prompt, model="gpt-5.4"):

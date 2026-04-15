@@ -149,9 +149,9 @@ def fetch_rss_articles():
 
 # ═══════════════════════════════════════════════════════════════
 # AI CALL (OpenAI primary, Gemini fallback)
-# Model priority: gpt-5.4 → gpt-4o-mini → Gemini
+# Model: gpt-5.4 (flagship, released March 2026)
 # ═══════════════════════════════════════════════════════════════
-OPENAI_MODELS = ["gpt-5.4", "gpt-4o-mini"]  # Try gpt-5.4 first, fallback to gpt-4o-mini
+OPENAI_MODELS = ["gpt-5.4"]  # GPT-5.4 flagship model
 
 
 def call_openai(prompt, model="gpt-5.4"):
@@ -165,7 +165,7 @@ def call_openai(prompt, model="gpt-5.4"):
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.7,
-            "max_tokens": 6000,
+            "max_completion_tokens": 6000,
         },
         timeout=90,
     )

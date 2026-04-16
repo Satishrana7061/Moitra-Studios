@@ -42,8 +42,10 @@ NOW   = datetime.now(IST)
 TODAY = NOW.strftime("%Y-%m-%d")
 DAY_OF_WEEK = NOW.strftime("%A")  # "Monday", "Tuesday", etc.
 
-# Campaign runs Mon 6 AM → Thu 11:59 PM (4 days)
-CAMPAIGN_DURATION_DAYS = 4
+# Campaign runs for 7 days, synchronized with the 7-day news retention window.
+# The bot checks DAILY — if the current campaign has expired it archives it
+# and immediately starts a fresh one. No more Monday-only restriction!
+CAMPAIGN_DURATION_DAYS = 7
 
 RSS_FEEDS = [
     "https://timesofindia.indiatimes.com/rssfeeds/66023901.cms",
@@ -617,17 +619,15 @@ def main():
     print("\n  🗃️  Checking for expired campaigns...")
     auto_archive_expired_campaigns()
 
-    # 6. Monday: Generate weekly campaign from last week's news
-    if DAY_OF_WEEK == "Monday":
+    # 6. Daily: If no live campaign exists (just archived or first run), create one.
+    # This runs every day — no Monday restriction. The 7-day duration means a new
+    # campaign is only needed roughly once per week, but the daily check ensures
+    # there is never a "dead zone" on the website.
+    if not check_live_campaign_exists():
+        print(f"\n  📣 No active campaign found — generating new 7-day campaign from last week's news...")
         create_weekly_campaign()
     else:
-        # On non-Monday: still check if somehow there's no live campaign
-        # (e.g., first run, or manual deletion)
-        if not check_live_campaign_exists():
-            print(f"\n  ⚠  No live campaign on {DAY_OF_WEEK} — generating emergency campaign...")
-            create_weekly_campaign()
-        else:
-            print(f"\n  ✅ Live campaign exists — next new campaign: Monday")
+        print(f"\n  ✅ Live campaign exists — no new campaign needed today.")
 
     # 7. Cleanup old news data
     print("\n  🧹 Cleaning up old data...")

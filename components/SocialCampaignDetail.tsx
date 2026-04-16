@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Award, Users, ChevronRight, MessageSquare, AlertCircle, CheckCircle, XCircle, Bot } from 'lucide-react';
+import { ArrowLeft, Share2, Award, Users, ChevronRight, MessageSquare, AlertCircle, CheckCircle, XCircle, Bot, Video, Loader2 } from 'lucide-react';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 import CountdownTimer from './CountdownTimer';
 import SocialCampaignSidebar from './SocialCampaignSidebar';
@@ -44,6 +44,178 @@ const SocialCampaignDetail: React.FC = () => {
     const [activeExperience, setActiveExperience] = useState<{ type: string, data: any } | null>(null);
     const [voteError, setVoteError] = useState<string | null>(null);
 
+    // ── Reel Generator State ──────────────────────────────────────
+    const [isGeneratingReel, setIsGeneratingReel] = useState(false);
+    const [reelProgress, setReelProgress] = useState(0);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const chunksRef = useRef<Blob[]>([]);
+
+    const generateCampaignReel = useCallback(async () => {
+        if (!campaign || isGeneratingReel) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        setIsGeneratingReel(true);
+        setReelProgress(0);
+        chunksRef.current = [];
+
+        const ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) { setIsGeneratingReel(false); return; }
+
+        // Vertical reel 1080×1920
+        canvas.width = 1080;
+        canvas.height = 1920;
+
+        const stream = canvas.captureStream(30);
+        let mimeType = 'video/webm;codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+        const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
+        recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+        recorder.onstop = () => {
+            const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `rajneeti-campaign-${campaign.slug || 'debate'}.webm`;
+            a.click();
+            URL.revokeObjectURL(url);
+            setIsGeneratingReel(false);
+            setReelProgress(100);
+        };
+
+        const SLIDE_DURATION_MS = 3500;
+        const FPS = 30;
+        const FRAMES_PER_SLIDE = Math.round((SLIDE_DURATION_MS / 1000) * FPS);
+
+        const wrapText = (text: string, x: number, y: number, maxW: number, lineH: number) => {
+            const words = text.split(' ');
+            let line = '';
+            let cy = y;
+            for (const word of words) {
+                const test = line + word + ' ';
+                if (ctx.measureText(test).width > maxW && line) {
+                    ctx.fillText(line.trim(), x, cy);
+                    line = word + ' ';
+                    cy += lineH;
+                } else { line = test; }
+            }
+            if (line) ctx.fillText(line.trim(), x, cy);
+            return cy;
+        };
+
+        const modiApproach = campaign.approaches?.find(a => a.style === 'modi');
+        const rahulApproach = campaign.approaches?.find(a => a.style === 'rahul');
+
+        const slides = [
+            {
+                label: 'THE DEBATE',
+                color: '#6366f1', accent: '#818cf8',
+                bullets: (campaign.issue_bullets || []).slice(0, 4),
+                intro: campaign.issue_summary?.slice(0, 200) || campaign.title,
+            },
+            {
+                label: "MODI'S APPROACH",
+                color: '#ea580c', accent: '#fb923c',
+                bullets: (modiApproach?.policy_bullets || []).slice(0, 4),
+                intro: '',
+            },
+            {
+                label: "RAHUL'S APPROACH",
+                color: '#2563eb', accent: '#60a5fa',
+                bullets: (rahulApproach?.policy_bullets || []).slice(0, 4),
+                intro: '',
+            },
+        ];
+
+        recorder.start();
+
+        for (let si = 0; si < slides.length; si++) {
+            const slide = slides[si];
+            for (let f = 0; f < FRAMES_PER_SLIDE; f++) {
+                const progress = f / FRAMES_PER_SLIDE;
+
+                // Background
+                const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+                grad.addColorStop(0, '#09090f');
+                grad.addColorStop(1, '#0d0d1c');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 1080, 1920);
+
+                // Top accent bar
+                ctx.fillStyle = slide.color;
+                ctx.fillRect(0, 0, 1080, 10);
+
+                // Slide label badge
+                ctx.fillStyle = slide.color + '22';
+                ctx.beginPath();
+                ctx.roundRect(80, 80, 400, 60, 30);
+                ctx.fill();
+                ctx.fillStyle = slide.color;
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'left';
+                ctx.fillText(slide.label, 110, 120);
+
+                // Divider
+                ctx.strokeStyle = slide.accent + '33';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(80, 165); ctx.lineTo(1000, 165); ctx.stroke();
+
+                // Title
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 56px Arial';
+                ctx.textAlign = 'center';
+                const titleEndY = wrapText(campaign.title, 540, 250, 940, 70);
+
+                // Intro text (slide 0 only)
+                let contentStartY = titleEndY + 60;
+                if (slide.intro) {
+                    ctx.fillStyle = 'rgba(148,163,184,0.9)';
+                    ctx.font = '34px Arial';
+                    contentStartY = wrapText(slide.intro, 540, contentStartY, 900, 48) + 70;
+                }
+
+                // Bullets animated in
+                const visibleBullets = Math.min(slide.bullets.length, Math.ceil(progress * (slide.bullets.length + 1)));
+                let bulletY = contentStartY;
+                ctx.textAlign = 'left';
+                for (let bi = 0; bi < visibleBullets; bi++) {
+                    const bullet = slide.bullets[bi];
+                    if (!bullet) continue;
+                    const alpha = bi < visibleBullets - 1 ? 1 : progress;
+
+                    // Bullet dot
+                    ctx.fillStyle = slide.accent;
+                    ctx.beginPath();
+                    ctx.arc(100, bulletY - 10, 8, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = `rgba(226,232,240,${alpha})`;
+                    ctx.font = '36px Arial';
+                    bulletY = wrapText(String(bullet), 128, bulletY, 870, 50) + 65;
+                }
+
+                // Progress dots
+                for (let d = 0; d < slides.length; d++) {
+                    ctx.fillStyle = d === si ? slide.accent : '#2a2a3a';
+                    ctx.beginPath();
+                    ctx.arc(540 + (d - 1) * 44, 1840, d === si ? 13 : 8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Watermark
+                ctx.fillStyle = 'rgba(255,255,255,0.12)';
+                ctx.font = 'bold 26px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('RAJNEETI.IN · SOCIAL CAMPAIGN', 540, 1900);
+
+                await new Promise(r => setTimeout(r, 0));
+            }
+            setReelProgress(Math.round(((si + 1) / slides.length) * 90));
+        }
+
+        recorder.stop();
+    }, [campaign, isGeneratingReel]);
+
     useEffect(() => {
         window.scrollTo(0, 0);
         const fetchData = async () => {
@@ -55,14 +227,12 @@ const SocialCampaignDetail: React.FC = () => {
                 const data = await dynamicCampaignService.getCampaignBySlug(id);
                 setCampaign(data);
                 
-                // Check if already voted for this campaign in this session/device
                 const localVote = localStorage.getItem(`vote_${id}`);
                 if (localVote) {
                     setHasVoted(true);
                     setVotedStyle(localVote);
                 }
             } else {
-                // Fetch the current live experience if no ID provided
                 const live = await dynamicCampaignService.getActiveExperience();
                 setActiveExperience(live);
                 if (live.type === 'campaign') {
@@ -78,7 +248,6 @@ const SocialCampaignDetail: React.FC = () => {
         };
 
         fetchData();
-        // Reset vote status when campaign changes
         setHasVoted(false);
         setVotedStyle(null);
         setOwnSolution('');
@@ -90,8 +259,6 @@ const SocialCampaignDetail: React.FC = () => {
         
         setVoteError(null);
         setVoteLoading(true);
-
-        // Optimistic UI: show success immediately
         setHasVoted(true);
         setVotedStyle(style);
 
@@ -102,7 +269,6 @@ const SocialCampaignDetail: React.FC = () => {
         );
         
         if (result.success) {
-            // Persist to localStorage so refresh keeps it
             localStorage.setItem(`vote_${campaign.slug}`, style);
         } else {
             setHasVoted(false);
@@ -111,7 +277,6 @@ const SocialCampaignDetail: React.FC = () => {
         }
         setVoteLoading(false);
     };
-
 
     if (loading) {
         return (
@@ -148,6 +313,9 @@ const SocialCampaignDetail: React.FC = () => {
 
     return (
         <div className="min-h-screen pt-24 pb-12 bg-slate-950 normal-case">
+            {/* Hidden canvas for reel generation */}
+            <canvas ref={canvasRef} className="hidden" />
+
             <div className="max-w-7xl mx-auto px-4 md:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     
@@ -218,7 +386,6 @@ const SocialCampaignDetail: React.FC = () => {
                                     : null;
                                 const accentColor = approach.style === 'modi' ? 'orange' : 'blue';
 
-                                // Deterministic simulated metrics generator based on campaign slug + style
                                 const seed = (str: string) => {
                                     let h = 0;
                                     for(let i=0; i<str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
@@ -226,13 +393,10 @@ const SocialCampaignDetail: React.FC = () => {
                                 };
                                 const s = Math.abs(seed((campaign.slug || campaign.id) + approach.style));
                                 
-                                // Base biases: Modi leans infra/econ, Rahul leans welfare
                                 const isModi = approach.style === 'modi';
-                                let econScore = (s % 40) + (isModi ? 55 : 45); // Econ
-                                let welfScore = ((s >> 2) % 40) + (isModi ? 45 : 55); // Welfare
-                                let techScore = ((s >> 4) % 40) + (isModi ? 50 : 40); // Infra/Tech
-                                
-                                // Cap at 98 for realism
+                                let econScore = (s % 40) + (isModi ? 55 : 45);
+                                let welfScore = ((s >> 2) % 40) + (isModi ? 45 : 55);
+                                let techScore = ((s >> 4) % 40) + (isModi ? 50 : 40);
                                 econScore = Math.min(98, econScore);
                                 welfScore = Math.min(98, welfScore);
                                 techScore = Math.min(98, techScore);
@@ -243,7 +407,6 @@ const SocialCampaignDetail: React.FC = () => {
                                     ? 'bg-blue-600/10 border-blue-500/40 scale-[1.02] shadow-[0_10px_30px_rgba(37,99,235,0.1)]'
                                     : 'bg-slate-900/40 border-white/5'
                                 }`}>
-                                    {/* Leader Photo */}
                                     {leaderImg && (
                                         <div className="flex justify-center mb-6">
                                             <div className={`relative w-24 h-24 rounded-full overflow-hidden border-3 ${
@@ -281,45 +444,24 @@ const SocialCampaignDetail: React.FC = () => {
                                             Simulated AI Impact Projection
                                         </h4>
                                         <div className="space-y-4">
-                                            {/* Graph Bar 1 */}
-                                            <div className="group/graph">
-                                                <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
-                                                    <span className="text-slate-300 uppercase">Economic Growth</span>
-                                                    <span className="text-white">{econScore}%</span>
+                                            {[
+                                                { label: 'Economic Growth', score: econScore, delay: '' },
+                                                { label: 'Public Welfare', score: welfScore, delay: 'delay-150' },
+                                                { label: 'Infrastructure & Tech', score: techScore, delay: 'delay-300' },
+                                            ].map(({ label, score, delay }) => (
+                                                <div key={label} className="group/graph">
+                                                    <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
+                                                        <span className="text-slate-300 uppercase">{label}</span>
+                                                        <span className="text-white">{score}%</span>
+                                                    </div>
+                                                    <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
+                                                        <div 
+                                                            className={`h-full rounded-full transition-all duration-1000 ease-out ${delay} ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
+                                                            style={{ width: `${score}%` }}
+                                                        ></div>
+                                                    </div>
                                                 </div>
-                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
-                                                    <div 
-                                                        className={`h-full rounded-full transition-all duration-1000 ease-out ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
-                                                        style={{ width: `${econScore}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                            {/* Graph Bar 2 */}
-                                            <div className="group/graph">
-                                                <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
-                                                    <span className="text-slate-300 uppercase">Public Welfare</span>
-                                                    <span className="text-white">{welfScore}%</span>
-                                                </div>
-                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
-                                                    <div 
-                                                        className={`h-full rounded-full transition-all duration-1000 ease-out delay-150 ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
-                                                        style={{ width: `${welfScore}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
-                                            {/* Graph Bar 3 */}
-                                            <div className="group/graph">
-                                                <div className="flex justify-between text-xs font-bold font-mono mb-1.5">
-                                                    <span className="text-slate-300 uppercase">Infrastructure & Tech</span>
-                                                    <span className="text-white">{techScore}%</span>
-                                                </div>
-                                                <div className="h-2 w-full bg-black/50 rounded-full overflow-hidden border border-white/5 relative">
-                                                    <div 
-                                                        className={`h-full rounded-full transition-all duration-1000 ease-out delay-300 ${accentColor === 'orange' ? 'bg-gradient-to-r from-gameOrange to-gameYellow shadow-[0_0_10px_rgba(255,107,0,0.5)]' : 'bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_10px_rgba(59,130,246,0.5)]'}`}
-                                                        style={{ width: `${techScore}%` }}
-                                                    ></div>
-                                                </div>
-                                            </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -475,12 +617,43 @@ const SocialCampaignDetail: React.FC = () => {
                                             <p className="text-slate-500 text-xs max-w-xs mx-auto mb-6">Your vote is locked in. Results will be analysed by AI when the campaign timer hits zero.</p>
                                             </>                                            
                                         )}
-                                        <button className="flex items-center gap-2 text-slate-500 hover:text-white mx-auto text-xs font-bold transition-colors">
-                                            <Share2 className="w-4 h-4" />
-                                            SHARE DEBATE
-                                        </button>
+                                        {/* Action Buttons */}
+                                        <div className="flex flex-col items-center gap-3 mt-2">
+                                            <button className="flex items-center gap-2 text-slate-500 hover:text-white text-xs font-bold transition-colors">
+                                                <Share2 className="w-4 h-4" />
+                                                SHARE DEBATE
+                                            </button>
+                                            <button
+                                                onClick={generateCampaignReel}
+                                                disabled={isGeneratingReel}
+                                                className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition-colors disabled:opacity-60"
+                                            >
+                                                {isGeneratingReel ? (
+                                                    <><Loader2 className="w-4 h-4 animate-spin" /> GENERATING REEL... {reelProgress}%</>
+                                                ) : (
+                                                    <><Video className="w-4 h-4" /> GENERATE CAMPAIGN REEL</>
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Generate Reel CTA — always visible for live campaigns */}
+                        {campaign.status === 'live' && (
+                            <div className="flex justify-center">
+                                <button
+                                    onClick={generateCampaignReel}
+                                    disabled={isGeneratingReel}
+                                    className="flex items-center gap-3 px-8 py-4 bg-indigo-600/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/20 hover:text-indigo-300 rounded-full font-bold uppercase tracking-widest text-xs transition-all disabled:opacity-60"
+                                >
+                                    {isGeneratingReel ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Generating... {reelProgress}%</>
+                                    ) : (
+                                        <><Video className="w-4 h-4" /> Generate Campaign Reel</>
+                                    )}
+                                </button>
                             </div>
                         )}
 

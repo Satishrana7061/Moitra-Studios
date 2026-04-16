@@ -157,7 +157,8 @@ def fetch_rss_articles():
 # AI CALL (OpenAI primary, Gemini fallback)
 # Model: gpt-5.4 (flagship, released March 2026)
 # ═══════════════════════════════════════════════════════════════
-OPENAI_MODELS = ["gpt-5.4"]  # GPT-5.4 flagship model
+# AI Model Priority: Gemini first (faster, free tier friendly), OpenAI as fallback
+OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o"]  # gpt-5.4 removed — consistently times out
 
 
 def call_openai(prompt, model="gpt-5.4"):
@@ -173,7 +174,7 @@ def call_openai(prompt, model="gpt-5.4"):
             "temperature": 0.7,
             "max_completion_tokens": 6000,
         },
-        timeout=90,
+        timeout=45,   # Reduced from 90s — if it hasn't responded in 45s, fall back to Gemini
     )
     if resp.status_code >= 400:
         error_detail = "unknown"
@@ -187,22 +188,40 @@ def call_openai(prompt, model="gpt-5.4"):
 
 
 def call_gemini(prompt):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GEMINI_API_KEY}"
+    # Using gemini-2.0-flash — much faster than 1.5-flash, generous free quota
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
     resp = requests.post(
         url,
         headers={"Content-Type": "application/json"},
         json={
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"maxOutputTokens": 3000, "temperature": 0.7},
+            "generationConfig": {
+                "maxOutputTokens": 8192,  # Enough for 5 items × 9 states with full content
+                "temperature": 0.6,
+            },
         },
-        timeout=90,
+        timeout=120,  # Gemini can handle longer; it's our primary model now
     )
     resp.raise_for_status()
     return resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
 
 
 def call_ai(prompt):
-    """Try OpenAI models in order, then Gemini as final fallback."""
+    """
+    Try Gemini first (faster, more generous quota, our primary model).
+    Fall back to OpenAI if Gemini fails.
+    """
+    # PRIMARY: Gemini 2.0 Flash
+    if GEMINI_API_KEY:
+        try:
+            result = call_gemini(prompt)
+            if result:
+                print("  ✅ AI response (Gemini 2.0 Flash)")
+                return result
+        except Exception as exc:
+            print(f"  ⚠  Gemini failed: {exc} — trying OpenAI fallback...", file=sys.stderr)
+
+    # FALLBACK: OpenAI
     if OPENAI_API_KEY:
         for model in OPENAI_MODELS:
             try:
@@ -212,13 +231,8 @@ def call_ai(prompt):
                     return result
             except Exception as exc:
                 print(f"  ⚠  OpenAI {model} exception: {exc}", file=sys.stderr)
-    if GEMINI_API_KEY:
-        try:
-            result = call_gemini(prompt)
-            print("  ✅ AI response (Gemini)")
-            return result
-        except Exception as exc:
-            print(f"  ❌ Gemini failed: {exc}", file=sys.stderr)
+
+    print("  ❌ All AI providers failed.", file=sys.stderr)
     return ""
 
 
@@ -306,7 +320,9 @@ def generate_daily_news(articles):
 
     for batch_num, target_states in enumerate(STATE_BATCHES, 1):
         print(f"\n  🤖 Generating batch {batch_num}/4 for targeted states...")
-        raw = call_ai(build_news_prompt(articles, target_states, batch_num=batch_num))
+        # Pass 25 articles per batch — enough context without overloading the model
+        batch_articles = articles[(batch_num - 1) * 20: (batch_num - 1) * 20 + 25] or articles[:25]
+        raw = call_ai(build_news_prompt(batch_articles, target_states, batch_num=batch_num))
         if not raw:
             print(f"  ❌ No AI response for batch {batch_num}. Skipping.")
             continue

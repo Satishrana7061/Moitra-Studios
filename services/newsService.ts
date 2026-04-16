@@ -145,7 +145,14 @@ export async function fetchBreakingNews(): Promise<BreakingNewsEvent[]> {
  * Uses case-insensitive matching to handle GeoJSON uppercase vs DB title-case.
  */
 export async function fetchNewsByState(stateName: string): Promise<BreakingNewsEvent[]> {
-    if (!supabase) return [];
+    async function getFallback() {
+        const allJson = await fetchFromJsonFile();
+        if (!allJson) return [];
+        return allJson.filter(ev => ev.stateName?.toLowerCase() === stateName.toLowerCase()).slice(0, 5);
+    }
+
+    if (!supabase) return getFallback();
+    
     try {
         const { data, error } = await supabase
             .from("news_events")
@@ -153,10 +160,14 @@ export async function fetchNewsByState(stateName: string): Promise<BreakingNewsE
             .ilike("state", stateName)
             .order("news_date", { ascending: false })
             .limit(5);
-        if (error || !data || data.length === 0) return [];
-        return data.map(mapNewsRow);
+            
+        if (error) throw error;
+        if (data && data.length > 0) return data.map(mapNewsRow);
+        
+        // If DB is empty for this state, deeply fallback to JSON
+        return getFallback();
     } catch {
-        return [];
+        return getFallback();
     }
 }
 
@@ -165,7 +176,14 @@ export async function fetchNewsByState(stateName: string): Promise<BreakingNewsE
  * Shown by default when no state is selected on the map.
  */
 export async function fetchNationalNews(): Promise<BreakingNewsEvent[]> {
-    if (!supabase) return [];
+    async function getFallback() {
+        const allJson = await fetchFromJsonFile();
+        if (!allJson) return [];
+        return allJson.filter(ev => ev.stateName?.toLowerCase() === 'national').slice(0, 5);
+    }
+
+    if (!supabase) return getFallback();
+    
     try {
         const { data, error } = await supabase
             .from("news_events")
@@ -173,9 +191,12 @@ export async function fetchNationalNews(): Promise<BreakingNewsEvent[]> {
             .ilike("state", "National")
             .order("news_date", { ascending: false })
             .limit(5);
-        if (error || !data || data.length === 0) return [];
-        return data.map(mapNewsRow);
+            
+        if (error) throw error;
+        if (data && data.length > 0) return data.map(mapNewsRow);
+        
+        return getFallback();
     } catch {
-        return [];
+        return getFallback();
     }
 }

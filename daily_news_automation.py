@@ -157,8 +157,8 @@ def fetch_rss_articles():
 # AI CALL (OpenAI primary, Gemini fallback)
 # Model: gpt-5.4 (flagship, released March 2026)
 # ═══════════════════════════════════════════════════════════════
-# AI Model Priority: Gemini first (faster, free tier friendly), OpenAI as fallback
-OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o"]  # gpt-5.4 removed — consistently times out
+# AI Model: gpt-5.4 (OpenAI flagship)
+OPENAI_MODELS = ["gpt-5.4"]
 
 
 def call_openai(prompt, model="gpt-5.4"):
@@ -174,7 +174,7 @@ def call_openai(prompt, model="gpt-5.4"):
             "temperature": 0.7,
             "max_completion_tokens": 6000,
         },
-        timeout=45,   # Reduced from 90s — if it hasn't responded in 45s, fall back to Gemini
+        timeout=180,   # gpt-5.4 is a large model — needs up to 3 minutes for big outputs
     )
     if resp.status_code >= 400:
         error_detail = "unknown"
@@ -207,32 +207,18 @@ def call_gemini(prompt):
 
 
 def call_ai(prompt):
-    """
-    Try Gemini first (faster, more generous quota, our primary model).
-    Fall back to OpenAI if Gemini fails.
-    """
-    # PRIMARY: Gemini 2.0 Flash
-    if GEMINI_API_KEY:
-        try:
-            result = call_gemini(prompt)
-            if result:
-                print("  ✅ AI response (Gemini 2.0 Flash)")
-                return result
-        except Exception as exc:
-            print(f"  ⚠  Gemini failed: {exc} — trying OpenAI fallback...", file=sys.stderr)
-
-    # FALLBACK: OpenAI
-    if OPENAI_API_KEY:
-        for model in OPENAI_MODELS:
-            try:
-                result = call_openai(prompt, model=model)
-                if result:
-                    print(f"  ✅ AI response (OpenAI/{model})")
-                    return result
-            except Exception as exc:
-                print(f"  ⚠  OpenAI {model} exception: {exc}", file=sys.stderr)
-
-    print("  ❌ All AI providers failed.", file=sys.stderr)
+    """Call gpt-5.4 via OpenAI. Exits with error if no key set."""
+    if not OPENAI_API_KEY:
+        print("  ❌ OPENAI_API_KEY not set. Cannot generate news.", file=sys.stderr)
+        return ""
+    try:
+        result = call_openai(prompt, model="gpt-5.4")
+        if result:
+            print("  ✅ AI response (gpt-5.4)")
+            return result
+        print("  ⚠  gpt-5.4 returned empty response.", file=sys.stderr)
+    except Exception as exc:
+        print(f"  ❌ gpt-5.4 failed: {exc}", file=sys.stderr)
     return ""
 
 
@@ -257,7 +243,9 @@ STATE_BATCHES = [
 def build_news_prompt(articles, target_states, batch_num=1):
     articles_text = ""
     for i, art in enumerate(articles, 1):
-        articles_text += f"\nARTICLE {i}:\n  TITLE: {art['title']}\n  DESCRIPTION: {art['description']}\n  URL: {art['link']}\n"
+        # Truncate description to 120 chars — enough signal, keeps prompt lean for gpt-5.4
+        desc = (art['description'] or '')[:120].replace('\n', ' ').strip()
+        articles_text += f"\n{i}. {art['title']} | {desc}\n"
 
     return f"""You are a professional Indian political news editor for "Rajneeti TV Network".
 

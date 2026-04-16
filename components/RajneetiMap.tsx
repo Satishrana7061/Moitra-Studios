@@ -211,7 +211,12 @@ const RajneetiMap: React.FC = () => {
     };
 
     if (!countryData || !stateData) {
-        return <div className="fixed inset-0 bg-slate-950"></div>;
+        return (
+            <div className="flex-1 min-h-[100dvh] flex flex-col items-center justify-center bg-slate-950 relative w-full">
+               <div className="w-16 h-16 border-4 border-slate-700 border-t-gameOrange rounded-full animate-spin"></div>
+               <p className="text-slate-500 font-rajdhani mt-4 font-bold tracking-widest uppercase animate-pulse">Initializing Policy Matrix...</p>
+            </div>
+        );
     }
 
     // ── State highlight from news click ────────────────────────
@@ -392,7 +397,7 @@ const RajneetiMap: React.FC = () => {
 
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <BreakingNewsTicker
-                events={selectedState ? stateNews : nationalNews}
+                events={selectedState ? stateNews : allEvents}
                 selectedStateName={selectedState || undefined}
                 loadingStateNews={loadingStateNews}
             />

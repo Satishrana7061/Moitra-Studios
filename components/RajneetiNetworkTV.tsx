@@ -430,7 +430,7 @@ const RajneetiNetworkTV: React.FC = () => {
             <main className="flex-1 flex flex-col max-w-7xl mx-auto w-full px-4 pt-0 md:pt-4 pb-4 relative">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(50,20,20,0.5)_0%,rgba(0,0,0,0.9)_100%)] pointer-events-none z-0"></div>
 
-                <header className="relative z-10 flex items-center justify-between border-b-2 border-red-600 pb-2 mb-4 shrink-0 flex-wrap gap-2">
+                <header className="relative z-[60] flex items-center justify-between border-b-2 border-red-600 pb-2 mb-4 shrink-0 flex-wrap gap-2">
                     <div className="flex items-center gap-4">
                         <div className="bg-red-600 text-white font-black text-[10px] md:text-2xl px-2 md:px-4 py-1 rounded shadow-[0_0_15px_rgba(220,38,38,0.6)] flex items-center gap-2 uppercase">
                             <MonitorPlay size={24} />

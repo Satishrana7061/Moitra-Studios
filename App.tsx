@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 // Code-split heavy pages for faster initial load
-const RajneetiMap = lazy(() => import('./components/RajneetiMap'));
+import RajneetiMap from './components/RajneetiMap';
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const ContactSection = lazy(() => import('./components/ContactSection'));
 const RajneetiNetworkTV = lazy(() => import('./components/RajneetiNetworkTV'));

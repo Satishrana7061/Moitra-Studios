@@ -403,7 +403,7 @@ const RajneetiMap: React.FC = () => {
             />
             
             {/* DESKTOP RIGHT SPONSOR SIDEBAR */}
-            <div className="hidden md:flex absolute right-0 top-20 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
+            <div className="hidden md:flex absolute right-0 top-20 h-[calc(100vh-100px)] w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
                 <div className="pb-3 border-b border-white/5 mx-2 pointer-events-auto">
                     <span className="font-rajdhani font-black text-white/50 tracking-wideset text-[10px] uppercase">
                         Premium Sponsors

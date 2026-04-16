@@ -86,7 +86,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
             {/* ── DESKTOP & iPAD SIDE PANEL ────────────────────────── */}
             <div
-                className={`hidden md:flex absolute left-0 top-20 bottom-0 w-[280px] lg:w-[320px] z-40 flex-col bg-transparent transition-transform duration-500 pointer-events-none`}
+                className={`hidden md:flex absolute left-0 top-20 h-[calc(100vh-100px)] w-[280px] lg:w-[320px] z-40 flex-col bg-transparent transition-transform duration-500 pointer-events-none`}
             >
                 {/* Header */}
                 <div className="pt-7 pb-3 px-3 flex items-center justify-between z-10 pointer-events-auto">

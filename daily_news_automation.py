@@ -224,10 +224,60 @@ def call_ai(prompt):
 
 
 def clean_json(raw):
-    match = re.search(r"(\[.*\]|\{.*\})", raw, re.DOTALL)
-    if match:
-        return json.loads(match.group(1))
-    return json.loads(raw)
+    """
+    Robustly extract JSON from AI response. 
+    Handles markdown blocks and trailing commentary.
+    """
+    # 1. Strip markdown code blocks
+    raw = re.sub(r"```(?:json)?\s*(.*?)\s*```", r"\1", raw, flags=re.DOTALL)
+    raw = raw.strip()
+    
+    # 2. Try to find the start of a JSON structure
+    start_bracket = raw.find('[')
+    start_brace = raw.find('{')
+    
+    start_idx = -1
+    char_open = ''
+    char_close = ''
+    
+    if start_bracket != -1 and (start_brace == -1 or start_bracket < start_brace):
+        start_idx = start_bracket
+        char_open = '['
+        char_close = ']'
+    elif start_brace != -1:
+        start_idx = start_brace
+        char_open = '{'
+        char_close = '}'
+        
+    if start_idx != -1:
+        # Try to find the matching closing character from the end
+        candidate = raw[start_idx:]
+        while candidate:
+            try:
+                data = json.loads(candidate)
+                # If it's a list or dict, we're good
+                if isinstance(data, (list, dict)):
+                    return data
+                break 
+            except json.JSONDecodeError as e:
+                if "Extra data" in str(e):
+                    # Find the last occurrence of the closing char and truncate after it
+                    last_close = candidate.rfind(char_close)
+                    if last_close != -1:
+                        candidate = candidate[:last_close+1].strip()
+                    else:
+                        break
+                else:
+                    # Some other error (syntax error inside the JSON)
+                    # We can try to truncate at the LAST close char regardless
+                    last_close = candidate.rfind(char_close)
+                    if last_close != -1 and last_close < len(candidate) - 1:
+                        candidate = candidate[:last_close+1].strip()
+                        continue
+                    break
+                    
+    # Fallback to original strip/load
+    return json.loads(raw.strip())
 
 
 # ═══════════════════════════════════════════════════════════════

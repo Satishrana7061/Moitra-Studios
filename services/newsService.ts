@@ -55,7 +55,7 @@ async function fetchFromSupabase(): Promise<BreakingNewsEvent[] | null> {
             .select("*")
             .eq("news_date", today)
             .order("created_at", { ascending: true })
-            .limit(150);
+            .limit(250); // 5 items × 36 states = up to 180 items/day
 
         if (error) throw error;
         if (data && data.length > 0) {
@@ -70,7 +70,7 @@ async function fetchFromSupabase(): Promise<BreakingNewsEvent[] | null> {
             .select("*")
             .eq("news_date", yesterday)
             .order("created_at", { ascending: true })
-            .limit(150);
+            .limit(250);
 
         if (prevErr) throw prevErr;
         if (prev && prev.length > 0) {
@@ -159,7 +159,7 @@ export async function fetchNewsByState(stateName: string): Promise<BreakingNewsE
             .select("*")
             .ilike("state", stateName)
             .order("news_date", { ascending: false })
-            .limit(5);
+            .limit(10);  // Up to 10 per state
             
         if (error) throw error;
         if (data && data.length > 0) return data.map(mapNewsRow);
@@ -179,7 +179,7 @@ export async function fetchNationalNews(): Promise<BreakingNewsEvent[]> {
     async function getFallback() {
         const allJson = await fetchFromJsonFile();
         if (!allJson) return [];
-        return allJson.filter(ev => ev.stateName?.toLowerCase() === 'national').slice(0, 5);
+        return allJson.filter(ev => ev.stateName?.toLowerCase() === 'national').slice(0, 10);
     }
 
     if (!supabase) return getFallback();
@@ -190,7 +190,7 @@ export async function fetchNationalNews(): Promise<BreakingNewsEvent[]> {
             .select("*")
             .ilike("state", "National")
             .order("news_date", { ascending: false })
-            .limit(5);
+            .limit(10);
             
         if (error) throw error;
         if (data && data.length > 0) return data.map(mapNewsRow);

@@ -52,6 +52,10 @@ RSS_FEEDS = [
     "https://www.ndtv.com/rss/india",
     "https://www.thehindu.com/news/national/feeder/default.rss",
     "https://indianexpress.com/section/india/politics/feed/",
+    "https://www.livemint.com/rss/politics",
+    "https://www.hindustantimes.com/feeds/rss/india/rssfeed.xml",
+    "https://timesofindia.indiatimes.com/rssfeeds/1221656.cms",  # India News TOI
+    "https://feeds.feedburner.com/ndtvnews-india-news",
 ]
 
 BANNED_KEYWORDS = [
@@ -87,8 +91,8 @@ FALLBACK RULES:
 2. NEVER attribute news to journalists, authors, or news organizations.
 """
 
-MAX_ARTICLES = 30
-MAX_EVENTS_PER_BATCH = 10  # 2 batches × 10 = 20 news items/day
+MAX_ARTICLES = 80          # Enough raw articles to cover all 36 states depth
+MAX_EVENTS_PER_BATCH = 50  # Up to 50 events per batch (5 items × ~9-10 states)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -260,7 +264,11 @@ TARGET STATES FOR THIS BATCH:
 {', '.join(target_states)}
 
 TASK:
-Find the most politically significant articles from the provided list that correspond to the Target States listed above. We need approximately 1-2 news items for EACH of the target states. If no specific news is found for a state in the sources, you may attribute national/regional facts, but prioritize strict accuracy.
+For EACH state in the TARGET STATES list, generate EXACTLY 3 to 5 distinct, factual news items. Do NOT skip any state. Each state must have a minimum of 3 items and a maximum of 5 items.
+
+If the provided articles do not contain enough unique events for a specific state, you may supplement with verifiable, real-world political context for that state from your knowledge — but NEVER fabricate facts. Clearly base each item on either a provided article or stated real policy/political fact.
+
+Do NOT cluster all news in one or two states. Distribute evenly across ALL target states.
 
 For each chosen article, produce a JSON object with EXACT keys:
 {{

@@ -172,7 +172,7 @@ def call_openai(prompt, model="gpt-5.4"):
                 {"role": "user", "content": prompt},
             ],
             "temperature": 0.7,
-            "max_completion_tokens": 6000,
+            "max_completion_tokens": 8000,
         },
         timeout=180,   # gpt-5.4 is a large model — needs up to 3 minutes for big outputs
     )
@@ -283,11 +283,17 @@ def clean_json(raw):
 # ═══════════════════════════════════════════════════════════════
 # STEP 1: GENERATE DAILY NEWS (20 items in 2 batches of 10)
 # ═══════════════════════════════════════════════════════════════
+# 9 batches of 4 states = 36 states covered without hitting token limits
 STATE_BATCHES = [
-    ["Jammu and Kashmir", "Ladakh", "Himachal Pradesh", "Punjab", "Chandigarh", "Uttarakhand", "Haryana", "Delhi", "Uttar Pradesh"],
-    ["Rajasthan", "Gujarat", "Madhya Pradesh", "Maharashtra", "Goa", "Dadra and Nagar Haveli and Daman and Diu", "Chhattisgarh", "Bihar", "Jharkhand"],
-    ["West Bengal", "Odisha", "Sikkim", "Assam", "Arunachal Pradesh", "Nagaland", "Manipur", "Mizoram", "Tripura", "Meghalaya"],
-    ["Andhra Pradesh", "Telangana", "Karnataka", "Kerala", "Tamil Nadu", "Puducherry", "Lakshadweep", "Andaman and Nicobar Islands"]
+    ["Jammu and Kashmir", "Ladakh", "Himachal Pradesh", "Punjab"],
+    ["Chandigarh", "Uttarakhand", "Haryana", "Delhi"],
+    ["Uttar Pradesh", "Rajasthan", "Gujarat", "Madhya Pradesh"],
+    ["Maharashtra", "Goa", "Chhattisgarh", "Bihar"],
+    ["Jharkhand", "West Bengal", "Odisha", "Sikkim"],
+    ["Assam", "Arunachal Pradesh", "Nagaland", "Manipur"],
+    ["Mizoram", "Tripura", "Meghalaya", "Andhra Pradesh"],
+    ["Telangana", "Karnataka", "Kerala", "Tamil Nadu"],
+    ["Puducherry", "Lakshadweep", "Andaman and Nicobar Islands", "Dadra and Nagar Haveli and Daman and Diu"]
 ]
 
 def build_news_prompt(articles, target_states, batch_num=1):
@@ -329,7 +335,7 @@ For each chosen article, produce a JSON object with EXACT keys:
   "sentiment_score": "<string like +3.2 or -1.5, range -5.0 to +5.0>",
   "ticker_headline": "<punchy 10-15 word factual news headline>",
   "blog_title": "<professional news article title>",
-  "blog_content": "<150-200 word factual news summary in neutral journalist tone. NO game references.>",
+  "blog_content": "<100-150 word factual news summary in neutral journalist tone. NO game references.>",
   "social_post": "<engaging 1-2 sentence social post with 3-5 hashtags>",
   "original_url": "<URL of source article>",
   "date": "{TODAY}"
@@ -353,13 +359,14 @@ def validate_events(events):
 
 
 def generate_daily_news(articles):
-    """Generate state-specific news across 4 regional batches targeting all 36 Indian states."""
+    """Generate state-specific news across 9 smaller batches targeting all 36 Indian states."""
     all_events = []
 
     for batch_num, target_states in enumerate(STATE_BATCHES, 1):
-        print(f"\n  🤖 Generating batch {batch_num}/4 for targeted states...")
-        # Pass 25 articles per batch — enough context without overloading the model
-        batch_articles = articles[(batch_num - 1) * 20: (batch_num - 1) * 20 + 25] or articles[:25]
+        print(f"\n  🤖 Generating batch {batch_num}/9 for targeted states...")
+        # Give variety to each batch by sliding the article window
+        offset = (batch_num - 1) * 8
+        batch_articles = articles[offset : offset + 30] or articles[:30]
         raw = call_ai(build_news_prompt(batch_articles, target_states, batch_num=batch_num))
         if not raw:
             print(f"  ❌ No AI response for batch {batch_num}. Skipping.")

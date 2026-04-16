@@ -227,14 +227,17 @@ def clean_json(raw):
 # ═══════════════════════════════════════════════════════════════
 # STEP 1: GENERATE DAILY NEWS (20 items in 2 batches of 10)
 # ═══════════════════════════════════════════════════════════════
-def build_news_prompt(articles, batch_num=1):
+STATE_BATCHES = [
+    ["Jammu and Kashmir", "Ladakh", "Himachal Pradesh", "Punjab", "Chandigarh", "Uttarakhand", "Haryana", "Delhi", "Uttar Pradesh"],
+    ["Rajasthan", "Gujarat", "Madhya Pradesh", "Maharashtra", "Goa", "Dadra and Nagar Haveli and Daman and Diu", "Chhattisgarh", "Bihar", "Jharkhand"],
+    ["West Bengal", "Odisha", "Sikkim", "Assam", "Arunachal Pradesh", "Nagaland", "Manipur", "Mizoram", "Tripura", "Meghalaya"],
+    ["Andhra Pradesh", "Telangana", "Karnataka", "Kerala", "Tamil Nadu", "Puducherry", "Lakshadweep", "Andaman and Nicobar Islands"]
+]
+
+def build_news_prompt(articles, target_states, batch_num=1):
     articles_text = ""
     for i, art in enumerate(articles, 1):
         articles_text += f"\nARTICLE {i}:\n  TITLE: {art['title']}\n  DESCRIPTION: {art['description']}\n  URL: {art['link']}\n"
-
-    diversity_hint = ""
-    if batch_num == 2:
-        diversity_hint = "\nIMPORTANT: This is the SECOND batch. Focus on news from DIFFERENT states than the first batch. Prioritize regional and state-level stories."
 
     return f"""You are a professional Indian political news editor for "Rajneeti TV Network".
 
@@ -243,22 +246,24 @@ STRICT RULES (MANDATORY):
 - Skip articles about extreme violence, terrorism, or sensitive religious issues.
 - Use neutral, professional journalist language. NO game jargon.
 - STRICT FACTUALITY: NEVER hallucinate, manipulate, or invent facts. You MUST strictly base your output ONLY on the facts present in the provided article descriptions below. Do not invent context or attribute actions to political parties unless explicitly stated in the source.
-- Each news item MUST be tagged with the correct Indian state or "National" for country-wide news.
-- Cover as many DIFFERENT states as possible across the {MAX_EVENTS_PER_BATCH} items.
+- Each news item MUST be tagged with the correct Indian state.
 
 CANDIDATE REFERENCE LIST:
 {CANDIDATE_LIST}
 
 Today's news articles:
 {articles_text}
-{diversity_hint}
+
+TARGET STATES FOR THIS BATCH:
+{', '.join(target_states)}
+
 TASK:
-Pick the {MAX_EVENTS_PER_BATCH} most politically significant articles.
-PRIORITIZATION: Heavily prioritize mainstream news — West Bengal elections, top national leaders (Modi, Rahul Gandhi), and major states (UP, Maharashtra, Bihar, Tamil Nadu, Delhi).
+Find the most politically significant articles from the provided list that correspond to the Target States listed above. We need approximately 1-2 news items for EACH of the target states. If no specific news is found for a state in the sources, you may attribute national/regional facts, but prioritize strict accuracy.
+
 For each chosen article, produce a JSON object with EXACT keys:
 {{
   "leader": "<politician name from candidate list>",
-  "state": "<full state name, e.g. Bihar, Uttar Pradesh, West Bengal, National>",
+  "state": "<full state name EXACTLY as written in the TARGET STATES list>",
   "sentiment_score": "<string like +3.2 or -1.5, range -5.0 to +5.0>",
   "ticker_headline": "<punchy 10-15 word factual news headline>",
   "blog_title": "<professional news article title>",
@@ -268,7 +273,7 @@ For each chosen article, produce a JSON object with EXACT keys:
   "date": "{TODAY}"
 }}
 
-OUTPUT: Return a JSON array of exactly {MAX_EVENTS_PER_BATCH} objects. No markdown. Raw JSON only."""
+OUTPUT: Return a JSON array combining ALL your generated objects. No markdown. Raw JSON only."""
 
 
 def validate_events(events):
@@ -286,16 +291,12 @@ def validate_events(events):
 
 
 def generate_daily_news(articles):
-    """Generate 20 news items in 2 batches of 10 for maximum state coverage."""
+    """Generate state-specific news across 4 regional batches targeting all 36 Indian states."""
     all_events = []
-    mid = len(articles) // 2
-    batches = [articles[:mid], articles[mid:]]
 
-    for batch_num, batch_articles in enumerate(batches, 1):
-        if not batch_articles:
-            continue
-        print(f"\n  🤖 Generating batch {batch_num}/2 ({MAX_EVENTS_PER_BATCH} news items)...")
-        raw = call_ai(build_news_prompt(batch_articles, batch_num=batch_num))
+    for batch_num, target_states in enumerate(STATE_BATCHES, 1):
+        print(f"\n  🤖 Generating batch {batch_num}/4 for targeted states...")
+        raw = call_ai(build_news_prompt(articles, target_states, batch_num=batch_num))
         if not raw:
             print(f"  ❌ No AI response for batch {batch_num}. Skipping.")
             continue
@@ -308,7 +309,7 @@ def generate_daily_news(articles):
             print(f"  ❌ Failed to parse batch {batch_num} JSON: {exc}\n  Raw: {raw[:300]}", file=sys.stderr)
 
     if not all_events:
-        print("  ❌ Both batches failed. Set OPENAI_API_KEY or GEMINI_API_KEY.")
+        print("  ❌ All batches failed. Set OPENAI_API_KEY or GEMINI_API_KEY.")
         return None
 
     # Deduplicate by headline (in case both batches picked the same article)
@@ -575,8 +576,8 @@ def create_weekly_campaign():
 # STEP 5: DATA CLEANUP (keep free tier forever)
 # ═══════════════════════════════════════════════════════════════
 def cleanup_old_data():
-    """Delete news older than 14 days to stay within free tier limits."""
-    cutoff = (NOW - timedelta(days=14)).strftime("%Y-%m-%d")
+    """Delete news older than 7 days to stay within free tier limits."""
+    cutoff = (NOW - timedelta(days=7)).strftime("%Y-%m-%d")
     result = supabase_request("DELETE", f"news_events?news_date=lt.{cutoff}")
     if result is not None:
         deleted = len(result) if isinstance(result, list) else 0

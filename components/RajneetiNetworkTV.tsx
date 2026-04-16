@@ -45,6 +45,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const [activeIndex, setActiveIndex] = useState(initialStateIndex);
     const [loading, setLoading] = useState(true);
     const [selectedFilter, setSelectedFilter] = useState(initialFilterState);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
     const [slideIndex, setSlideIndex] = useState(0);
@@ -437,22 +438,42 @@ const RajneetiNetworkTV: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        {/* State Filter Dropdown — Premium Design */}
-                        <div className="relative group">
-                            <div className="absolute -inset-[1px] bg-gradient-to-r from-gameOrange/50 via-red-500/30 to-gameOrange/50 rounded-xl blur-sm opacity-60 group-hover:opacity-100 transition-opacity" />
-                            <div className="relative flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-xl pl-3 pr-2 py-2 group-hover:border-gameOrange/30 transition-all">
+                        {/* State Filter Dropdown — Premium Custom Design */}
+                        <div className="relative">
+                            <div className="absolute -inset-[1px] bg-gradient-to-r from-gameOrange/50 via-red-500/30 to-gameOrange/50 rounded-xl blur-sm opacity-60 hover:opacity-100 transition-opacity pointer-events-none" />
+                            <div 
+                                className="relative flex items-center gap-2.5 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-xl pl-3 pr-2 py-2 cursor-pointer hover:border-gameOrange/30 transition-all select-none"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            >
                                 <MapPin size={14} className="text-gameOrange flex-shrink-0" />
-                                <select
-                                    value={selectedFilter}
-                                    onChange={(e) => setSelectedFilter(e.target.value)}
-                                    className="bg-transparent text-white text-xs md:text-sm font-bold appearance-none cursor-pointer pr-6 outline-none min-w-[100px] md:min-w-[140px]"
-                                >
-                                    {INDIAN_STATES.map(state => (
-                                        <option key={state} value={state} className="bg-slate-900 text-white py-2">{state}</option>
-                                    ))}
-                                </select>
-                                <svg className="w-3.5 h-3.5 text-gameOrange absolute right-2.5 pointer-events-none transition-transform group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                <span className="bg-transparent text-white text-xs md:text-sm font-bold min-w-[100px] md:min-w-[140px] truncate pr-6">
+                                    {selectedFilter}
+                                </span>
+                                <svg className={`w-3.5 h-3.5 text-gameOrange absolute right-2.5 pointer-events-none transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
                             </div>
+                            
+                            {/* Custom Dropdown List */}
+                            {isDropdownOpen && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+                                    <div className="absolute top-full left-0 mt-2 w-max min-w-full max-h-[300px] overflow-y-auto custom-scrollbar bg-slate-950/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl z-50 animate-fade-in origin-top">
+                                        <div className="py-2 flex flex-col">
+                                            {INDIAN_STATES.map(state => (
+                                                <button
+                                                    key={state}
+                                                    className={`w-full text-left px-4 py-2.5 text-xs md:text-sm transition-colors ${selectedFilter === state ? 'bg-gameOrange/20 text-gameOrange font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'}`}
+                                                    onClick={() => {
+                                                        setSelectedFilter(state);
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                >
+                                                    {state}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-600/20 border border-red-500/50 text-red-500 animate-pulse">
                             <Radio size={14} />

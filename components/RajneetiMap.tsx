@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { STATE_INTEL, DEFAULT_STATE_DATA, StateData } from './stateIntel';
 import BreakingNewsTicker from './BreakingNewsTicker';
-import { fetchBreakingNews, fetchNewsByState, BreakingNewsEvent } from '../services/newsService';
+import { fetchBreakingNews, fetchNewsByState, fetchNationalNews, BreakingNewsEvent } from '../services/newsService';
 import InteractiveParticles from './InteractiveParticles';
 import { X, ArrowRight } from 'lucide-react';
 import { AdBanner } from './AdBanner';
@@ -31,6 +31,7 @@ const RajneetiMap: React.FC = () => {
     const [clickPos, setClickPos] = useState({ x: 0, y: 0 });
     const [selectedNewsEvent, setSelectedNewsEvent] = useState<BreakingNewsEvent | null>(null);
     const [allEvents, setAllEvents] = useState<BreakingNewsEvent[]>([]);
+    const [nationalNews, setNationalNews] = useState<BreakingNewsEvent[]>([]);
     const [stateNews, setStateNews] = useState<BreakingNewsEvent[]>([]);
     const [loadingStateNews, setLoadingStateNews] = useState(false);
 
@@ -83,8 +84,12 @@ const RajneetiMap: React.FC = () => {
             }
         };
         const loadEvents = async () => {
-            const news = await fetchBreakingNews();
+            const [news, national] = await Promise.all([
+                fetchBreakingNews(),
+                fetchNationalNews()
+            ]);
             setAllEvents(news);
+            setNationalNews(national);
         };
         fetchMapData();
         loadEvents();
@@ -169,6 +174,7 @@ const RajneetiMap: React.FC = () => {
         }
 
         setSelectedState(stateId);
+        setStateNews([]);
 
         // Fetch state-specific news for the left panel
         setLoadingStateNews(true);
@@ -386,7 +392,7 @@ const RajneetiMap: React.FC = () => {
 
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <BreakingNewsTicker
-                events={selectedState && stateNews.length > 0 ? stateNews : allEvents}
+                events={selectedState ? stateNews : nationalNews}
                 selectedStateName={selectedState || undefined}
                 loadingStateNews={loadingStateNews}
             />

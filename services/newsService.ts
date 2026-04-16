@@ -55,7 +55,7 @@ async function fetchFromSupabase(): Promise<BreakingNewsEvent[] | null> {
             .select("*")
             .eq("news_date", today)
             .order("created_at", { ascending: true })
-            .limit(10);
+            .limit(150);
 
         if (error) throw error;
         if (data && data.length > 0) {
@@ -70,7 +70,7 @@ async function fetchFromSupabase(): Promise<BreakingNewsEvent[] | null> {
             .select("*")
             .eq("news_date", yesterday)
             .order("created_at", { ascending: true })
-            .limit(10);
+            .limit(150);
 
         if (prevErr) throw prevErr;
         if (prev && prev.length > 0) {

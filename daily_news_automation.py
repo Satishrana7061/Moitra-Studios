@@ -262,7 +262,7 @@ Find the most politically significant articles from the provided list that corre
 
 For each chosen article, produce a JSON object with EXACT keys:
 {{
-  "leader": "<politician name from candidate list>",
+  "leader": "<politician name from candidate list, or 'General News' if the article is not about a specific leader>",
   "state": "<full state name EXACTLY as written in the TARGET STATES list>",
   "sentiment_score": "<string like +3.2 or -1.5, range -5.0 to +5.0>",
   "ticker_headline": "<punchy 10-15 word factual news headline>",

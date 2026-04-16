@@ -19,9 +19,12 @@ CREATE TABLE IF NOT EXISTS news_events (
   created_at   TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Prevent exact duplicate entries for the same leader on the same day
-CREATE UNIQUE INDEX IF NOT EXISTS idx_news_leader_date
-  ON news_events (leader, news_date);
+-- Remove the old restrictive leader constraint if it exists
+DROP INDEX IF EXISTS idx_news_leader_date;
+
+-- Prevent duplicate news articles by headline for the same day (Allows multiple news items per leader or state)
+CREATE UNIQUE INDEX IF NOT EXISTS idx_news_headline_date
+  ON news_events (ticker_headline, news_date);
 
 -- Fast lookups by date (for fetching today's news)
 CREATE INDEX IF NOT EXISTS idx_news_date

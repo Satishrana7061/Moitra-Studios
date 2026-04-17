@@ -23,6 +23,7 @@ WEEKLY (Monday only):
 import json
 import os
 import re
+import random
 import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
@@ -305,11 +306,15 @@ def build_news_prompt(articles, target_states, batch_num=1):
 
     return f"""You are a professional Indian political news editor for "Rajneeti TV Network".
 
-STRICT RULES (MANDATORY):
+STRICT RULES (VARIETY & LOCALIZATION):
+- IMPORTANT: You MUST generate UNIQUE content for each state. Do NOT use the same generic national summary for every state.
+- If an article is about a National topic (e.g., Delimitation), frame it LOCALLY for the target state. (e.g. "How this affects Bihar voters" vs "How this affects Maharashtra's seat share").
+- Use different wording and headlines for different states even if the source article is the same.
+- Focus on LOCAL leaders from the Candidate list for each state if possible.
 - Do NOT generate hate speech, religious insults, or calls for violence.
 - Skip articles about extreme violence, terrorism, or sensitive religious issues.
 - Use neutral, professional journalist language. NO game jargon.
-- STRICT FACTUALITY: NEVER hallucinate, manipulate, or invent facts. You MUST strictly base your output ONLY on the facts present in the provided article descriptions below. Do not invent context or attribute actions to political parties unless explicitly stated in the source.
+- STRICT FACTUALITY: NEVER hallucinate, manipulate, or invent facts. Base your output ONLY on the facts present in the provided article titles/descriptions.
 - Each news item MUST be tagged with the correct Indian state.
 
 CANDIDATE REFERENCE LIST:
@@ -322,11 +327,7 @@ TARGET STATES FOR THIS BATCH:
 {', '.join(target_states)}
 
 TASK:
-For EACH state in the TARGET STATES list, generate EXACTLY 3 to 5 distinct, factual news items. Do NOT skip any state. Each state must have a minimum of 3 items and a maximum of 5 items.
-
-If the provided articles do not contain enough unique events for a specific state, you may supplement with verifiable, real-world political context for that state from your knowledge — but NEVER fabricate facts. Clearly base each item on either a provided article or stated real policy/political fact.
-
-Do NOT cluster all news in one or two states. Distribute evenly across ALL target states.
+For EACH state in the TARGET STATES list, generate EXACTLY 3 to 5 distinct, factual news items. Each state must have unique headlines and unique framing. Do NOT repeat the same national summary for every state.
 
 For each chosen article, produce a JSON object with EXACT keys:
 {{
@@ -361,9 +362,11 @@ def validate_events(events):
 def generate_daily_news(articles):
     """Generate state-specific news across 9 smaller batches targeting all 36 Indian states."""
     all_events = []
+    
+    # Shuffle articles list once to ensure variety across different runs and batches
+    random.shuffle(articles)
 
-    for batch_num, target_states in enumerate(STATE_BATCHES, 1):
-        print(f"\n  🤖 Generating batch {batch_num}/9 for targeted states...")
+    for batch_num, target_states in enumerate(STATE_BATCHES, 1):        print(f"\n  🤖 Generating batch {batch_num}/9 for targeted states...")
         # Give variety to each batch by sliding the article window
         offset = (batch_num - 1) * 8
         batch_articles = articles[offset : offset + 30] or articles[:30]
@@ -646,8 +649,39 @@ def create_weekly_campaign():
 # ═══════════════════════════════════════════════════════════════
 # STEP 5: DATA CLEANUP (keep free tier forever)
 # ═══════════════════════════════════════════════════════════════
-def cleanup_old_data():
-    """Delete news older than 7 days to stay within free tier limits."""
+# ═══════════════════════════════════════════════════════════════
+# STEP 3: SEO - SITEMAP GENERATION
+# ═══════════════════════════════════════════════════════════════
+def generate_sitemap(news_events):
+    """Generate a sitemap.xml for Google to index dynamic content."""
+    base_url = "https://moitrastudios.com"
+    root = ET.Element("urlset", xmlns="http://www.sitemaps.org/schemas/sitemap/0.9")
+
+    # Static Pages
+    for path in ["/", "/indian-politics-game-home", "/social-campaign", "/privacy-policy", "/contact-us"]:
+        url = ET.SubElement(root, "url")
+        ET.SubElement(url, "loc").text = f"{base_url}{path}"
+        ET.SubElement(url, "changefreq").text = "daily"
+        ET.SubElement(url, "priority").text = "1.0" if path == "/" else "0.8"
+
+    # Social Campaigns (Active)
+    campaigns = supabase_request("GET", "campaigns?select=slug,updated_at")
+    if campaigns:
+        for c in campaigns:
+            url = ET.SubElement(root, "url")
+            ET.SubElement(url, "loc").text = f"{base_url}/social-campaign/{c['slug']}"
+            ET.SubElement(url, "changefreq").text = "weekly"
+            ET.SubElement(url, "priority").text = "0.7"
+
+    # Static daily news file
+    sitemap_path = os.path.join(os.path.dirname(__file__), "public", "sitemap.xml")
+    os.makedirs(os.path.dirname(sitemap_path), exist_ok=True)
+    tree = ET.ElementTree(root)
+    tree.write(sitemap_path, encoding="utf-8", xml_declaration=True)
+    print(f"  ✅ Sitemap generated at {sitemap_path}")
+
+
+def cleanup_old_data():    """Delete news older than 7 days to stay within free tier limits."""
     cutoff = (NOW - timedelta(days=7)).strftime("%Y-%m-%d")
     result = supabase_request("DELETE", f"news_events?news_date=lt.{cutoff}")
     if result is not None:
@@ -683,6 +717,10 @@ def main():
     # 4. Write to Supabase (heartbeat + live data)
     print("\n  📡 Syncing to Supabase...")
     upsert_news_to_supabase(events)
+
+    # 4b. Generate Sitemap for Google SEO
+    print("\n  🗺️  Generating Sitemap...")
+    generate_sitemap(events)
 
     # 5. Auto-archive expired campaigns + generate AI results
     print("\n  🗃️  Checking for expired campaigns...")

@@ -67,16 +67,28 @@ const SocialCampaignDetail: React.FC = () => {
         canvas.height = 1920;
 
         const stream = canvas.captureStream(30);
-        let mimeType = 'video/webm;codecs=vp9';
-        if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'video/webm';
+        
+        // Prioritize MP4 (Windows/Chrome) then fallback to WebM
+        let mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
+        let extension = 'mp4';
+        
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm;codecs=vp9';
+            extension = 'webm';
+        }
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm';
+            extension = 'webm';
+        }
+
         const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 4_000_000 });
         recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
         recorder.onstop = () => {
-            const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+            const blob = new Blob(chunksRef.current, { type: mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `rajneeti-campaign-${campaign.slug || 'debate'}.webm`;
+            a.download = `rajneeti-reels-${campaign.slug || 'debate'}.${extension}`;
             a.click();
             URL.revokeObjectURL(url);
             setIsGeneratingReel(false);

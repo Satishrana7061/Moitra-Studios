@@ -6,6 +6,7 @@ import InteractiveParticles from './InteractiveParticles';
 import { X, ArrowRight } from 'lucide-react';
 import { AdBanner } from './AdBanner';
 import { useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 
 interface GeoJSONFeature {
     type: string;
@@ -97,16 +98,19 @@ const RajneetiMap: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // SEO: Update page title based on active news
-    useEffect(() => {
-        if (selectedNewsEvent) {
-            document.title = `${selectedNewsEvent.mainPhrase} | Rajneeti Live News`;
-        } else if (selectedState) {
-            document.title = `${selectedState} Strategy | Rajneeti`;
-        } else {
-            document.title = "Rajneeti | Indian Political Strategy Game";
-        }
-    }, [selectedNewsEvent, selectedState]);
+    // SEO: Dynamic Title, Description & Canonical Consolidation
+    useSEO({
+        title: selectedNewsEvent 
+            ? selectedNewsEvent.mainPhrase 
+            : selectedState 
+                ? `${selectedState} Political Strategy` 
+                : 'Indian Political Strategy Game',
+        description: selectedNewsEvent 
+            ? `Breaking Political News: ${selectedNewsEvent.mainPhrase}. Impact analysis for Rajneeti gameplay.` 
+            : selectedState 
+                ? `Get the latest political updates, leader movements, and voting trends for ${selectedState} in the Rajneeti simulator.` 
+                : 'Play Rajneeti, the ultimate Indian political strategy game. Master election campaigns, build alliances, and navigate breaking news.',
+    });
 
     const viewBox = useMemo(() => {
         if (!countryData) return "0 0 1000 1000";

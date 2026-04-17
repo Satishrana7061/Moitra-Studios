@@ -5,6 +5,7 @@ import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampa
 import CountdownTimer from './CountdownTimer';
 import SocialCampaignSidebar from './SocialCampaignSidebar';
 import TopicVoting from './TopicVoting';
+import { useSEO } from '../hooks/useSEO';
 
 // Deterministic result generator — same campaign = same result always
 function getSimulatedResult(campaign: SocialCampaign) {
@@ -43,6 +44,13 @@ const SocialCampaignDetail: React.FC = () => {
     const [ownSolution, setOwnSolution] = useState('');
     const [activeExperience, setActiveExperience] = useState<{ type: string, data: any } | null>(null);
     const [voteError, setVoteError] = useState<string | null>(null);
+    
+    // SEO: Dynamic Campaign Metadata
+    useSEO({
+        title: campaign ? `${campaign.title} Debate` : 'Political Campaign',
+        description: campaign?.issue_summary || 'Participate in the latest Indian political campaigns and vote on strategic issues.',
+        ogType: 'article'
+    });
 
     // ── Reel Generator State ──────────────────────────────────────
     const [isGeneratingReel, setIsGeneratingReel] = useState(false);

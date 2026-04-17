@@ -1,5 +1,6 @@
 import React, { lazy, Suspense, useEffect, useRef } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
+import { useSEO } from './hooks/useSEO';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
@@ -37,6 +38,9 @@ const App: React.FC = () => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
+
+  // Global SEO Defaults
+  useSEO({});
 
   return (
     <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden">

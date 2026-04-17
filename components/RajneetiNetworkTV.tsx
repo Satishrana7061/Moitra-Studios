@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock, Video, X, Maximize2, MapPin } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
@@ -48,6 +49,15 @@ const RajneetiNetworkTV: React.FC = () => {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
+
+    const activeNews = newsData ? newsData[activeIndex] : null;
+
+    // SEO: Dynamic TV Network Content
+    useSEO({
+        title: activeNews ? `${activeNews.blog_title}` : 'Rajneeti News Network',
+        description: activeNews ? activeNews.blog_content.slice(0, 160) : 'The official Rajneeti News Network. Stay updated with the latest Indian political developments, election strategy, and leader debates.',
+        ogType: 'article'
+    });
     const [slideIndex, setSlideIndex] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [isExporting, setIsExporting] = useState(false);

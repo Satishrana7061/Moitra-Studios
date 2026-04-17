@@ -1,15 +1,39 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" ?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://moitrastudios.com/</loc>
-    <lastmod>2026-03-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://moitrastudios.com/rajneeti-tv-network</loc>
-    <lastmod>2026-03-09</lastmod>
-    <changefreq>hourly</changefreq>
+    <loc>https://moitrastudios.com/indian-politics-game-home</loc>
+    <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://moitrastudios.com/social-campaign</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://moitrastudios.com/privacy-policy</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://moitrastudios.com/contact-us</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://moitrastudios.com/rajneeti-tv-network</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://moitrastudios.com/social-campaign/delhi-air-pollution-stubble-burning-comparison</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+    <lastmod>2026-03-16</lastmod>
   </url>
 </urlset>

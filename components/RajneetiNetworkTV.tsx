@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Newspaper, TrendingUp, TrendingDown, MonitorPlay, Radio, Megaphone, ArrowRight, Clock, Video, X, Maximize2, MapPin } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
 import { supabase } from '../lib/supabase';
@@ -36,9 +36,14 @@ const parseBulletPoints = (text: string): string[] => {
                .filter(s => s.length > 15);
 };
 
+const createSlug = (text: string): string => {
+    return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+};
+
 const RajneetiNetworkTV: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { slug } = useParams<{ slug?: string }>();
     const initialStateIndex = location.state?.activeIndex ?? 0;
     const initialFilterState = location.state?.filterState || 'All States';
 
@@ -363,7 +368,14 @@ const RajneetiNetworkTV: React.FC = () => {
                 
                 if (finalData) {
                     setNewsData(finalData);
-                    setActiveIndex(0); // Reset to first item when filter changes
+                    
+                    // Match the slug from URL on first load if provided
+                    if (slug) {
+                        const matchedIndex = finalData.findIndex(n => createSlug(n.ticker_headline) === slug);
+                        setActiveIndex(matchedIndex >= 0 ? matchedIndex : 0);
+                    } else {
+                        setActiveIndex(initialStateIndex); 
+                    }
                 } else {
                     setNewsData([]);
                 }
@@ -408,6 +420,17 @@ const RajneetiNetworkTV: React.FC = () => {
             setActiveIndex(location.state.activeIndex);
         }
     }, [location.state]);
+
+    // Keep the URL slug in sync with the currently selected activeIndex (Replace history to avoid back-button hell)
+    useEffect(() => {
+        if (newsData && newsData[activeIndex]) {
+            const currentSlug = createSlug(newsData[activeIndex].ticker_headline);
+            if (slug !== currentSlug) {
+                // Ensure base URL isn't doubled up. Replace State correctly.
+                navigate(`/rajneeti-tv-network/${currentSlug}`, { replace: true, state: location.state });
+            }
+        }
+    }, [activeIndex, newsData, navigate, slug, location.state]);
 
     const activeNews = newsData ? newsData[activeIndex] : null;
 

@@ -28,6 +28,7 @@ export interface SocialCampaign {
   end_time: string;
   result_published_at?: string;
   winner_leader?: string;
+  winner_style?: string;
   winner_vote_percentage?: number;
   total_votes?: number;
   approaches?: LeaderApproach[];
@@ -87,6 +88,7 @@ function generateSimulatedResult(campaign: SocialCampaign): SocialCampaign {
     total_votes: 0,
     vote_percentages: { modi: modiPct, rahul: rahulPct, own: ownPct },
     winner_leader: winnerName,
+    winner_style: winner,
     winner_vote_percentage: winnerPct,
     result_analysis: campaign.result_analysis ||
       `Based on India's current political landscape, the ` +
@@ -127,6 +129,7 @@ class CampaignService {
       total_votes: 0,
       vote_percentages: c.results?.votePercentages || {},
       winner_leader: c.results?.winnerStyle === 'modi' ? 'Narendra Modi' : c.results?.winnerStyle === 'rahul' ? 'Rahul Gandhi' : undefined,
+      winner_style: c.results?.winnerStyle,
       winner_vote_percentage: c.results ? Math.max(...Object.values(c.results.votePercentages as Record<string, number>)) : undefined,
       result_analysis: c.results?.analysis,
     };

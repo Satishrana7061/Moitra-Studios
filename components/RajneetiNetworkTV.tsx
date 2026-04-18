@@ -329,6 +329,9 @@ const RajneetiNetworkTV: React.FC = () => {
         }
     };
 
+    // Track whether this is the initial mount with a slug from navigation
+    const isInitialSlugLoad = useRef(!!slug);
+
     useEffect(() => {
         document.title = "Rajneeti TV Network | Live Indian Political News & Updates";
         const fetchDailyNews = async () => {
@@ -341,12 +344,21 @@ const RajneetiNetworkTV: React.FC = () => {
                         .select('*')
                         .order('news_date', { ascending: false });
 
-                    // Apply state filter if not "All States"
-                    if (selectedFilter && selectedFilter !== 'All States') {
+                    // On initial load with a slug from homepage, do NOT apply state filter
+                    // and fetch more items so we guarantee the target article is in the dataset.
+                    // For subsequent filter changes (dropdown), apply the filter normally.
+                    const shouldSkipFilter = isInitialSlugLoad.current && slug;
+                    
+                    if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
                         query = query.ilike('state', selectedFilter);
                     }
+                    
+                    // Mark initial load as consumed after first fetch
+                    if (isInitialSlugLoad.current) {
+                        isInitialSlugLoad.current = false;
+                    }
 
-                    const { data, error } = await query.limit(20);
+                    const { data, error } = await query.limit(100);
                         
                     if (!error && data && data.length > 0) {
                         // Map news_date to date for the frontend
@@ -363,7 +375,7 @@ const RajneetiNetworkTV: React.FC = () => {
                     const data = await response.json();
                     if (data) {
                         let jsonData = Array.isArray(data) ? data : [data];
-                        // Apply client-side filter for JSON fallback
+                        // Apply client-side filter for JSON fallback (only if not initial slug load)
                         if (selectedFilter && selectedFilter !== 'All States') {
                             jsonData = jsonData.filter(item => 
                                 item.state?.toLowerCase() === selectedFilter.toLowerCase()
@@ -413,15 +425,23 @@ const RajneetiNetworkTV: React.FC = () => {
         }
     }, [loading, newsData, activeIndex]);
 
-    // Ensure the URL always reflects the actual displayed article (derived activeIndex), especially after a state filter change
+    // Ensure the URL always reflects the actual displayed article, but ONLY rewrite
+    // if the current slug doesn't match any article in the dataset (e.g. after a filter change).
+    // This prevents overwriting the user's intended slug on initial mount before data loads.
     useEffect(() => {
-        if (newsData && newsData.length > 0) {
+        if (!newsData || newsData.length === 0) return;
+        
+        // Check if the current URL slug actually exists in the loaded data
+        const slugExistsInData = slug && newsData.some(n => createSlug(n.ticker_headline || n.blog_title) === slug);
+        
+        // Only rewrite URL if the slug is missing or doesn't match any article
+        if (!slugExistsInData) {
             const derivedSlug = createSlug(newsData[activeIndex]?.ticker_headline || newsData[activeIndex]?.blog_title);
-            if (slug !== derivedSlug) {
+            if (derivedSlug) {
                 navigate(`/rajneeti-tv-network/${derivedSlug}`, { replace: true, state: location.state });
             }
         }
-    }, [activeIndex, newsData, navigate, slug, location.state]);
+    }, [newsData, slug, activeIndex, navigate, location.state]);
 
     // duplicate activeNews removed
 

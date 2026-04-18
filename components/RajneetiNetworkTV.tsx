@@ -48,13 +48,19 @@ const RajneetiNetworkTV: React.FC = () => {
     const initialFilterState = location.state?.filterState || 'All States';
 
     const [newsData, setNewsData] = useState<DailyNews[] | null>(null);
-    const [activeIndex, setActiveIndex] = useState(initialStateIndex);
     const [loading, setLoading] = useState(true);
     const [selectedFilter, setSelectedFilter] = useState(initialFilterState);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isStudioDropdownOpen, setIsStudioDropdownOpen] = useState(false);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
+
+    const activeIndex = useMemo(() => {
+        if (!newsData || newsData.length === 0) return 0;
+        if (!slug) return 0;
+        const matchedIndex = newsData.findIndex(n => createSlug(n.ticker_headline) === slug);
+        return matchedIndex >= 0 ? matchedIndex : 0;
+    }, [newsData, slug]);
 
     const activeNews = newsData ? newsData[activeIndex] : null;
 
@@ -369,14 +375,6 @@ const RajneetiNetworkTV: React.FC = () => {
                 
                 if (finalData) {
                     setNewsData(finalData);
-                    
-                    // Match the slug from URL on first load if provided
-                    if (slug) {
-                        const matchedIndex = finalData.findIndex(n => createSlug(n.ticker_headline) === slug);
-                        setActiveIndex(matchedIndex >= 0 ? matchedIndex : 0);
-                    } else {
-                        setActiveIndex(initialStateIndex); 
-                    }
                 } else {
                     setNewsData([]);
                 }
@@ -415,20 +413,12 @@ const RajneetiNetworkTV: React.FC = () => {
         }
     }, [loading, newsData, activeIndex]);
 
-    // Sync activeIndex with location state (e.g. when coming from Home Map)
+    // Ensure the URL always reflects the actual displayed article (derived activeIndex), especially after a state filter change
     useEffect(() => {
-        if (location.state?.activeIndex !== undefined && location.state.activeIndex !== activeIndex) {
-            setActiveIndex(location.state.activeIndex);
-        }
-    }, [location.state]);
-
-    // Keep the URL slug in sync with the currently selected activeIndex (Replace history to avoid back-button hell)
-    useEffect(() => {
-        if (newsData && newsData[activeIndex]) {
-            const currentSlug = createSlug(newsData[activeIndex].ticker_headline);
-            if (slug !== currentSlug) {
-                // Ensure base URL isn't doubled up. Replace State correctly.
-                navigate(`/rajneeti-tv-network/${currentSlug}`, { replace: true, state: location.state });
+        if (newsData && newsData.length > 0) {
+            const derivedSlug = createSlug(newsData[activeIndex]?.ticker_headline);
+            if (slug !== derivedSlug) {
+                navigate(`/rajneeti-tv-network/${derivedSlug}`, { replace: true, state: location.state });
             }
         }
     }, [activeIndex, newsData, navigate, slug, location.state]);
@@ -615,7 +605,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                             <React.Fragment key={idx}>
                                                 <article
                                                     ref={(el) => { articleRefs.current[idx] = el; }}
-                                                    onClick={() => setActiveIndex(idx)}
+                                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(news.ticker_headline)}`, { state: location.state })}
                                                     className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
                                                 >
                                                 <header className="relative">
@@ -714,7 +704,7 @@ const RajneetiNetworkTV: React.FC = () => {
 
                             <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 border-box">
                                 <button 
-                                    onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
+                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(newsData?.[activeIndex - 1]?.ticker_headline || '')}`, { state: location.state })}
                                     disabled={activeIndex === 0}
                                     className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
                                 >
@@ -724,7 +714,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                     {activeIndex + 1} / {newsData?.length}
                                 </span>
                                 <button 
-                                    onClick={() => setActiveIndex(prev => Math.min((newsData?.length || 1) - 1, prev + 1))}
+                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(newsData?.[activeIndex + 1]?.ticker_headline || '')}`, { state: location.state })}
                                     disabled={activeIndex === (newsData?.length || 1) - 1}
                                     className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
                                 >

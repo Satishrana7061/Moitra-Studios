@@ -20,6 +20,17 @@ export default defineConfig(({ mode }) => {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
     },
 
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-lucide': ['lucide-react']
+          }
+        }
+      }
+    },
+
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

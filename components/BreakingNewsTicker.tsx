@@ -59,15 +59,20 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
 
     const tickerEvent = events[tickerIdx];
 
+    const createSlug = (text: string): string => {
+        return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    };
+
     const handleCardClick = (e: React.MouseEvent, ev: BreakingNewsEvent) => {
         e.stopPropagation();
-        // Extract the daily_news.json index from the event ID (e.g. "daily_news_auto_2" → 2)
-        let articleIndex = 0;
-        if (ev.id.startsWith('daily_news_auto_')) {
-            const parsed = parseInt(ev.id.replace('daily_news_auto_', ''), 10);
-            if (!isNaN(parsed)) articleIndex = parsed;
-        }
-        navigate('/rajneeti-tv-network', { state: { activeIndex: articleIndex } });
+        
+        // Navigate by unique slug, ensuring we open the exact article clicked
+        const slug = createSlug(ev.summary);
+        
+        // If the user has a state active on the map, maintain that filter on the TV Network
+        const filterState = selectedStateName || 'All States';
+        
+        navigate(`/rajneeti-tv-network/${slug}`, { state: { filterState } });
     };
 
     const getSentimentConfig = (delta: any, sentiment: string) => {

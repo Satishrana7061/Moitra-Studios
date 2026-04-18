@@ -52,6 +52,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [selectedFilter, setSelectedFilter] = useState(initialFilterState);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isStudioDropdownOpen, setIsStudioDropdownOpen] = useState(false);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
 
@@ -673,8 +674,45 @@ const RajneetiNetworkTV: React.FC = () => {
                             <span className="text-gameOrange font-bold text-[9px] uppercase tracking-tighter opacity-70 italic">● Viral Content Generator</span>
                         </div>
                         
-                        <div className="flex items-center gap-2 md:gap-4">
-                            <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 mr-2">
+                        <div className="flex items-center gap-2 md:gap-4 flex-wrap justify-end">
+                            {/* Reel Studio State Dropdown */}
+                            <div className="relative">
+                                <div className="absolute -inset-[1px] bg-gradient-to-r from-gameOrange/50 via-red-500/30 to-gameOrange/50 rounded-xl blur-sm opacity-60 hover:opacity-100 transition-opacity pointer-events-none" />
+                                <div 
+                                    className="relative flex items-center gap-2 bg-slate-900/90 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-1 cursor-pointer hover:border-gameOrange/30 transition-all select-none"
+                                    onClick={() => setIsStudioDropdownOpen(!isStudioDropdownOpen)}
+                                >
+                                    <MapPin size={12} className="text-gameOrange hidden md:block" />
+                                    <span className="bg-transparent text-white text-[10px] md:text-xs font-bold max-w-[80px] md:max-w-[120px] truncate pr-4">
+                                        {selectedFilter}
+                                    </span>
+                                    <svg className={`w-3 h-3 text-gameOrange absolute right-2 pointer-events-none transition-transform duration-300 ${isStudioDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                                
+                                {isStudioDropdownOpen && (
+                                    <>
+                                        <div className="fixed inset-0 z-[115]" onClick={() => setIsStudioDropdownOpen(false)} />
+                                        <div className="absolute top-full right-0 mt-2 w-max min-w-full max-h-[250px] overflow-y-auto custom-scrollbar bg-slate-950/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl z-[120] animate-fade-in origin-top">
+                                            <div className="py-2 flex flex-col">
+                                                {INDIAN_STATES.map(state => (
+                                                    <button
+                                                        key={state}
+                                                        className={`w-full text-left px-4 py-2 text-[10px] md:text-sm transition-colors ${selectedFilter === state ? 'bg-gameOrange/20 text-gameOrange font-bold' : 'text-slate-300 hover:bg-white/5 hover:text-white font-medium'}`}
+                                                        onClick={() => {
+                                                            setSelectedFilter(state);
+                                                            setIsStudioDropdownOpen(false);
+                                                        }}
+                                                    >
+                                                        {state}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 border-box">
                                 <button 
                                     onClick={() => setActiveIndex(prev => Math.max(0, prev - 1))}
                                     disabled={activeIndex === 0}

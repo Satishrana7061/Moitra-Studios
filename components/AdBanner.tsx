@@ -20,8 +20,12 @@ export const AdBanner: React.FC<AdBannerProps> = ({ layoutArea, className = '', 
     if (dataAdSlot) {
       try {
         (window.adsbygoogle = window.adsbygoogle || []).push({});
-      } catch (e) {
-        console.warn("AdSense error", e);
+      } catch (e: any) {
+        if (e && e.message && e.message.includes("All 'ins' elements")) {
+          // ignore React 18 strict mode duplicate push error
+        } else {
+          console.warn("AdSense error", e);
+        }
       }
     }
   }, [dataAdSlot]);

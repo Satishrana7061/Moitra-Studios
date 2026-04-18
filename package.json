@@ -7,7 +7,7 @@
     "dev": "vite",
     "dev:backend": "cd rajneeti-backend && npm run dev",
     "dev:all": "concurrently \"npm run dev\" \"npm run dev:backend\"",
-    "build": "vite build && cp dist/index.html dist/404.html",
+    "build": "vite build && node -e \"require('fs').copyFileSync('dist/index.html', 'dist/404.html')\"",
     "preview": "vite preview"
   },
   "dependencies": {

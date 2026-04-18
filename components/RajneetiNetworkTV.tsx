@@ -58,7 +58,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const activeIndex = useMemo(() => {
         if (!newsData || newsData.length === 0) return 0;
         if (!slug) return 0;
-        const matchedIndex = newsData.findIndex(n => createSlug(n.ticker_headline) === slug);
+        const matchedIndex = newsData.findIndex(n => createSlug(n.ticker_headline || n.blog_title) === slug);
         return matchedIndex >= 0 ? matchedIndex : 0;
     }, [newsData, slug]);
 
@@ -416,7 +416,7 @@ const RajneetiNetworkTV: React.FC = () => {
     // Ensure the URL always reflects the actual displayed article (derived activeIndex), especially after a state filter change
     useEffect(() => {
         if (newsData && newsData.length > 0) {
-            const derivedSlug = createSlug(newsData[activeIndex]?.ticker_headline);
+            const derivedSlug = createSlug(newsData[activeIndex]?.ticker_headline || newsData[activeIndex]?.blog_title);
             if (slug !== derivedSlug) {
                 navigate(`/rajneeti-tv-network/${derivedSlug}`, { replace: true, state: location.state });
             }
@@ -605,7 +605,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                             <React.Fragment key={idx}>
                                                 <article
                                                     ref={(el) => { articleRefs.current[idx] = el; }}
-                                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(news.ticker_headline)}`, { state: location.state })}
+                                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(news.ticker_headline || news.blog_title)}`, { state: location.state })}
                                                     className={`flex flex-col gap-4 cursor-pointer transition-all duration-300 pb-6 border-t border-white/10 first:border-0 pt-6 scroll-mt-0 ${isActive ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}
                                                 >
                                                 <header className="relative">
@@ -704,7 +704,7 @@ const RajneetiNetworkTV: React.FC = () => {
 
                             <div className="flex items-center bg-white/5 border border-white/10 rounded-full p-1 border-box">
                                 <button 
-                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(newsData?.[activeIndex - 1]?.ticker_headline || '')}`, { state: location.state })}
+                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(newsData?.[activeIndex - 1]?.ticker_headline || newsData?.[activeIndex - 1]?.blog_title || '')}`, { state: location.state })}
                                     disabled={activeIndex === 0}
                                     className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
                                 >
@@ -714,7 +714,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                     {activeIndex + 1} / {newsData?.length}
                                 </span>
                                 <button 
-                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(newsData?.[activeIndex + 1]?.ticker_headline || '')}`, { state: location.state })}
+                                    onClick={() => navigate(`/rajneeti-tv-network/${createSlug(newsData?.[activeIndex + 1]?.ticker_headline || newsData?.[activeIndex + 1]?.blog_title || '')}`, { state: location.state })}
                                     disabled={activeIndex === (newsData?.length || 1) - 1}
                                     className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white disabled:opacity-30 transition-all"
                                 >

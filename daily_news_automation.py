@@ -366,7 +366,8 @@ def generate_daily_news(articles):
     # Shuffle articles list once to ensure variety across different runs and batches
     random.shuffle(articles)
 
-    for batch_num, target_states in enumerate(STATE_BATCHES, 1):        print(f"\n  🤖 Generating batch {batch_num}/9 for targeted states...")
+    for batch_num, target_states in enumerate(STATE_BATCHES, 1):
+        print(f"\n  🤖 Generating batch {batch_num}/9 for targeted states...")
         # Give variety to each batch by sliding the article window
         offset = (batch_num - 1) * 8
         batch_articles = articles[offset : offset + 30] or articles[:30]

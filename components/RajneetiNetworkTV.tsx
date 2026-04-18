@@ -432,7 +432,7 @@ const RajneetiNetworkTV: React.FC = () => {
         }
     }, [activeIndex, newsData, navigate, slug, location.state]);
 
-    const activeNews = newsData ? newsData[activeIndex] : null;
+    // duplicate activeNews removed
 
     const slides = useMemo(() => {
         if (!activeNews) return [];

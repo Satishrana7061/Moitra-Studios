@@ -157,7 +157,7 @@ const RajneetiNetworkTV: React.FC = () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Rajneeti-Reel-${activeNews.leader.replace(/\s+/g, '-')}-${Date.now()}.${extension}`;
+            a.download = `Rajneeti-Reel-${createSlug(activeNews.blog_title || activeNews.ticker_headline)}.${extension}`;
             a.click();
             URL.revokeObjectURL(url);
             setIsExporting(false);

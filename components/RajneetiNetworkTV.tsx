@@ -254,7 +254,7 @@ const RajneetiNetworkTV: React.FC = () => {
             wrapText(ctx, activeNews.blog_title, 80, 1680, 920, 60);
             
             // Watermark
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.fillStyle = 'rgba(220, 38, 38, 0.8)'; // Red
             ctx.font = '900 48px Rajdhani, sans-serif';
             const wm = "RAJNEETI TV NETWORK";
             const wmMetrics = ctx.measureText(wm);
@@ -791,7 +791,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex-1 flex flex-col justify-center relative min-h-[50%] mt-8 z-10">
+                            <div className="flex-1 flex flex-col justify-center relative min-h-[50%] mt-4 z-10 px-2 lg:px-4 pb-16">
                                 {slides.map((slide, i) => (
                                     <div 
                                         key={`${activeIndex}-${i}`} 
@@ -803,8 +803,8 @@ const RajneetiNetworkTV: React.FC = () => {
                                         <div className={`inline-block text-white px-4 py-1.5 font-black uppercase tracking-widest mb-6 shadow-lg text-[10px] md:text-xs ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
                                             {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
                                         </div>
-                                        <h2 className={`font-rajdhani leading-tight drop-shadow-xl ${
-                                            slide.type === 'headline' ? 'text-4xl md:text-5xl font-black text-white px-1' : 'text-2xl md:text-3xl font-bold text-slate-100 px-1'
+                                        <h2 className={`font-rajdhani leading-snug drop-shadow-xl ${
+                                            slide.type === 'headline' ? 'text-2xl md:text-3xl lg:text-4xl font-black text-white px-1' : 'text-xl md:text-2xl lg:text-3xl font-bold text-slate-100 px-1'
                                         }`}>
                                             {slide.content}
                                         </h2>
@@ -830,8 +830,8 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
                         </div>
                         {/* React UI Overlay Watermark */}
-                        <div className="absolute bottom-4 right-4 opacity-50 z-20 pointer-events-none">
-                            <span className="font-rajdhani font-black text-white/50 text-[10px] md:text-xs tracking-widest uppercase">
+                        <div className="absolute bottom-4 right-4 opacity-80 z-20 pointer-events-none">
+                            <span className="font-rajdhani font-black text-red-600 text-[10px] md:text-xs tracking-widest uppercase drop-shadow-[0_0_5px_rgba(220,38,38,0.5)]">
                                 RAJNEETI TV NETWORK
                             </span>
                         </div>

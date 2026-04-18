@@ -41,7 +41,7 @@ const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div className="flex flex-col items-center">
-            <h4 className="text-[10px] font-black text-gameOrange uppercase tracking-[0.3em] mb-4">Quick Links</h4>
+            <h2 className="text-[10px] font-black text-gameOrange uppercase tracking-[0.3em] mb-4">Quick Links</h2>
             <div className="flex flex-col items-center gap-2">
               <Link to="/indian-politics-game-home" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Home</Link>
               <Link to="/rajneeti-tv-network" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Rajneeti TV Network</Link>

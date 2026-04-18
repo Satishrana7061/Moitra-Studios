@@ -211,7 +211,10 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                             )}
                         </div>
 
-                        <button className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400">
+                        <button 
+                            aria-label={isExpanded ? "Collapse news ticker" : "Expand news ticker"}
+                            className="flex-shrink-0 w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400"
+                        >
                             {isExpanded ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
                         </button>
                     </div>

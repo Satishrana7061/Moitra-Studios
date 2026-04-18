@@ -133,6 +133,7 @@ const Navbar: React.FC = () => {
           {/* Mobile/iPad Menu Button */}
           <div className="lg:hidden flex">
             <button
+              aria-label="Toggle navigation menu"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-slate-400 hover:text-white p-2 transition-colors border border-white/5 rounded-lg bg-white/5"
             >

@@ -682,7 +682,8 @@ def generate_sitemap(news_events):
     print(f"  ✅ Sitemap generated at {sitemap_path}")
 
 
-def cleanup_old_data():    """Delete news older than 7 days to stay within free tier limits."""
+def cleanup_old_data():
+    """Delete news older than 7 days to stay within free tier limits."""
     cutoff = (NOW - timedelta(days=7)).strftime("%Y-%m-%d")
     result = supabase_request("DELETE", f"news_events?news_date=lt.{cutoff}")
     if result is not None:

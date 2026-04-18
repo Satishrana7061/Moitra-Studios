@@ -102,6 +102,43 @@ function generateSimulatedResult(campaign: SocialCampaign): SocialCampaign {
 // ============================================================
 class CampaignService {
 
+  /** Map a static campaign entry to the shape the UI expects */
+  private mapStaticCampaign(c: any): SocialCampaign {
+    return {
+      id: c.id,
+      slug: c.id,
+      title: c.title,
+      subtitle: c.metaDescription || '',
+      issue_category: 'Policy Debate',
+      issue_summary: c.metaDescription || '',
+      issue_bullets: c.problemBullets || [],
+      status: c.status === 'closed' ? 'archived' : c.status,
+      start_time: c.startDate,
+      end_time: c.endDate,
+      approaches: (c.approaches || []).map((a: any) => ({
+        id: a.id,
+        leader_name: a.leaderName,
+        display_position: a.style === 'modi' ? 1 : 2,
+        policy_bullets: a.bullets,
+        framing_type: a.columnTitle,
+        style: a.style,
+        is_winner: c.results?.winnerStyle === a.style,
+      })),
+      total_votes: 0,
+      vote_percentages: c.results?.votePercentages || {},
+      winner_leader: c.results?.winnerStyle === 'modi' ? 'Narendra Modi' : c.results?.winnerStyle === 'rahul' ? 'Rahul Gandhi' : undefined,
+      winner_vote_percentage: c.results ? Math.max(...Object.values(c.results.votePercentages as Record<string, number>)) : undefined,
+      result_analysis: c.results?.analysis,
+    };
+  }
+
+  /** Check if a campaign's end_time has passed */
+  private isExpired(campaign: any): boolean {
+    const endTime = campaign.end_time || campaign.endDate;
+    if (!endTime) return false;
+    return new Date(endTime).getTime() < Date.now();
+  }
+
   async getActiveExperience(): Promise<{
     type: 'campaign' | 'topic_round' | 'buffer';
     data: any
@@ -118,7 +155,7 @@ class CampaignService {
 
         if (error && error.code !== 'PGRST116') throw error;
 
-        if (campaign) {
+        if (campaign && !this.isExpired(campaign)) {
           return {
             type: 'campaign',
             data: { ...campaign, approaches: campaign.leader_approaches }
@@ -129,10 +166,10 @@ class CampaignService {
       }
     }
 
-    // Static fallback
-    const activeCampaign = CAMPAIGNS_DATA.find(c => c.status === 'live') || CAMPAIGNS_DATA[0];
+    // Static fallback — only return a truly live, non-expired campaign
+    const activeCampaign = CAMPAIGNS_DATA.find(c => c.status === 'live' && !this.isExpired(c));
     if (activeCampaign) {
-      return { type: 'campaign', data: activeCampaign };
+      return { type: 'campaign', data: this.mapStaticCampaign(activeCampaign) };
     }
     return { type: 'buffer', data: null };
   }
@@ -192,12 +229,14 @@ class CampaignService {
       c => c.id === slug || c.title.toLowerCase().replace(/[^a-z0-9]+/g, '-') === slug
     );
     if (local) {
-      return generateSimulatedResult(local as any);
+      return generateSimulatedResult(this.mapStaticCampaign(local));
     }
     return null;
   }
 
   async getArchive(): Promise<SocialCampaign[]> {
+    let supabaseCampaigns: SocialCampaign[] = [];
+    
     if (supabase) {
       try {
         const { data, error } = await supabase
@@ -208,7 +247,7 @@ class CampaignService {
 
         if (error) throw error;
         if (data) {
-          return data.map(c => generateSimulatedResult({
+          supabaseCampaigns = data.map(c => generateSimulatedResult({
             ...c,
             approaches: c.leader_approaches,
           }));
@@ -218,9 +257,14 @@ class CampaignService {
       }
     }
 
-    return CAMPAIGNS_DATA
+    // Always include static closed campaigns (deduplicated by id)
+    const supabaseIds = new Set(supabaseCampaigns.map(c => c.id));
+    const staticArchived = CAMPAIGNS_DATA
       .filter(c => c.status === 'closed')
-      .map(c => generateSimulatedResult(c as any));
+      .filter(c => !supabaseIds.has(c.id))
+      .map(c => generateSimulatedResult(this.mapStaticCampaign(c)));
+
+    return [...supabaseCampaigns, ...staticArchived];
   }
 
   async castVote(

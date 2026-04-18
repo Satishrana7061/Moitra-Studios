@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock } from 'lucide-react';
 
 interface CountdownTimerProps {
@@ -15,23 +15,28 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate, onComplete,
         seconds: number;
     } | null>(null);
 
+    const completedRef = useRef(false);
+
     useEffect(() => {
+        completedRef.current = false; // Reset if targetDate changes
+
         const calculateTimeLeft = () => {
             const difference = +new Date(targetDate) - +new Date();
-            let timeLeftCalculated = null;
 
             if (difference > 0) {
-                timeLeftCalculated = {
+                return {
                     days: Math.floor(difference / (1000 * 60 * 60 * 24)),
                     hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
                     minutes: Math.floor((difference / 1000 / 60) % 60),
                     seconds: Math.floor((difference / 1000) % 60),
                 };
             } else {
-                if (onComplete) onComplete();
+                if (onComplete && !completedRef.current) {
+                    completedRef.current = true;
+                    onComplete();
+                }
+                return null;
             }
-
-            return timeLeftCalculated;
         };
 
         setTimeLeft(calculateTimeLeft());

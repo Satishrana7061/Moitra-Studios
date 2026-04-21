@@ -45,7 +45,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const navigate = useNavigate();
     const { slug } = useParams<{ slug?: string }>();
     const initialStateIndex = location.state?.activeIndex ?? 0;
-    const initialFilterState = location.state?.filterState || 'All States';
+    const initialFilterState = location.state?.filterState || 'National';
 
     const [newsData, setNewsData] = useState<DailyNews[] | null>(null);
     const [loading, setLoading] = useState(true);

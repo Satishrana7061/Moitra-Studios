@@ -6,7 +6,7 @@ export class SocialUploadService {
     /**
      * Uploads to Instagram Reels via Meta Graph API
      */
-    static async uploadToInstagram(videoBuffer: Buffer, caption: string): Promise<boolean> {
+    static async uploadToInstagram(videoUrl: string, caption: string): Promise<boolean> {
         console.log("[SocialUploadService] Uploading to Instagram Reels...");
         
         const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
@@ -30,7 +30,7 @@ export class SocialUploadService {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     media_type: 'REELS',
-                    video_url: 'YOUR_PUBLIC_S3_URL',
+                    video_url: videoUrl,
                     caption: caption,
                     access_token: accessToken
                 })

@@ -5,6 +5,8 @@ import { fetchFilteredNews } from "./rssFetcher.js";
 import { processNewsWithAI } from "./aiProcessor.js";
 import { RajneetiEvent } from "./types.js";
 import { PORT, REFRESH_INTERVAL_MS } from "./config.js";
+import { runAutomatedReelPipeline } from "./services/automatedReelPipeline.js";
+import { google } from 'googleapis';
 
 const app = express();
 app.use(cors());
@@ -92,6 +94,81 @@ app.get("/api/health", (_req, res) => {
     });
 });
 
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const TOKENS_FILE = path.join(__dirname, '../tokens.json');
+
+// Helper to save tokens
+function saveTokens(tokens: any) {
+    fs.writeFileSync(TOKENS_FILE, JSON.stringify(tokens, null, 2));
+}
+
+app.get("/api/youtube/connect", (req, res) => {
+    const oauth2Client = new google.auth.OAuth2(
+        process.env.YOUTUBE_CLIENT_ID,
+        process.env.YOUTUBE_CLIENT_SECRET,
+        process.env.YOUTUBE_REDIRECT_URI || "http://localhost:4000/api/youtube/callback"
+    );
+
+    const scopes = ['https://www.googleapis.com/auth/youtube.upload'];
+
+    const url = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: scopes,
+        prompt: 'consent'
+    });
+
+    res.redirect(url);
+});
+
+app.get("/api/youtube/callback", async (req, res) => {
+    const { code } = req.query;
+    if (!code) {
+        res.status(400).send("No code provided.");
+        return;
+    }
+
+    const oauth2Client = new google.auth.OAuth2(
+        process.env.YOUTUBE_CLIENT_ID,
+        process.env.YOUTUBE_CLIENT_SECRET,
+        process.env.YOUTUBE_REDIRECT_URI || "http://localhost:4000/api/youtube/callback"
+    );
+
+    try {
+        const { tokens } = await oauth2Client.getToken(code as string);
+        saveTokens({ YOUTUBE_REFRESH_TOKEN: tokens.refresh_token });
+        
+        console.log("=== YOUTUBE CONNECTED SUCCESSFULLY ===");
+        console.log("Refresh token saved to tokens.json automatically.");
+        res.send(`<h1>YouTube Connected!</h1><p>Your YouTube account has been successfully connected to Moitra Studios. The refresh token is saved securely on the server.</p>`);
+    } catch (err) {
+        console.error("Error retrieving tokens:", err);
+        res.status(500).send("Error connecting to YouTube.");
+    }
+});
+
+app.get("/api/youtube/disconnect", (req, res) => {
+    saveTokens({}); // Clear tokens
+    res.send(`<h1>Disconnected</h1><p>YouTube has been disconnected successfully.</p>`);
+});
+
+app.post("/api/youtube/upload", async (_req, res) => {
+    // This triggers the pipeline, which includes uploading to YouTube
+    runAutomatedReelPipeline().catch(console.error);
+    res.json({ message: "Test upload triggered via pipeline in background." });
+});
+
+// Endpoint to manually trigger the pipeline for testing
+app.post("/api/admin/trigger-pipeline", async (_req, res) => {
+    // In production, add auth here
+    runAutomatedReelPipeline().catch(console.error);
+    res.json({ message: "Pipeline triggered in background." });
+});
+
 // ── Start ───────────────────────────────────────────────────────
 app.listen(PORT, async () => {
     console.log(`\n🏛️  Rajneeti backend listening on http://localhost:${PORT}`);
@@ -102,4 +179,8 @@ app.listen(PORT, async () => {
 
     // Schedule periodic refreshes
     setInterval(refreshEvents, REFRESH_INTERVAL_MS);
+    
+    // Schedule the automated social reel pipeline (every 24 hours)
+    const PIPELINE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+    setInterval(runAutomatedReelPipeline, PIPELINE_INTERVAL_MS);
 });

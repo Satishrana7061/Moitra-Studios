@@ -15,7 +15,7 @@ async function callAIModel(prompt: string): Promise<string> {
       "Authorization": `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini",
+      model: "gpt-5.4-mini",
       messages: [
         { role: "system", content: "You are a helpful assistant that outputs strict JSON only." },
         { role: "user", content: prompt }

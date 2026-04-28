@@ -1,19 +1,10 @@
-import { translateToHindi, generateAudio } from './elevenLabsService.js';
-import { generateHeadlessVideo } from './puppeteerVideoGenerator.js';
-import { SocialUploadService } from './socialUploadService.js';
-
-// We assume we have a way to fetch from supabase in the backend, 
-// but for the sake of this pipeline, we will simulate the fetch
-// If you have a supabase client in backend, use it here.
-async function fetchTopNewsCampaigns() {
-    console.log("[Pipeline] Fetching top news campaigns from Supabase...");
+import fs from 'fs';
 import { fetchFilteredNews } from "../rssFetcher.js";
 import { processNewsWithAI } from "../aiProcessor.js";
 import { generateAudio } from "./elevenLabsService.js";
 import { generateHeadlessVideo } from "./puppeteerVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
-import fs from 'fs';
 
 /**
  * The master pipeline that orchestrates the entire headless video generation process.

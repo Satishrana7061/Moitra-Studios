@@ -360,10 +360,14 @@ const RajneetiMap: React.FC = () => {
                     .animate-pop-3d { animation: pop-3d 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
                     
                     @keyframes state-breathe {
-                        0%, 100% { transform: translate(0px, 0px) scale(1); filter: brightness(1); }
-                        50% { transform: translate(0px, 150000px) scale(1.15); filter: brightness(1.2); }
+                        0%, 100% { transform: translate(0px, 0px) scale(1); }
+                        50% { transform: translate(0px, 150000px) scale(1.15); }
                     }
-                    .animate-state-breathe { animation: state-breathe 6s infinite ease-in-out; }
+                    .animate-state-breathe { 
+                        transform-origin: center center;
+                        transform-box: fill-box;
+                        animation: state-breathe 6s infinite ease-in-out; 
+                    }
                     
                     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }

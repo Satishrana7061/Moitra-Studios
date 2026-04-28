@@ -305,8 +305,13 @@ const RajneetiMap: React.FC = () => {
                                                 const isSelected = selectedState === stateId;
                                                 const isHovered = hoveredState === stateId;
                                                 const isActive = isSelected || isHovered;
+                                                const isIdle = !selectedState && !hoveredState;
                                                 const d = getPath(f);
                                                 if (!d || d.length < 5) return null;
+                                                
+                                                // Create a stable delay so the animation doesn't reset on re-renders
+                                                const hash = stateId.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+                                                const delay = (hash % 10) * 0.6; // 0 to 5.4 seconds delay
 
                                                 return (
                                                     <path
@@ -316,12 +321,13 @@ const RajneetiMap: React.FC = () => {
                                                         stroke={isActive ? "#ffffff" : "#1e293b"}
                                                         strokeWidth={isActive ? "2500" : "1500"}
                                                         strokeOpacity={isActive ? 1 : 0.6}
-                                                        className="cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+                                                        className={`cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isIdle ? 'animate-state-breathe' : ''}`}
                                                         style={{
                                                             opacity: isSelected ? 1 : (isHovered ? 1 : 0.9),
                                                             transform: isActive ? 'translate(0px, 150000px) scale(1.15)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
-                                                            transformBox: 'fill-box'
+                                                            transformBox: 'fill-box',
+                                                            animationDelay: isIdle ? `${delay}s` : '0s'
                                                         }}
                                                         onMouseEnter={() => !selectedState && setHoveredState(stateId)}
                                                         onMouseLeave={() => setHoveredState(null)}
@@ -352,6 +358,13 @@ const RajneetiMap: React.FC = () => {
                     .animate-card-slide { animation: card-slide 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
                     @keyframes pop-3d { 0% { transform: scale(0.8) translateY(20px); opacity: 0; } 100% { transform: scale(1) translateY(0); opacity: 1; } }
                     .animate-pop-3d { animation: pop-3d 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+                    
+                    @keyframes state-breathe {
+                        0%, 100% { transform: translate(0px, 0px) scale(1); filter: brightness(1); }
+                        50% { transform: translate(0px, 150000px) scale(1.15); filter: brightness(1.2); }
+                    }
+                    .animate-state-breathe { animation: state-breathe 6s infinite ease-in-out; }
+                    
                     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }

@@ -5,27 +5,25 @@ export class SocialUploadService {
     
     /**
      * Uploads to Instagram Reels via Meta Graph API
+     * Requires a publicly accessible video URL (e.g. from Supabase Storage)
      */
     static async uploadToInstagram(videoUrl: string, caption: string): Promise<boolean> {
         console.log("[SocialUploadService] Uploading to Instagram Reels...");
         
         const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
-        const accountId = process.env.INSTAGRAM_ACCOUNT_ID;
+        const igUserId = process.env.INSTAGRAM_USER_ID; // The Instagram Business Account ID
         
-        if (!accessToken || !accountId) {
-            console.warn("[SocialUploadService] Missing Instagram credentials. Skipping upload.");
+        if (!accessToken || !igUserId) {
+            console.warn("[SocialUploadService] Missing Instagram credentials (INSTAGRAM_ACCESS_TOKEN or INSTAGRAM_USER_ID). Skipping upload.");
             return false;
         }
 
         try {
-            // Instagram Graph API requires a publicly accessible URL to the video.
-            // In a real production setup, you first upload the buffer to S3/Cloud Storage,
-            // get the public URL, and pass it to the Graph API.
-            // For now, this is the API sequence:
+            const baseUrl = `https://graph.facebook.com/v19.0/${igUserId}`;
 
-            /*
-            // 1. Initialize Reel Upload
-            const initRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media`, {
+            // 1. Initialize the media container for the Reel
+            console.log("[SocialUploadService] Initializing media container...");
+            const initRes = await fetch(`${baseUrl}/media`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -35,14 +33,37 @@ export class SocialUploadService {
                     access_token: accessToken
                 })
             });
-            const initData = await initRes.json();
-            const creationId = initData.id;
 
-            // 2. Wait for Instagram to process the video (can take 1-5 minutes)
-            // ... wait loop checking status ...
+            const initData = await initRes.json();
+            if (initData.error) {
+                throw new Error(`Instagram Init Error: ${initData.error.message}`);
+            }
+
+            const creationId = initData.id;
+            console.log(`[SocialUploadService] Container created: ${creationId}. Waiting for processing...`);
+
+            // 2. Poll for status (Instagram processes videos asynchronously)
+            // We wait up to 2 minutes (24 attempts * 5 seconds)
+            let status = 'IN_PROGRESS';
+            let attempts = 0;
+            while ((status === 'IN_PROGRESS' || status === 'STARTED') && attempts < 24) {
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                const statusRes = await fetch(`https://graph.facebook.com/v19.0/${creationId}?fields=status_code&access_token=${accessToken}`);
+                const statusData = await statusRes.json();
+                status = statusData.status_code;
+                
+                console.log(`[SocialUploadService] Status check ${attempts + 1}: ${status}`);
+                attempts++;
+            }
+
+            if (status !== 'FINISHED') {
+                throw new Error(`Instagram processing timed out or failed with status: ${status}`);
+            }
 
             // 3. Publish the Reel
-            const publishRes = await fetch(`https://graph.facebook.com/v19.0/${accountId}/media_publish`, {
+            console.log("[SocialUploadService] Publishing the Reel...");
+            const publishRes = await fetch(`${baseUrl}/media_publish`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -50,14 +71,16 @@ export class SocialUploadService {
                     access_token: accessToken
                 })
             });
-            const publishData = await publishRes.json();
-            console.log("Instagram Upload Success:", publishData.id);
-            */
 
-            console.log("[SocialUploadService] Simulated Instagram Upload successful.");
+            const publishData = await publishRes.json();
+            if (publishData.error) {
+                throw new Error(`Instagram Publish Error: ${publishData.error.message}`);
+            }
+
+            console.log(`[SocialUploadService] Instagram Upload Success! Reel ID: ${publishData.id}`);
             return true;
-        } catch (err) {
-            console.error("[SocialUploadService] Instagram Upload Failed:", err);
+        } catch (err: any) {
+            console.error("[SocialUploadService] Instagram Upload Failed:", err.message || err);
             return false;
         }
     }

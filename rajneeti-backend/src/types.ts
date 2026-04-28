@@ -15,6 +15,7 @@ export type RajneetiEvent = {
   delta: number; // -5 to +5
   sentiment: "positive" | "negative" | "neutral";
   summary: string;
+  hindi_content: string; // Hindi translation for news anchor voiceover
   mainPhrase: string;
   shareUrl: string;
   createdAt: string; // ISO timestamp

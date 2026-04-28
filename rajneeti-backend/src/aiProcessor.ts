@@ -1,35 +1,38 @@
 // src/aiProcessor.ts
-import { GEMINI_API_KEY } from "./config.js";
+import { OPENAI_API_KEY } from "./config.js";
 import { RawNewsItem, RajneetiEvent } from "./types.js";
 
-// ── Gemini API Call ─────────────────────────────────────────────
+// ── OpenAI GPT-5.4 API Call ─────────────────────────────────────
 async function callAIModel(prompt: string): Promise<string> {
-  if (!GEMINI_API_KEY || GEMINI_API_KEY === "PLACEHOLDER_API_KEY") {
-    throw new Error("GEMINI_API_KEY is not configured");
+  if (!OPENAI_API_KEY || OPENAI_API_KEY === "PLACEHOLDER_API_KEY") {
+    throw new Error("OPENAI_API_KEY is not configured");
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-  const res = await fetch(url, {
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${OPENAI_API_KEY}`,
+    },
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: 300,
-        temperature: 0.3, // low temp for consistent JSON
-      },
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a helpful assistant that outputs strict JSON only." },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 500,
+      temperature: 0.3,
     }),
   });
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Gemini API error ${res.status}: ${errText}`);
+    throw new Error(`OpenAI API error ${res.status}: ${errText}`);
   }
 
   const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-  if (!text) throw new Error("Empty Gemini response");
+  const text = data.choices?.[0]?.message?.content?.trim();
+  if (!text) throw new Error("Empty OpenAI response");
   return text;
 }
 
@@ -65,6 +68,7 @@ TASK:
 2. Assign an impact score "delta" from -5 to +5 (integers only). Positive means a boost, negative means a loss.
 3. Set sentiment: "positive", "negative", or "neutral".
 4. Write a short neutral summary (max 2 sentences) explaining the in-game effect in plain language.
+5. Translate the summary into expressive Hindi suitable for a news anchor to read aloud. Add natural pauses using commas. Store in "hindi_content".
 6. Propose a short kebab-case slug for a shareable URL.
 7. Extract a punchy "mainPhrase" (3-5 words) that captures the core event (e.g., "COMMERCE HUB", "HOUSING REVIVAL", "YOUTH OUTREACH").
 
@@ -86,6 +90,7 @@ Otherwise:
   "delta": 4,
   "sentiment": "positive",
   "summary": "Neutral game-style explanation...",
+  "hindi_content": "हिंदी में समाचार का विवरण...",
   "slug": "maharashtra-example-party-campus-reforms-plus-4",
   "mainPhrase": "MAIN CORE EVENT"
 }
@@ -107,7 +112,7 @@ export async function processNewsWithAI(
       const prompt = buildRajneetiPrompt(news, candidateList);
       const raw = await callAIModel(prompt);
 
-      // Strip markdown fences if Gemini wraps the JSON
+      // Strip markdown fences if the model wraps the JSON
       const cleaned = raw
         .replace(/^```json\s*/i, "")
         .replace(/^```\s*/i, "")
@@ -142,6 +147,7 @@ export async function processNewsWithAI(
         delta,
         sentiment: parsed.sentiment || "neutral",
         summary: parsed.summary || news.title,
+        hindi_content: parsed.hindi_content || "",
         mainPhrase: parsed.mainPhrase || (news.title.slice(0, 20) + "..."),
         shareUrl: `/rajneeti/${(parsed.stateCode || "in").toLowerCase()}/${id}`,
         createdAt: new Date().toISOString(),

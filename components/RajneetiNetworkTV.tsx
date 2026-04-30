@@ -338,17 +338,21 @@ const RajneetiNetworkTV: React.FC = () => {
             setLoading(true);
             try {
                 let finalData = null;
+                
+                // Determine if we should skip filtering (initial load with a slug from homepage)
+                const shouldSkipFilter = isInitialSlugLoad.current && slug;
+                
+                // Mark initial load as consumed after first fetch
+                if (isInitialSlugLoad.current) {
+                    isInitialSlugLoad.current = false;
+                }
+                
                 if (supabase) {
                     let query = supabase
                         .from('news_events')
                         .select('*')
                         .order('news_date', { ascending: false });
 
-                    // On initial load with a slug from homepage, do NOT apply state filter
-                    // and fetch more items so we guarantee the target article is in the dataset.
-                    // For subsequent filter changes (dropdown), apply the filter normally.
-                    const shouldSkipFilter = isInitialSlugLoad.current && slug;
-                    
                     if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
                         if (selectedFilter === 'National') {
                             const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front'];
@@ -356,11 +360,6 @@ const RajneetiNetworkTV: React.FC = () => {
                         } else {
                             query = query.ilike('state', selectedFilter);
                         }
-                    }
-                    
-                    // Mark initial load as consumed after first fetch
-                    if (isInitialSlugLoad.current) {
-                        isInitialSlugLoad.current = false;
                     }
 
                     const { data, error } = await query.limit(100);

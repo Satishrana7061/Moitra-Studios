@@ -374,12 +374,29 @@ const RajneetiNetworkTV: React.FC = () => {
                     }
                 }
                 
-                // Fallback to static JSON if Supabase fails or isn't used
-                if (!finalData) {
-                    const response = await fetch(`${import.meta.env.BASE_URL}daily_news.json?t=${Date.now()}`);
-                    const data = await response.json();
-                    if (data) {
-                        let jsonData = Array.isArray(data) ? data : [data];
+                // Fallback to static JSON if Supabase fails or isn't used or returns 0 results
+                if (!finalData || finalData.length === 0) {
+                    let jsonData = null;
+                    const paths = [
+                        `${import.meta.env.BASE_URL}daily_news.json`,
+                        '/daily_news.json',
+                        './daily_news.json'
+                    ];
+                    
+                    for (const path of paths) {
+                        try {
+                            const response = await fetch(`${path}?t=${Date.now()}`);
+                            if (response.ok) {
+                                const parsed = await response.json();
+                                jsonData = Array.isArray(parsed) ? parsed : [parsed];
+                                break;
+                            }
+                        } catch (e) {
+                            console.warn(`Failed to fetch JSON from ${path}`, e);
+                        }
+                    }
+
+                    if (jsonData) {
                         // Apply client-side filter for JSON fallback (only if not initial slug load)
                         if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
                             if (selectedFilter === 'National') {
@@ -397,7 +414,7 @@ const RajneetiNetworkTV: React.FC = () => {
                     }
                 }
                 
-                if (finalData) {
+                if (finalData && finalData.length > 0) {
                     setNewsData(finalData);
                 } else {
                     setNewsData([]);

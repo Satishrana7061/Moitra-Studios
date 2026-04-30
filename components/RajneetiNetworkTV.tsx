@@ -350,7 +350,12 @@ const RajneetiNetworkTV: React.FC = () => {
                     const shouldSkipFilter = isInitialSlugLoad.current && slug;
                     
                     if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
-                        query = query.ilike('state', selectedFilter);
+                        if (selectedFilter === 'National') {
+                            const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front'];
+                            query = query.in('leader', nationalLeaders);
+                        } else {
+                            query = query.ilike('state', selectedFilter);
+                        }
                     }
                     
                     // Mark initial load as consumed after first fetch
@@ -376,10 +381,17 @@ const RajneetiNetworkTV: React.FC = () => {
                     if (data) {
                         let jsonData = Array.isArray(data) ? data : [data];
                         // Apply client-side filter for JSON fallback (only if not initial slug load)
-                        if (selectedFilter && selectedFilter !== 'All States') {
-                            jsonData = jsonData.filter(item => 
-                                item.state?.toLowerCase() === selectedFilter.toLowerCase()
-                            );
+                        if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
+                            if (selectedFilter === 'National') {
+                                const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front'];
+                                jsonData = jsonData.filter(item => 
+                                    item.state?.toLowerCase() === 'national' || nationalLeaders.includes(item.leader)
+                                );
+                            } else {
+                                jsonData = jsonData.filter(item => 
+                                    item.state?.toLowerCase() === selectedFilter.toLowerCase()
+                                );
+                            }
                         }
                         finalData = jsonData;
                     }

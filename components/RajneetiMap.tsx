@@ -132,6 +132,42 @@ const RajneetiMap: React.FC = () => {
         return `${minX - margin} ${minY - margin} ${width + margin * 2} ${height + margin * 2}`;
     }, [countryData]);
 
+    const stateDelays = useMemo(() => {
+        if (!stateData) return {};
+        const delays: Record<string, number> = {};
+        
+        const centroids = stateData.features.map((f, i) => {
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            const processCoords = (coords: any) => {
+                if (typeof coords[0] === 'number') {
+                    minX = Math.min(minX, coords[0]);
+                    minY = Math.min(minY, coords[1]);
+                    maxX = Math.max(maxX, coords[0]);
+                    maxY = Math.max(maxY, coords[1]);
+                } else { coords.forEach(processCoords); }
+            };
+            processCoords(f.geometry.coordinates);
+            
+            // Map coordinates: X is longitude, Y is latitude. 
+            // We want the wave to sweep diagonally, e.g., North-West to South-East.
+            // minX - maxY creates a nice diagonal sweep across India
+            return { 
+                id: f.properties.State_Name || i.toString(), 
+                val: minX - maxY 
+            };
+        });
+
+        // Sort to create the wave sequence
+        centroids.sort((a, b) => a.val - b.val);
+        
+        const totalDuration = 15; // 15 seconds total animation loop
+        centroids.forEach((c, index) => {
+            delays[c.id] = (index / centroids.length) * totalDuration; 
+        });
+        
+        return delays;
+    }, [stateData]);
+
     const getPath = (feature: GeoJSONFeature) => {
         if (!feature.geometry || !feature.geometry.coordinates) return "";
         const { coordinates, type } = feature.geometry;
@@ -309,9 +345,8 @@ const RajneetiMap: React.FC = () => {
                                                 const d = getPath(f);
                                                 if (!d || d.length < 5) return null;
                                                 
-                                                // Create a stable delay so the animation doesn't reset on re-renders
-                                                const hash = stateId.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
-                                                const delay = (hash % 10) * 0.6; // 0 to 5.4 seconds delay
+                                                // Use the pre-calculated geographic delay
+                                                const delay = stateDelays[stateId] || 0;
 
                                                 return (
                                                     <path
@@ -327,7 +362,7 @@ const RajneetiMap: React.FC = () => {
                                                             transform: isActive ? 'translate(0px, 150000px) scale(1.15)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
                                                             transformBox: 'fill-box',
-                                                            animationDelay: isIdle ? `${delay}s` : '0s'
+                                                            animationDelay: isIdle ? `-${delay}s` : '0s'
                                                         }}
                                                         onMouseEnter={() => !selectedState && setHoveredState(stateId)}
                                                         onMouseLeave={() => setHoveredState(null)}
@@ -360,13 +395,13 @@ const RajneetiMap: React.FC = () => {
                     .animate-pop-3d { animation: pop-3d 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
                     
                     @keyframes state-breathe {
-                        0%, 100% { transform: translate(0px, 0px) scale(1); }
-                        50% { transform: translate(0px, 150000px) scale(1.15); }
+                        0%, 15%, 100% { transform: translate(0px, 0px) scale(1); }
+                        7.5% { transform: translate(0px, 150000px) scale(1.15); }
                     }
                     .animate-state-breathe { 
                         transform-origin: center center;
                         transform-box: fill-box;
-                        animation: state-breathe 6s infinite ease-in-out; 
+                        animation: state-breathe 15s infinite ease-in-out; 
                     }
                     
                     .custom-scrollbar::-webkit-scrollbar { width: 4px; }

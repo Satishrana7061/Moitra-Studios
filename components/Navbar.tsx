@@ -88,7 +88,7 @@ const Navbar: React.FC = () => {
           <div className="hidden sm:flex items-center absolute left-1/2 -translate-x-1/2">
             <div className="origin-top animate-hinge-swing group-hover:pause">
               <img
-                src="SplashTitle.png"
+                src="/SplashTitle.png"
                 alt="RAJNEETI"
                 className="h-8 md:h-12 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)] transition-transform hover:scale-110"
               />

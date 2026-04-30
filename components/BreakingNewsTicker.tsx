@@ -3,6 +3,7 @@ import { fetchBreakingNews, BreakingNewsEvent } from "../services/newsService";
 import { ChevronUp, ChevronDown, RefreshCw, Newspaper } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getLeaderAvatar } from "../lib/utils";
+import { getBaseApprovalRating } from "../lib/approvalRatings";
 
 import { MapPin } from "lucide-react";
 
@@ -140,6 +141,12 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                     ) : events.map((ev) => {
                         const sc = getSentimentConfig(ev.delta, ev.sentiment);
                         const isSelected = ev.id === selectedId;
+                        const baseRating = getBaseApprovalRating(ev.politicianName);
+                        const newRating = (baseRating + ev.delta).toFixed(1);
+                        const isPositive = ev.delta > 0;
+                        const arrowColor = isPositive ? 'text-emerald-500' : 'text-red-500';
+                        const sign = isPositive ? '+' : '';
+
                         return (
                             <article
                                 key={ev.id}
@@ -156,7 +163,12 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter shrink-0">{ev.stateName}</span>
                                             <span className="text-[9px] font-medium text-slate-500 truncate italic">by {ev.politicianName}</span>
                                         </div>
-                                        <span className={`text-[12px] font-black ${sc.text} shrink-0 ${ev.delta > 0 ? 'drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]'}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}</span>
+                                        <div className="flex items-center gap-1 shrink-0 bg-white/5 px-2 py-0.5 rounded border border-white/10" title="Genuine Approval Rating Impact">
+                                            <span className="text-[10px] font-bold text-slate-300">{baseRating.toFixed(1)}%</span>
+                                            <span className={`text-[10px] font-black ${arrowColor}`}>➔</span>
+                                            <span className="text-[11px] font-black text-white">{newRating}%</span>
+                                            <span className={`text-[9px] font-black ${arrowColor} ml-0.5`}>({sign}{ev.delta})</span>
+                                        </div>
                                     </div>
                                 </div>
                             </article>
@@ -226,6 +238,12 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                 {events.map((ev) => {
                                     const sc = getSentimentConfig(ev.delta, ev.sentiment);
                                     const isSelected = ev.id === selectedId;
+                                    const baseRating = getBaseApprovalRating(ev.politicianName);
+                                    const newRating = (baseRating + ev.delta).toFixed(1);
+                                    const isPositive = ev.delta > 0;
+                                    const arrowColor = isPositive ? 'text-emerald-500' : 'text-red-500';
+                                    const sign = isPositive ? '+' : '';
+
                                     return (
                                         <article
                                             key={`mob-${ev.id}`}
@@ -244,12 +262,17 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="text-[14px] font-bold text-white leading-tight line-clamp-2 mb-1.5">{ev.blogTitle || ev.summary}</h4>
-                                                <div className="flex items-center justify-between">
+                                                <div className="flex items-center justify-between mt-2">
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{ev.stateName}</span>
                                                         <span className="text-[9px] font-medium text-slate-500 italic">via {ev.politicianName}</span>
                                                     </div>
-                                                    <span className={`text-xs font-black ${sc.text}`}>{ev.delta > 0 ? '+' : ''}{ev.delta}</span>
+                                                    <div className="flex items-center gap-1.5 shrink-0 bg-white/5 px-2.5 py-1 rounded border border-white/10" title="Genuine Approval Rating Impact">
+                                                        <span className="text-[11px] font-bold text-slate-300">{baseRating.toFixed(1)}%</span>
+                                                        <span className={`text-[10px] font-black ${arrowColor}`}>➔</span>
+                                                        <span className="text-[12px] font-black text-white">{newRating}%</span>
+                                                        <span className={`text-[10px] font-black ${arrowColor} ml-0.5`}>({sign}{ev.delta})</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </article>

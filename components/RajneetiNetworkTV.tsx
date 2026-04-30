@@ -526,9 +526,25 @@ const RajneetiNetworkTV: React.FC = () => {
                     </div>
                 </header>
 
-                {loading || !newsData || !activeNews ? (
+                {loading ? (
                     <div className="flex-1 flex items-center justify-center relative z-10">
                         <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                ) : !newsData || newsData.length === 0 || !activeNews ? (
+                    <div className="flex-1 flex items-center justify-center relative z-10 p-8">
+                        <div className="bg-slate-900/90 backdrop-blur-xl p-10 rounded-2xl border border-white/10 flex flex-col items-center justify-center text-center gap-4 max-w-md shadow-2xl animate-fade-in">
+                            <Newspaper className="w-16 h-16 text-slate-500 opacity-50 mb-2" />
+                            <h2 className="text-2xl font-rajdhani font-black text-white uppercase tracking-widest">No Briefings Found</h2>
+                            <p className="text-slate-400 font-medium text-sm leading-relaxed">
+                                There are currently no political news events available for <span className="text-gameOrange font-bold">{selectedFilter}</span>.
+                            </p>
+                            <button 
+                                onClick={() => setSelectedFilter('All States')}
+                                className="mt-4 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl font-bold uppercase tracking-widest text-xs transition-colors shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] hover:scale-105 active:scale-95"
+                            >
+                                View All States
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <div className="relative z-10 flex flex-col gap-6 pb-20">

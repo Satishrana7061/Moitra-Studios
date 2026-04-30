@@ -163,7 +163,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                             <span className="text-[9px] font-black text-emerald-500 uppercase tracking-tighter shrink-0">{ev.stateName}</span>
                                             <span className="text-[9px] font-medium text-slate-500 truncate italic">by {ev.politicianName}</span>
                                         </div>
-                                        <div className="flex items-center gap-1 shrink-0 bg-white/5 px-2 py-0.5 rounded border border-white/10" title="Genuine Approval Rating Impact">
+                                        <div className={`flex items-center gap-1 shrink-0 bg-slate-950 px-2 py-0.5 rounded border ${isPositive ? 'border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.15)]' : 'border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.15)]'} backdrop-blur-md`} title="Genuine Approval Rating Impact">
                                             <span className="text-[10px] font-bold text-slate-300">{baseRating.toFixed(1)}%</span>
                                             <span className={`text-[10px] font-black ${arrowColor}`}>➔</span>
                                             <span className="text-[11px] font-black text-white">{newRating}%</span>
@@ -267,7 +267,7 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                                         <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">{ev.stateName}</span>
                                                         <span className="text-[9px] font-medium text-slate-500 italic">via {ev.politicianName}</span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5 shrink-0 bg-white/5 px-2.5 py-1 rounded border border-white/10" title="Genuine Approval Rating Impact">
+                                                    <div className={`flex items-center gap-1.5 shrink-0 bg-slate-950 px-2.5 py-1 rounded border ${isPositive ? 'border-emerald-500/40 shadow-[0_0_10px_rgba(16,185,129,0.15)]' : 'border-red-500/40 shadow-[0_0_10px_rgba(239,68,68,0.15)]'} backdrop-blur-md`} title="Genuine Approval Rating Impact">
                                                         <span className="text-[11px] font-bold text-slate-300">{baseRating.toFixed(1)}%</span>
                                                         <span className={`text-[10px] font-black ${arrowColor}`}>➔</span>
                                                         <span className="text-[12px] font-black text-white">{newRating}%</span>

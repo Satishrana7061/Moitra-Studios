@@ -35,11 +35,13 @@ const RajneetiMap: React.FC = () => {
     const [nationalNews, setNationalNews] = useState<BreakingNewsEvent[]>([]);
     const [stateNews, setStateNews] = useState<BreakingNewsEvent[]>([]);
     const [loadingStateNews, setLoadingStateNews] = useState(false);
+    const [patternType, setPatternType] = useState(0);
 
     const svgRef = useRef<SVGSVGElement>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
+        setPatternType(Math.floor(Math.random() * 6));
         const fetchMapData = async () => {
             try {
                 const paths = [
@@ -136,6 +138,8 @@ const RajneetiMap: React.FC = () => {
         if (!stateData) return {};
         const delays: Record<string, number> = {};
         
+        let minIndiaX = Infinity, maxIndiaX = -Infinity, minIndiaY = Infinity, maxIndiaY = -Infinity;
+
         const centroids = stateData.features.map((f, i) => {
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
             const processCoords = (coords: any) => {
@@ -148,13 +152,38 @@ const RajneetiMap: React.FC = () => {
             };
             processCoords(f.geometry.coordinates);
             
-            // Map coordinates: X is longitude, Y is latitude. 
-            // We want the wave to sweep diagonally, e.g., North-West to South-East.
-            // minX - maxY creates a nice diagonal sweep across India
+            const cx = (minX + maxX) / 2;
+            const cy = (minY + maxY) / 2;
+            
+            minIndiaX = Math.min(minIndiaX, cx);
+            maxIndiaX = Math.max(maxIndiaX, cx);
+            minIndiaY = Math.min(minIndiaY, cy);
+            maxIndiaY = Math.max(maxIndiaY, cy);
+
             return { 
                 id: f.properties.State_Name || i.toString(), 
-                val: minX - maxY 
+                val: 0,
+                cx, cy, minX, maxX, minY, maxY 
             };
+        });
+
+        const centerIndiaX = (minIndiaX + maxIndiaX) / 2;
+        const centerIndiaY = (minIndiaY + maxIndiaY) / 2;
+
+        centroids.forEach(c => {
+            switch (patternType) {
+                case 0: c.val = c.minX - c.maxY; break; // NW to SE
+                case 1: c.val = c.maxY - c.minX; break; // SE to NW
+                case 2: c.val = c.cx; break;            // West to East
+                case 3: c.val = -c.cy; break;           // North to South
+                case 4: // Center Out (radial)
+                    c.val = Math.sqrt(Math.pow(c.cx - centerIndiaX, 2) + Math.pow(c.cy - centerIndiaY, 2));
+                    break;
+                case 5: // Random Chaos
+                    c.val = Math.random();
+                    break;
+                default: c.val = c.minX - c.maxY; break;
+            }
         });
 
         // Sort to create the wave sequence
@@ -166,7 +195,7 @@ const RajneetiMap: React.FC = () => {
         });
         
         return delays;
-    }, [stateData]);
+    }, [stateData, patternType]);
 
     const getPath = (feature: GeoJSONFeature) => {
         if (!feature.geometry || !feature.geometry.coordinates) return "";
@@ -340,8 +369,7 @@ const RajneetiMap: React.FC = () => {
                                                 const stateId = f.properties.State_Name || i.toString();
                                                 const isSelected = selectedState === stateId;
                                                 const isHovered = hoveredState === stateId;
-                                                const isActive = isSelected || isHovered;
-                                                const isIdle = !selectedState && !hoveredState;
+                                                const isIdle = !selectedState;
                                                 const d = getPath(f);
                                                 if (!d || d.length < 5) return null;
                                                 
@@ -353,13 +381,13 @@ const RajneetiMap: React.FC = () => {
                                                         key={`state-${stateId}`}
                                                         d={d}
                                                         fill={isSelected ? "#3b82f6" : (isHovered ? "#60a5fa" : getStateColor(stateId))}
-                                                        stroke={isActive ? "#ffffff" : "#1e293b"}
-                                                        strokeWidth={isActive ? "2500" : "1500"}
-                                                        strokeOpacity={isActive ? 1 : 0.6}
+                                                        stroke={isSelected || isHovered ? "#ffffff" : "#1e293b"}
+                                                        strokeWidth={isSelected || isHovered ? "2500" : "1500"}
+                                                        strokeOpacity={isSelected || isHovered ? 1 : 0.6}
                                                         className={`cursor-pointer transition-all duration-[400ms] ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isIdle ? 'animate-state-breathe' : ''}`}
                                                         style={{
                                                             opacity: isSelected ? 1 : (isHovered ? 1 : 0.9),
-                                                            transform: isActive ? 'translate(0px, 150000px) scale(1.15)' : 'translate(0px, 0px) scale(1)',
+                                                            transform: isSelected ? 'translate(0px, 150000px) scale(1.15)' : 'translate(0px, 0px) scale(1)',
                                                             transformOrigin: 'center center',
                                                             transformBox: 'fill-box',
                                                             animationDelay: isIdle ? `-${delay}s` : '0s'

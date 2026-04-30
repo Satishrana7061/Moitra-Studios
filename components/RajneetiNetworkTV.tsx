@@ -374,30 +374,35 @@ const RajneetiNetworkTV: React.FC = () => {
                     }
                 }
                 
-                // Fallback to static JSON if Supabase fails or isn't used or returns 0 results
+                // Fallback to static JSON if Supabase fails or isn't used or returns empty
                 if (!finalData || finalData.length === 0) {
                     let jsonData = null;
                     const paths = [
                         `${import.meta.env.BASE_URL}daily_news.json`,
-                        '/daily_news.json',
-                        './daily_news.json'
+                        './daily_news.json',
+                        '/Moitra-Studios/daily_news.json',
+                        'https://raw.githubusercontent.com/Satishrana7061/Moitra-Studios/main/public/daily_news.json'
                     ];
                     
                     for (const path of paths) {
                         try {
                             const response = await fetch(`${path}?t=${Date.now()}`);
                             if (response.ok) {
-                                const parsed = await response.json();
-                                jsonData = Array.isArray(parsed) ? parsed : [parsed];
-                                break;
+                                const text = await response.text();
+                                // Ensure it's not returning an HTML 404 page from an SPA router
+                                if (!text.trim().startsWith('<')) {
+                                    const parsed = JSON.parse(text);
+                                    jsonData = Array.isArray(parsed) ? parsed : [parsed];
+                                    if (jsonData.length > 0) break;
+                                }
                             }
                         } catch (e) {
-                            console.warn(`Failed to fetch JSON from ${path}`, e);
+                            // ignore and try next path
                         }
                     }
 
                     if (jsonData) {
-                        // Apply client-side filter for JSON fallback (only if not initial slug load)
+                        // Apply client-side filter for JSON fallback
                         if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
                             if (selectedFilter === 'National') {
                                 const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front'];

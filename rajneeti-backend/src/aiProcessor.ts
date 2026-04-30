@@ -1,6 +1,7 @@
 // src/aiProcessor.ts
 import { OPENAI_API_KEY } from "./config.js";
 import { RawNewsItem, RajneetiEvent } from "./types.js";
+import { getBaseApprovalRating } from "../../lib/approvalRatings.js";
 
 // ── OpenAI GPT-5.4 API Call ─────────────────────────────────────
 async function callAIModel(prompt: string): Promise<string> {
@@ -137,6 +138,9 @@ export async function processNewsWithAI(
 
       const id = parsed.slug || `${parsed.stateCode}-${Date.now()}`;
       const delta = Math.max(-5, Math.min(5, parseInt(parsed.delta) || 0));
+      
+      const baseApproval = getBaseApprovalRating(parsed.politicianName);
+      const updatedApproval = parseFloat((baseApproval + delta).toFixed(1));
 
       const event: RajneetiEvent = {
         id,
@@ -144,6 +148,8 @@ export async function processNewsWithAI(
         stateName: parsed.stateName || "Unknown",
         politicianName: parsed.politicianName,
         partyName: parsed.partyName || "Independent",
+        baseApproval,
+        updatedApproval,
         delta,
         sentiment: parsed.sentiment || "neutral",
         summary: parsed.summary || news.title,

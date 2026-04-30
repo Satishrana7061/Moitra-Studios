@@ -12,6 +12,8 @@ export type RajneetiEvent = {
   stateName: string;
   politicianName: string;
   partyName: string;
+  baseApproval?: number;
+  updatedApproval?: number;
   delta: number; // -5 to +5
   sentiment: "positive" | "negative" | "neutral";
   summary: string;

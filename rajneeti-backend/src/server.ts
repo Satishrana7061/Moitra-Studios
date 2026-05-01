@@ -162,6 +162,43 @@ app.post("/api/youtube/upload", async (_req, res) => {
     res.json({ message: "Test upload triggered via pipeline in background." });
 });
 
+// Endpoint to manually publish a reel generated from the frontend
+app.post("/api/youtube/publish-manual", async (req, res) => {
+    const { videoUrl, title, description } = req.body;
+    
+    if (!videoUrl || !title) {
+        return res.status(400).json({ error: "Missing videoUrl or title" });
+    }
+
+    console.log(`[Manual Upload] Received request to publish: ${title}`);
+    
+    try {
+        // Download the video buffer from Supabase URL
+        const response = await fetch(videoUrl);
+        if (!response.ok) throw new Error(`Failed to fetch video from ${videoUrl}`);
+        
+        const arrayBuffer = await response.arrayBuffer();
+        const videoBuffer = Buffer.from(arrayBuffer);
+        
+        // Use the SocialUploadService to push to YouTube
+        const { SocialUploadService } = await import("./services/socialUploadService.js");
+        const success = await SocialUploadService.uploadToYouTube(
+            videoBuffer, 
+            title, 
+            description || "Political update from Rajneeti TV Network."
+        );
+        
+        if (success) {
+            res.json({ success: true, message: "Successfully published to YouTube Shorts!" });
+        } else {
+            res.status(500).json({ error: "YouTube upload failed. Check server logs." });
+        }
+    } catch (err: any) {
+        console.error("[Manual Upload] Error:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Endpoint to manually trigger the pipeline for testing
 app.post("/api/admin/trigger-pipeline", async (_req, res) => {
     // In production, add auth here

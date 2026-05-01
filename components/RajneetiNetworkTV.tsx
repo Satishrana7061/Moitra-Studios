@@ -49,6 +49,8 @@ const RajneetiNetworkTV: React.FC = () => {
 
     const [newsData, setNewsData] = useState<DailyNews[] | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isPublishing, setIsPublishing] = useState(false);
+    const [publishStatus, setPublishStatus] = useState<'idle' | 'uploading' | 'publishing' | 'success' | 'error'>('idle');
     const [selectedFilter, setSelectedFilter] = useState(initialFilterState);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isStudioDropdownOpen, setIsStudioDropdownOpen] = useState(false);
@@ -153,20 +155,75 @@ const RajneetiNetworkTV: React.FC = () => {
             if (e.data.size > 0) chunks.push(e.data);
         };
 
-        recorder.onstop = () => {
+        recorder.onstop = async () => {
             // Force MP4 format where possible, as WhatsApp natively rejects .webm
             const isMp4Compatible = selectedMimeType.includes('mp4') || selectedMimeType.includes('h264');
             const blobType = isMp4Compatible ? 'video/mp4' : 'video/webm';
             const extension = isMp4Compatible ? 'mp4' : 'webm';
             
             const blob = new Blob(chunks, { type: blobType });
+            
+            // 1. Trigger local download as before
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `Rajneeti-Reel-${createSlug(activeNews.blog_title || activeNews.ticker_headline)}.${extension}`;
+            const fileName = `Rajneeti-Reel-${createSlug(activeNews.blog_title || activeNews.ticker_headline)}.${extension}`;
+            a.download = fileName;
             a.click();
             URL.revokeObjectURL(url);
+            
+            // 2. Automate upload to Supabase and YouTube
             setIsExporting(false);
+            setIsPublishing(true);
+            setPublishStatus('uploading');
+            
+            try {
+                if (!supabase) throw new Error("Supabase not initialized");
+                
+                // Upload to 'automated-reels' bucket
+                const { data, error: uploadError } = await supabase.storage
+                    .from('automated-reels')
+                    .upload(fileName, blob, {
+                        contentType: blobType,
+                        upsert: true
+                    });
+                
+                if (uploadError) throw uploadError;
+                
+                // Get the public URL
+                const { data: { publicUrl } } = supabase.storage
+                    .from('automated-reels')
+                    .getPublicUrl(fileName);
+                
+                setPublishStatus('publishing');
+                
+                // 3. Call backend to publish to YouTube
+                const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+                const publishRes = await fetch(`${backendUrl}/api/youtube/publish-manual`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        videoUrl: publicUrl,
+                        title: activeNews.blog_title || activeNews.ticker_headline,
+                        description: `${activeNews.blog_title}\n\nPolitical update for ${activeNews.state}.\n#Rajneeti #News #Politics #Shorts`
+                    })
+                });
+                
+                if (!publishRes.ok) {
+                    const err = await publishRes.json();
+                    throw new Error(err.error || "YouTube publish failed");
+                }
+                
+                setPublishStatus('success');
+                setTimeout(() => {
+                    setIsPublishing(false);
+                    setPublishStatus('idle');
+                }, 5000);
+                
+            } catch (err: any) {
+                console.error("Automation error:", err);
+                setPublishStatus('error');
+            }
         };
 
         recorder.start();
@@ -834,6 +891,57 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
                         )}
 
+                        {isPublishing && (
+                            <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-6 backdrop-blur-md animate-fade-in">
+                                <div className="flex flex-col items-center gap-6 text-white p-8 bg-slate-900/90 rounded-2xl border border-white/10 shadow-2xl max-w-sm w-full text-center">
+                                    {publishStatus === 'uploading' && (
+                                        <>
+                                            <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                            <h3 className="text-xl font-rajdhani font-bold uppercase tracking-widest text-blue-400">Uploading to Cloud</h3>
+                                            <p className="text-slate-400 text-sm">Saving reel to Supabase storage...</p>
+                                        </>
+                                    )}
+                                    {publishStatus === 'publishing' && (
+                                        <>
+                                            <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
+                                            <h3 className="text-xl font-rajdhani font-bold uppercase tracking-widest text-red-400">Publishing to YouTube</h3>
+                                            <p className="text-slate-400 text-sm">Deploying reel to your channel via YouTube Shorts API...</p>
+                                        </>
+                                    )}
+                                    {publishStatus === 'success' && (
+                                        <>
+                                            <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                                                <Radio className="text-emerald-500 w-8 h-8" />
+                                            </div>
+                                            <h3 className="text-xl font-rajdhani font-bold uppercase tracking-widest text-emerald-400">Published Successfully!</h3>
+                                            <p className="text-slate-400 text-sm">Your reel is now live on YouTube Shorts.</p>
+                                            <button 
+                                                onClick={() => setIsPublishing(false)}
+                                                className="mt-4 px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-full text-xs font-bold uppercase transition-all"
+                                            >
+                                                Dismiss
+                                            </button>
+                                        </>
+                                    )}
+                                    {publishStatus === 'error' && (
+                                        <>
+                                            <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                                                <X className="text-red-500 w-8 h-8" />
+                                            </div>
+                                            <h3 className="text-xl font-rajdhani font-bold uppercase tracking-widest text-red-400">Publishing Failed</h3>
+                                            <p className="text-slate-400 text-sm">There was an error connecting to the YouTube API. Local download was successful.</p>
+                                            <button 
+                                                onClick={() => setIsPublishing(false)}
+                                                className="mt-4 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xs font-bold uppercase transition-all"
+                                            >
+                                                Close
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="absolute inset-0 bg-blue-900/20 flex flex-col items-center justify-center space-y-8 opacity-50 pointer-events-none">
                             <div className="w-[150%] aspect-square border-[40px] border-white/5 rounded-full animate-spin-slow absolute"></div>
                             <div className="w-[100%] aspect-square border-t-[8px] border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
@@ -850,7 +958,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="flex-1 flex flex-col justify-center relative min-h-[50%] mt-4 z-10 px-2 lg:px-4 pb-16">
+                            <div className="flex-1 flex flex-col justify-center relative mt-4 z-10 px-2 lg:px-4 pb-16 overflow-hidden">
                                 {slides.map((slide, i) => (
                                     <div 
                                         key={`${activeIndex}-${i}`} 

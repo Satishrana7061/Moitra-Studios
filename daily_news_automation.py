@@ -158,11 +158,11 @@ def fetch_rss_articles():
 # AI CALL (OpenAI primary, Gemini fallback)
 # Model: gpt-5.4 (flagship, released March 2026)
 # ═══════════════════════════════════════════════════════════════
-# AI Model: gpt-5.4 (OpenAI flagship)
-OPENAI_MODELS = ["gpt-5.4"]
+# AI Model: gpt-5.4-mini (OpenAI cost-effective flagship)
+OPENAI_MODELS = ["gpt-5.4-mini"]
 
 
-def call_openai(prompt, model="gpt-5.4"):
+def call_openai(prompt, model="gpt-5.4-mini"):
     resp = requests.post(
         "https://api.openai.com/v1/chat/completions",
         headers={"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"},
@@ -175,7 +175,7 @@ def call_openai(prompt, model="gpt-5.4"):
             "temperature": 0.7,
             "max_completion_tokens": 8000,
         },
-        timeout=180,   # gpt-5.4 is a large model — needs up to 3 minutes for big outputs
+        timeout=180,   # gpt-5.4-mini is very fast but allow up to 3 minutes for big outputs
     )
     if resp.status_code >= 400:
         error_detail = "unknown"
@@ -208,18 +208,18 @@ def call_gemini(prompt):
 
 
 def call_ai(prompt):
-    """Call gpt-5.4 via OpenAI. Fallback to Gemini if it fails or quota is exceeded."""
+    """Call gpt-5.4-mini via OpenAI. Fallback to Gemini if it fails or quota is exceeded."""
     result = None
     
     if OPENAI_API_KEY:
         try:
-            result = call_openai(prompt, model="gpt-5.4")
+            result = call_openai(prompt, model="gpt-5.4-mini")
             if result:
-                print("  ✅ AI response (gpt-5.4)")
+                print("  ✅ AI response (gpt-5.4-mini)")
                 return result
-            print("  ⚠  gpt-5.4 returned empty response.", file=sys.stderr)
+            print("  ⚠  gpt-5.4-mini returned empty response.", file=sys.stderr)
         except Exception as exc:
-            print(f"  ❌ gpt-5.4 failed: {exc}", file=sys.stderr)
+            print(f"  ❌ gpt-5.4-mini failed: {exc}", file=sys.stderr)
     else:
         print("  ⚠  OPENAI_API_KEY not set. Skipping OpenAI attempt.", file=sys.stderr)
         

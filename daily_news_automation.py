@@ -208,18 +208,35 @@ def call_gemini(prompt):
 
 
 def call_ai(prompt):
-    """Call gpt-5.4 via OpenAI. Exits with error if no key set."""
-    if not OPENAI_API_KEY:
-        print("  ❌ OPENAI_API_KEY not set. Cannot generate news.", file=sys.stderr)
-        return ""
-    try:
-        result = call_openai(prompt, model="gpt-5.4")
-        if result:
-            print("  ✅ AI response (gpt-5.4)")
-            return result
-        print("  ⚠  gpt-5.4 returned empty response.", file=sys.stderr)
-    except Exception as exc:
-        print(f"  ❌ gpt-5.4 failed: {exc}", file=sys.stderr)
+    """Call gpt-5.4 via OpenAI. Fallback to Gemini if it fails or quota is exceeded."""
+    result = None
+    
+    if OPENAI_API_KEY:
+        try:
+            result = call_openai(prompt, model="gpt-5.4")
+            if result:
+                print("  ✅ AI response (gpt-5.4)")
+                return result
+            print("  ⚠  gpt-5.4 returned empty response.", file=sys.stderr)
+        except Exception as exc:
+            print(f"  ❌ gpt-5.4 failed: {exc}", file=sys.stderr)
+    else:
+        print("  ⚠  OPENAI_API_KEY not set. Skipping OpenAI attempt.", file=sys.stderr)
+        
+    # Fallback to Gemini
+    if GEMINI_API_KEY:
+        print("  🔄 Falling back to Gemini...")
+        try:
+            result = call_gemini(prompt)
+            if result:
+                print("  ✅ AI response (Gemini)")
+                return result
+            print("  ⚠  Gemini returned empty response.", file=sys.stderr)
+        except Exception as exc:
+            print(f"  ❌ Gemini failed: {exc}", file=sys.stderr)
+    else:
+        print("  ⚠  GEMINI_API_KEY not set. Cannot use fallback.", file=sys.stderr)
+        
     return ""
 
 

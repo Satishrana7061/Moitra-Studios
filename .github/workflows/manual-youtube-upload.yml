@@ -1,0 +1,35 @@
+name: Serverless YouTube Upload
+
+on:
+  repository_dispatch:
+    types: [youtube-upload-event]
+
+jobs:
+  upload-to-youtube:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'rajneeti-backend/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: ./rajneeti-backend
+        run: npm ci
+
+      - name: Run Upload Script
+        working-directory: ./rajneeti-backend
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          VIDEO_URL: ${{ github.event.client_payload.videoUrl }}
+          VIDEO_TITLE: ${{ github.event.client_payload.title }}
+          VIDEO_DESCRIPTION: ${{ github.event.client_payload.description }}
+        run: npx tsx src/uploadFromAction.ts

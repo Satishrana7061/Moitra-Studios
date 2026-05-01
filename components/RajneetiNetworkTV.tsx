@@ -197,15 +197,26 @@ const RajneetiNetworkTV: React.FC = () => {
                 
                 setPublishStatus('publishing');
                 
-                // 3. Call backend to publish to YouTube
-                const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
-                const publishRes = await fetch(`${backendUrl}/api/youtube/publish-manual`, {
+                // 3. Trigger Serverless GitHub Action to publish to YouTube
+                const githubPat = import.meta.env.VITE_GITHUB_PAT;
+                if (!githubPat) {
+                    throw new Error("Missing VITE_GITHUB_PAT to trigger serverless upload.");
+                }
+                
+                const publishRes = await fetch(`https://api.github.com/repos/Satishrana7061/Moitra-Studios/dispatches`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Authorization': `token ${githubPat}`,
+                        'Content-Type': 'application/json' 
+                    },
                     body: JSON.stringify({
-                        videoUrl: publicUrl,
-                        title: activeNews.blog_title || activeNews.ticker_headline,
-                        description: `${activeNews.blog_title}\n\nPolitical update for ${activeNews.state}.\n#Rajneeti #News #Politics #Shorts`
+                        event_type: 'youtube-upload-event',
+                        client_payload: {
+                            videoUrl: publicUrl,
+                            title: activeNews.blog_title || activeNews.ticker_headline,
+                            description: `${activeNews.blog_title}\n\nPolitical update for ${activeNews.state}.\n#Rajneeti #News #Politics #Shorts`
+                        }
                     })
                 });
                 

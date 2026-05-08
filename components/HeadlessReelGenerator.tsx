@@ -83,11 +83,12 @@ const HeadlessReelGenerator: React.FC = () => {
                     ...dest.stream.getAudioTracks()
                 ]);
 
-                // Force MP4 encoding for Instagram
-                let mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
+                // Use WebM for reliability in headless environments
+                let mimeType = 'video/webm;codecs=vp9,opus';
                 if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    mimeType = 'video/webm;codecs=vp9'; // Fallback, backend ffmpeg might be needed
+                    mimeType = 'video/webm'; // Basic fallback
                 }
+
 
                 const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 4_000_000 });
                 const chunks: Blob[] = [];

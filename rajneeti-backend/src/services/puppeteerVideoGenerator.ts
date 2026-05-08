@@ -54,8 +54,14 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         // Remove 'data:video/mp4;base64,' prefix
         const base64Data = (base64Video as string).replace(/^data:video\/[a-z]+;base64,/, "");
         const videoBuffer = Buffer.from(base64Data, 'base64');
+        if (videoBuffer.length < 1000) {
+            throw new Error(`Generated video is too small (${videoBuffer.length} bytes). Recording likely failed.`);
+        }
 
         return videoBuffer;
+
+
+
     } catch (err) {
         console.error("[Puppeteer] Error during video generation:", err);
         throw err;

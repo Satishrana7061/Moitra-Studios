@@ -12,6 +12,8 @@ const RajneetiNetworkTV = lazy(() => import('./components/RajneetiNetworkTV'));
 const SocialCampaignsList = lazy(() => import('./components/SocialCampaignsList'));
 const SocialCampaignDetail = lazy(() => import('./components/SocialCampaignDetail'));
 const HeadlessReelGenerator = lazy(() => import('./components/HeadlessReelGenerator'));
+const TermsOfService = lazy(() => import('./components/TermsOfService'));
+
 
 const PageLoader = () => (
   <div className="flex-1 flex items-center justify-center min-h-screen bg-slate-950">
@@ -64,6 +66,8 @@ const App: React.FC = () => {
             <Route path="/social-campaign" element={<SocialCampaignsList />} />
             <Route path="/social-campaign/:id" element={<SocialCampaignDetail />} />
             <Route path="/headless-reel/:id" element={<HeadlessReelGenerator />} />
+            <Route path="/terms-of-service" element={<TermsOfService />} />
+
             <Route path="*" element={<RajneetiMap />} />
           </Routes>
         </Suspense>

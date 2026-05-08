@@ -46,7 +46,9 @@ const Footer: React.FC = () => {
               <Link to="/indian-politics-game-home" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Home</Link>
               <Link to="/rajneeti-tv-network" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Rajneeti TV Network</Link>
               <Link to="/privacy-policy" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Privacy Policy</Link>
+              <Link to="/terms-of-service" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Terms of Service</Link>
               <Link to="/contact-us" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Contact Us</Link>
+
             </div>
           </div>
 

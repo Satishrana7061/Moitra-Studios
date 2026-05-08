@@ -12,6 +12,9 @@ on:
       news_title:
         description: 'Specific news title (optional)'
         required: false
+  repository_dispatch:
+    types: [daily-reels-manual]
+
 
 jobs:
   generate-and-upload:
@@ -58,7 +61,8 @@ jobs:
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           
           # Optional Inputs
-          NEWS_SLUG: ${{ github.event.inputs.news_slug }}
-          NEWS_TITLE: ${{ github.event.inputs.news_title }}
+          NEWS_SLUG: ${{ github.event.inputs.news_slug || github.event.client_payload.slug }}
+          NEWS_TITLE: ${{ github.event.inputs.news_title || github.event.client_payload.title }}
+
         run: npx tsx src/runPipeline.ts
 

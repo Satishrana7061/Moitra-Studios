@@ -1,31 +1,37 @@
 import puppeteer from 'puppeteer';
+import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 
 export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
     const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
     const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news from Rajneeti Network TV.');
-    
+
     const targetUrl = `${FRONTEND_URL}/#/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}`;
 
+    // Create a temp directory for our frames
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));
+    const outputPath = path.join(tmpDir, 'output.mp4');
 
-    
     console.log(`[Puppeteer] Launching headless browser...`);
     const browser = await puppeteer.launch({
         headless: true,
         args: [
-            '--no-sandbox', 
+            '--no-sandbox',
             '--disable-setuid-sandbox',
-            '--use-fake-ui-for-media-stream', // Allow audio mixing
-            '--autoplay-policy=no-user-gesture-required' // Allow audio to play
+            '--disable-dev-shm-usage',
+            '--disable-gpu'
         ]
     });
 
     try {
         const page = await browser.newPage();
-        
-        // Pass console logs to Node context for debugging
+
+        // Set viewport to match our canvas size
+        await page.setViewport({ width: 1080, height: 1920 });
+
         page.on('console', msg => console.log('PAGE LOG:', msg.text()));
 
         console.log(`[Puppeteer] Navigating to ${targetUrl}`);
@@ -37,40 +43,92 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             return statusEl && statusEl.innerText === 'ready';
         }, { timeout: 30000 });
 
-        // Convert audio buffer to Data URI
-        const audioDataUri = `data:audio/mpeg;base64,${audioBuffer.toString('base64')}`;
+        // Get total number of slides
+        const totalSlides = await page.evaluate(() => (window as any).totalSlides || 3);
+        console.log(`[Puppeteer] Found ${totalSlides} slides to render.`);
 
-        console.log(`[Puppeteer] Triggering generateReelBase64...`);
-        const base64Video = await page.evaluate(async (audioData) => {
-            try {
-                // @ts-ignore
-                return await window.generateReelBase64(audioData);
-            } catch (err) {
-                console.error("Reel generation failed inside page:", err);
-                return null;
+        // Render each slide and take a screenshot of the canvas
+        for (let i = 0; i < totalSlides; i++) {
+            console.log(`[Puppeteer] Rendering slide ${i + 1}/${totalSlides}...`);
+
+            const success = await page.evaluate((idx: number) => {
+                try {
+                    return (window as any).renderSlide(idx);
+                } catch (err) {
+                    console.error(`renderSlide(${idx}) failed:`, err);
+                    return false;
+                }
+            }, i);
+
+            if (!success) {
+                throw new Error(`renderSlide(${i}) returned false or threw`);
             }
-        }, audioDataUri);
 
-        if (!base64Video) {
-            throw new Error("Video generation returned null");
+            // Small delay to let the canvas paint settle
+            await new Promise(r => setTimeout(r, 200));
+
+            // Grab the canvas element and screenshot it
+            const canvasHandle = await page.$('canvas');
+            if (!canvasHandle) {
+                throw new Error("Canvas element not found on page");
+            }
+
+            const framePath = path.join(tmpDir, `slide_${i}.png`);
+            await canvasHandle.screenshot({ path: framePath, type: 'png' });
+
+            const stat = fs.statSync(framePath);
+            console.log(`[Puppeteer] Saved ${framePath} (${stat.size} bytes)`);
         }
 
-        console.log(`[Puppeteer] Video generation complete. Processing blob...`);
-        // Remove 'data:video/mp4;base64,' prefix
-        const base64Data = (base64Video as string).replace(/^data:video\/[a-z]+;base64,/, "");
-        const videoBuffer = Buffer.from(base64Data, 'base64');
+        await browser.close();
+
+        // ── Use ffmpeg to stitch PNGs into an MP4 ────────────────────
+        console.log(`[Puppeteer] Stitching ${totalSlides} slides into MP4 with ffmpeg...`);
+
+        // Build a concat file for ffmpeg (each slide shown for 3.5 seconds)
+        const concatLines: string[] = [];
+        for (let i = 0; i < totalSlides; i++) {
+            const framePath = path.join(tmpDir, `slide_${i}.png`);
+            concatLines.push(`file '${framePath}'`);
+            concatLines.push(`duration 3.5`);
+        }
+        // Repeat last frame (ffmpeg concat demuxer requirement)
+        concatLines.push(`file '${path.join(tmpDir, `slide_${totalSlides - 1}.png`)}'`);
+
+        const concatFilePath = path.join(tmpDir, 'concat.txt');
+        fs.writeFileSync(concatFilePath, concatLines.join('\n'));
+
+        // Build ffmpeg command
+        const ffmpegCmd = [
+            'ffmpeg', '-y',
+            '-f', 'concat', '-safe', '0',
+            '-i', concatFilePath,
+            '-vf', 'scale=1080:1920,format=yuv420p',
+            '-c:v', 'libx264',
+            '-preset', 'fast',
+            '-r', '30',
+            '-movflags', '+faststart',
+            outputPath
+        ].join(' ');
+
+        console.log(`[ffmpeg] Running: ${ffmpegCmd}`);
+        execSync(ffmpegCmd, { stdio: 'pipe', timeout: 60000 });
+
+        const videoBuffer = fs.readFileSync(outputPath);
+        console.log(`[Puppeteer] Video generated successfully. Size: ${videoBuffer.length} bytes`);
+
         if (videoBuffer.length < 1000) {
-            throw new Error(`Generated video is too small (${videoBuffer.length} bytes). Recording likely failed.`);
+            throw new Error(`Generated video is too small (${videoBuffer.length} bytes). ffmpeg likely failed.`);
         }
 
         return videoBuffer;
-
-
 
     } catch (err) {
         console.error("[Puppeteer] Error during video generation:", err);
         throw err;
     } finally {
-        await browser.close();
+        await browser.close().catch(() => {});
+        // Cleanup temp files
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
     }
 }

@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { dynamicCampaignService } from '../services/dynamicCampaignService';
 
-// This is a hidden route /headless-reel/:id optimized for Puppeteer
-// It exposes window.generateReelBase64() which the backend calls.
+// This is a hidden route /#/headless-reel/:id optimized for Puppeteer.
+// It exposes window.renderSlide(index) which draws a single slide onto the canvas,
+// then Puppeteer takes a screenshot.  ffmpeg stitches the PNGs into an MP4 server-side.
 const HeadlessReelGenerator: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -16,11 +17,10 @@ const HeadlessReelGenerator: React.FC = () => {
 
     useEffect(() => {
         if (urlTitle) {
-            // Priority 1: Data passed via URL parameters (Most reliable)
             setCampaign({
                 title: urlTitle,
                 issue_summary: urlSummary || "Rajneeti political update.",
-                issue_bullets: (urlSummary || "").split('. ').filter(s => s.length > 5).slice(0, 4),
+                issue_bullets: (urlSummary || "").split('. ').filter((s: string) => s.length > 5).slice(0, 4),
                 approaches: [
                     { style: "modi", policy_bullets: ["Development focus", "Infrastructure growth"] },
                     { style: "rahul", policy_bullets: ["Social justice", "Grassroots connect"] }
@@ -28,15 +28,10 @@ const HeadlessReelGenerator: React.FC = () => {
             });
             setStatus('ready');
         } else if (id) {
-            // Priority 2: Fetch from API if no URL params
             dynamicCampaignService.getCampaignBySlug(id)
                 .then(c => {
-                    if (c) {
-                        setCampaign(c);
-                        setStatus('ready');
-                    } else {
-                        throw new Error("Empty campaign");
-                    }
+                    if (c) { setCampaign(c); setStatus('ready'); }
+                    else { throw new Error("Empty campaign"); }
                 })
                 .catch(err => {
                     console.warn("Using mock campaign for testing/fallback", err);
@@ -54,203 +49,141 @@ const HeadlessReelGenerator: React.FC = () => {
         }
     }, [id, urlTitle, urlSummary]);
 
-
-
+    // ── Expose slide-rendering helpers for Puppeteer ──────────────
     useEffect(() => {
-        // Expose function for Puppeteer
-        (window as any).generateReelBase64 = async (audioUrl?: string) => {
-            return new Promise(async (resolve, reject) => {
-                if (!campaign) return reject("Campaign not loaded");
-                const canvas = canvasRef.current;
-                if (!canvas) return reject("No canvas");
+        if (!campaign) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
 
-                setStatus('recording');
+        const ctx = canvas.getContext('2d', { alpha: false });
+        if (!ctx) return;
 
-                const ctx = canvas.getContext('2d', { alpha: false });
-                if (!ctx) return reject("No 2d context");
+        canvas.width = 1080;
+        canvas.height = 1920;
 
-                canvas.width = 1080;
-                canvas.height = 1920;
-
-                const stream = canvas.captureStream(30);
-
-                // If audioUrl is provided (ElevenLabs MP3), merge it into the stream
-                const audioCtx = new AudioContext();
-                const dest = audioCtx.createMediaStreamDestination();
-                
-                if (audioUrl && audioUrl.length > 50) { // Check if it's a real base64/URL
-                    try {
-                        const response = await fetch(audioUrl);
-                        const arrayBuffer = await response.arrayBuffer();
-                        if (arrayBuffer.byteLength > 0) {
-                            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                            const source = audioCtx.createBufferSource();
-                            source.buffer = audioBuffer;
-                            source.connect(dest);
-                            source.start();
-                        }
-                    } catch (err) {
-                        console.error("Audio mix failed", err);
-                    }
-                }
-
-
-                // Combine video and audio tracks only if audio is available
-                const streamTracks = [...stream.getVideoTracks()];
-                if (audioUrl && audioUrl.length > 50) {
-                    streamTracks.push(...dest.stream.getAudioTracks());
-                }
-                
-                const combinedStream = new MediaStream(streamTracks);
-
-                // Use WebM for reliability in headless environments
-                let mimeType = 'video/webm;codecs=vp9,opus';
-                if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    mimeType = 'video/webm'; 
-                }
-
-                const recorder = new MediaRecorder(combinedStream, { 
-                    mimeType, 
-                    videoBitsPerSecond: 5_000_000 // Higher quality
-                });
-
-                const chunks: Blob[] = [];
-                recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
-                recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: mimeType });
-                    const reader = new FileReader();
-                    reader.onloadend = () => resolve(reader.result); // Base64 Data URL
-                    reader.readAsDataURL(blob);
-                    setStatus('done');
-                };
-
-                const SLIDE_DURATION_MS = 3500;
-                const FPS = 30;
-                const FRAMES_PER_SLIDE = Math.round((SLIDE_DURATION_MS / 1000) * FPS);
-
-                const wrapText = (text: string, x: number, y: number, maxW: number, lineH: number) => {
-                    const words = text.split(' ');
-                    let line = '';
-                    let cy = y;
-                    for (const word of words) {
-                        const test = line + word + ' ';
-                        if (ctx.measureText(test).width > maxW && line) {
-                            ctx.fillText(line.trim(), x, cy);
-                            line = word + ' ';
-                            cy += lineH;
-                        } else { line = test; }
-                    }
-                    if (line) ctx.fillText(line.trim(), x, cy);
-                    return cy;
-                };
-
-                const modiApproach = campaign.approaches?.find((a:any) => a.style === 'modi');
-                const rahulApproach = campaign.approaches?.find((a:any) => a.style === 'rahul');
-
-                const slides = [
-                    {
-                        label: 'THE DEBATE',
-                        color: '#6366f1', accent: '#818cf8',
-                        bullets: (campaign.issue_bullets || []).slice(0, 4),
-                        intro: campaign.issue_summary?.slice(0, 200) || campaign.title,
-                    },
-                    {
-                        label: "MODI'S APPROACH",
-                        color: '#ea580c', accent: '#fb923c',
-                        bullets: (modiApproach?.policy_bullets || []).slice(0, 4),
-                        intro: '',
-                    },
-                    {
-                        label: "RAHUL'S APPROACH",
-                        color: '#2563eb', accent: '#60a5fa',
-                        bullets: (rahulApproach?.policy_bullets || []).slice(0, 4),
-                        intro: '',
-                    },
-                ];
-
-                recorder.start();
-
-                for (let si = 0; si < slides.length; si++) {
-                    const slide = slides[si];
-                    for (let f = 0; f < FRAMES_PER_SLIDE; f++) {
-                        const progress = f / FRAMES_PER_SLIDE;
-
-                        const grad = ctx.createLinearGradient(0, 0, 0, 1920);
-                        grad.addColorStop(0, '#09090f');
-                        grad.addColorStop(1, '#0d0d1c');
-                        ctx.fillStyle = grad;
-                        ctx.fillRect(0, 0, 1080, 1920);
-
-                        ctx.fillStyle = slide.color;
-                        ctx.fillRect(0, 0, 1080, 10);
-
-                        ctx.fillStyle = slide.color + '22';
-                        ctx.beginPath();
-                        ctx.roundRect(80, 80, 400, 60, 30);
-                        ctx.fill();
-                        ctx.fillStyle = slide.color;
-                        ctx.font = 'bold 30px Arial';
-                        ctx.textAlign = 'left';
-                        ctx.fillText(slide.label, 110, 120);
-
-                        ctx.strokeStyle = slide.accent + '33';
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath(); ctx.moveTo(80, 165); ctx.lineTo(1000, 165); ctx.stroke();
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = 'bold 56px Arial';
-                        ctx.textAlign = 'center';
-                        const titleEndY = wrapText(campaign.title, 540, 250, 940, 70);
-
-                        let contentStartY = titleEndY + 60;
-                        if (slide.intro) {
-                            ctx.fillStyle = 'rgba(148,163,184,0.9)';
-                            ctx.font = '34px Arial';
-                            contentStartY = wrapText(slide.intro, 540, contentStartY, 900, 48) + 70;
-                        }
-
-                        const visibleBullets = Math.min(slide.bullets.length, Math.ceil(progress * (slide.bullets.length + 1)));
-                        let bulletY = contentStartY;
-                        ctx.textAlign = 'left';
-                        for (let bi = 0; bi < visibleBullets; bi++) {
-                            const bullet = slide.bullets[bi];
-                            if (!bullet) continue;
-                            const alpha = bi < visibleBullets - 1 ? 1 : progress;
-
-                            ctx.fillStyle = slide.accent;
-                            ctx.beginPath();
-                            ctx.arc(100, bulletY - 10, 8, 0, Math.PI * 2);
-                            ctx.fill();
-
-                            ctx.fillStyle = `rgba(226,232,240,${alpha})`;
-                            ctx.font = '36px Arial';
-                            bulletY = wrapText(String(bullet), 128, bulletY, 870, 50) + 65;
-                        }
-
-                        for (let d = 0; d < slides.length; d++) {
-                            ctx.fillStyle = d === si ? slide.accent : '#2a2a3a';
-                            ctx.beginPath();
-                            ctx.arc(540 + (d - 1) * 44, 1840, d === si ? 13 : 8, 0, Math.PI * 2);
-                            ctx.fill();
-                        }
-
-                        ctx.fillStyle = 'rgba(255,255,255,0.12)';
-                        ctx.font = 'bold 26px Arial';
-                        ctx.textAlign = 'center';
-                        ctx.fillText('RAJNEETI.IN · SOCIAL CAMPAIGN', 540, 1900);
-
-                        // Small delay to allow the MediaRecorder to capture the frame
-                        await new Promise(r => setTimeout(r, 33)); // ~30 FPS
-
-                    }
-                }
-
-                // Wait a bit to ensure the final frames are recorded
-                await new Promise(r => setTimeout(r, 1000));
-                recorder.stop();
-
-            });
+        // ── helpers ──────────────────────────────────────────────
+        const wrapText = (text: string, x: number, y: number, maxW: number, lineH: number) => {
+            const words = text.split(' ');
+            let line = '';
+            let cy = y;
+            for (const word of words) {
+                const test = line + word + ' ';
+                if (ctx.measureText(test).width > maxW && line) {
+                    ctx.fillText(line.trim(), x, cy);
+                    line = word + ' ';
+                    cy += lineH;
+                } else { line = test; }
+            }
+            if (line) ctx.fillText(line.trim(), x, cy);
+            return cy;
         };
+
+        const modiApproach = campaign.approaches?.find((a: any) => a.style === 'modi');
+        const rahulApproach = campaign.approaches?.find((a: any) => a.style === 'rahul');
+
+        const slides = [
+            {
+                label: 'THE DEBATE',
+                color: '#6366f1', accent: '#818cf8',
+                bullets: (campaign.issue_bullets || []).slice(0, 4),
+                intro: campaign.issue_summary?.slice(0, 200) || campaign.title,
+            },
+            {
+                label: "MODI'S APPROACH",
+                color: '#ea580c', accent: '#fb923c',
+                bullets: (modiApproach?.policy_bullets || []).slice(0, 4),
+                intro: '',
+            },
+            {
+                label: "RAHUL'S APPROACH",
+                color: '#2563eb', accent: '#60a5fa',
+                bullets: (rahulApproach?.policy_bullets || []).slice(0, 4),
+                intro: '',
+            },
+        ];
+
+        // ── renderSlide(index) → draws a full slide with all bullets visible ──
+        (window as any).renderSlide = (slideIndex: number) => {
+            const slide = slides[slideIndex] || slides[0];
+
+            // Background
+            const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+            grad.addColorStop(0, '#09090f');
+            grad.addColorStop(1, '#0d0d1c');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 1080, 1920);
+
+            // Top accent bar
+            ctx.fillStyle = slide.color;
+            ctx.fillRect(0, 0, 1080, 10);
+
+            // Label pill
+            ctx.fillStyle = slide.color + '22';
+            ctx.beginPath();
+            ctx.roundRect(80, 80, 400, 60, 30);
+            ctx.fill();
+            ctx.fillStyle = slide.color;
+            ctx.font = 'bold 30px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(slide.label, 110, 120);
+
+            // Divider
+            ctx.strokeStyle = slide.accent + '33';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(80, 165); ctx.lineTo(1000, 165); ctx.stroke();
+
+            // Title
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 56px Arial';
+            ctx.textAlign = 'center';
+            const titleEndY = wrapText(campaign.title, 540, 250, 940, 70);
+
+            // Intro
+            let contentStartY = titleEndY + 60;
+            if (slide.intro) {
+                ctx.fillStyle = 'rgba(148,163,184,0.9)';
+                ctx.font = '34px Arial';
+                contentStartY = wrapText(slide.intro, 540, contentStartY, 900, 48) + 70;
+            }
+
+            // Bullets (all visible)
+            let bulletY = contentStartY;
+            ctx.textAlign = 'left';
+            for (let bi = 0; bi < slide.bullets.length; bi++) {
+                const bullet = slide.bullets[bi];
+                if (!bullet) continue;
+
+                ctx.fillStyle = slide.accent;
+                ctx.beginPath();
+                ctx.arc(100, bulletY - 10, 8, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = 'rgba(226,232,240,1)';
+                ctx.font = '36px Arial';
+                bulletY = wrapText(String(bullet), 128, bulletY, 870, 50) + 65;
+            }
+
+            // Dots
+            for (let d = 0; d < slides.length; d++) {
+                ctx.fillStyle = d === slideIndex ? slide.accent : '#2a2a3a';
+                ctx.beginPath();
+                ctx.arc(540 + (d - 1) * 44, 1840, d === slideIndex ? 13 : 8, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Watermark
+            ctx.fillStyle = 'rgba(255,255,255,0.12)';
+            ctx.font = 'bold 26px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('RAJNEETI.IN · SOCIAL CAMPAIGN', 540, 1900);
+
+            return true;
+        };
+
+        // Expose the total number of slides
+        (window as any).totalSlides = slides.length;
+
+        console.log(`[HeadlessReel] Ready. ${slides.length} slides prepared.`);
     }, [campaign]);
 
     return (

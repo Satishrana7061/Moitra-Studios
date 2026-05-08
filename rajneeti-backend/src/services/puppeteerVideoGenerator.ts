@@ -4,7 +4,8 @@ import path from 'path';
 
 export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}`;
+    const targetUrl = `${FRONTEND_URL}/#/headless-reel/${campaignSlug}`;
+
     
     console.log(`[Puppeteer] Launching headless browser...`);
     const browser = await puppeteer.launch({

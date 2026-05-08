@@ -1,6 +1,6 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { BrowserRouter } from 'react-router-dom';
+import { HashRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
 
@@ -11,13 +11,10 @@ if (!rootElement) {
 
 const root = createRoot(rootElement);
 
-// Grab the base URL injected by Vite (e.g., '/Moitra-Studios/') so the React Router doesn't strip it
-const basename = import.meta.env.BASE_URL;
-
 root.render(
   <React.StrictMode>
-    <BrowserRouter basename={basename === '/' ? '' : basename}>
+    <HashRouter>
       <App />
-    </BrowserRouter>
+    </HashRouter>
   </React.StrictMode>
-);
+);

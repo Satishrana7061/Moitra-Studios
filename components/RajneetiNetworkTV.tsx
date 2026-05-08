@@ -112,22 +112,52 @@ const RajneetiNetworkTV: React.FC = () => {
         setPublishStatus('publishing');
         
         try {
-            const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
             
-            const publishRes = await fetch(`${backendUrl}/api/admin/trigger-manual-reel`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    slug: createSlug(activeNews.blog_title || activeNews.ticker_headline),
-                    title: activeNews.blog_title,
-                    summary: activeNews.blog_content,
-                    hindi_content: activeNews.blog_content
-                })
-            });
-            
-            if (!publishRes.ok) {
-                const errData = await publishRes.json().catch(() => ({ error: "Server error" }));
-                throw new Error(errData.error || "Publishing failed");
+            if (isLocal) {
+                const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+                const publishRes = await fetch(`${backendUrl}/api/admin/trigger-manual-reel`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slug: createSlug(activeNews.blog_title || activeNews.ticker_headline),
+                        title: activeNews.blog_title,
+                        summary: activeNews.blog_content,
+                        hindi_content: activeNews.blog_content
+                    })
+                });
+                
+                if (!publishRes.ok) {
+                    const errData = await publishRes.json().catch(() => ({ error: "Server error" }));
+                    throw new Error(errData.error || "Publishing failed");
+                }
+            } else {
+                // Production (GitHub Pages) -> Trigger GitHub Action via Repository Dispatch
+                // Note: Requires VITE_GITHUB_PAT to be set in your build/env
+                const githubPat = import.meta.env.VITE_GITHUB_PAT;
+                if (!githubPat) throw new Error("GitHub PAT not configured for live publishing.");
+
+                const res = await fetch('https://api.github.com/repos/Satishrana7061/Moitra-Studios/dispatches', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${githubPat}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        event_type: 'daily-reels-manual',
+                        client_payload: {
+                            slug: createSlug(activeNews.blog_title || activeNews.ticker_headline),
+                            title: activeNews.blog_title,
+                            summary: activeNews.blog_content
+                        }
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || "GitHub Dispatch failed");
+                }
             }
             
             setPublishStatus('success');
@@ -141,6 +171,7 @@ const RajneetiNetworkTV: React.FC = () => {
             setPublishStatus('error');
         }
     };
+
 
 
     const startRecording = async () => {

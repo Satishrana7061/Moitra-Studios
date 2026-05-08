@@ -35,6 +35,9 @@ jobs:
         working-directory: ./rajneeti-backend
         run: npm ci
 
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
       - name: Install Puppeteer Browsers
         working-directory: ./rajneeti-backend
         run: npx puppeteer browsers install chrome

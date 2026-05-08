@@ -77,20 +77,25 @@ const HeadlessReelGenerator: React.FC = () => {
                 }
 
 
-                // Combine video and audio tracks
-                const combinedStream = new MediaStream([
-                    ...stream.getVideoTracks(),
-                    ...dest.stream.getAudioTracks()
-                ]);
+                // Combine video and audio tracks only if audio is available
+                const streamTracks = [...stream.getVideoTracks()];
+                if (audioUrl && audioUrl.length > 50) {
+                    streamTracks.push(...dest.stream.getAudioTracks());
+                }
+                
+                const combinedStream = new MediaStream(streamTracks);
 
                 // Use WebM for reliability in headless environments
                 let mimeType = 'video/webm;codecs=vp9,opus';
                 if (!MediaRecorder.isTypeSupported(mimeType)) {
-                    mimeType = 'video/webm'; // Basic fallback
+                    mimeType = 'video/webm'; 
                 }
 
+                const recorder = new MediaRecorder(combinedStream, { 
+                    mimeType, 
+                    videoBitsPerSecond: 5_000_000 // Higher quality
+                });
 
-                const recorder = new MediaRecorder(combinedStream, { mimeType, videoBitsPerSecond: 4_000_000 });
                 const chunks: Blob[] = [];
                 recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
                 recorder.onstop = () => {

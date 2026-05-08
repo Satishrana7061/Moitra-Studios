@@ -1,12 +1,40 @@
-// src/aiProcessor.ts
-import { OPENAI_API_KEY } from "./config.js";
+import { OPENAI_API_KEY, GEMINI_API_KEY } from "./config.js";
 import { RawNewsItem, RajneetiEvent } from "./types.js";
 import { getBaseApprovalRating } from "../../lib/approvalRatings.js";
 
-// ── OpenAI GPT-5.4 API Call ─────────────────────────────────────
+// ── AI Model Call (Gemini Primary, OpenAI Fallback) ────────────────
 async function callAIModel(prompt: string): Promise<string> {
+  // Use Gemini if available
+  if (GEMINI_API_KEY && GEMINI_API_KEY !== "PLACEHOLDER_API_KEY") {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.1,
+          topP: 0.95,
+          topK: 40,
+          maxOutputTokens: 1024,
+          responseMimeType: "application/json",
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.warn(`Gemini API error: ${res.status}. Falling back to OpenAI if available.`);
+    } else {
+      const data = await res.json();
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    }
+  }
+
+  // Fallback to OpenAI
   if (!OPENAI_API_KEY || OPENAI_API_KEY === "PLACEHOLDER_API_KEY") {
-    throw new Error("OPENAI_API_KEY is not configured");
+    throw new Error("No AI API Keys (Gemini or OpenAI) are configured.");
   }
 
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -16,12 +44,13 @@ async function callAIModel(prompt: string): Promise<string> {
       "Authorization": `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-5.4-mini",
+      model: "gpt-4o-mini", // Corrected model name
       messages: [
         { role: "system", content: "You are a helpful assistant that outputs strict JSON only." },
         { role: "user", content: prompt }
       ],
-      max_tokens: 500,
+      response_format: { type: "json_object" },
+      max_tokens: 1000,
       temperature: 0.3,
     }),
   });
@@ -32,10 +61,9 @@ async function callAIModel(prompt: string): Promise<string> {
   }
 
   const data = await res.json();
-  const text = data.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error("Empty OpenAI response");
-  return text;
+  return data.choices?.[0]?.message?.content?.trim() || "";
 }
+
 
 // ── Prompt Builder ──────────────────────────────────────────────
 export function buildRajneetiPrompt(

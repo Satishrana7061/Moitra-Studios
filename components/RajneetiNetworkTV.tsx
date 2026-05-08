@@ -106,239 +106,42 @@ const RajneetiNetworkTV: React.FC = () => {
         return currentY;
     };
 
-    const generateDirectReel = async () => {
-        if (!activeNews || !slides.length) return;
-        setIsExporting(true);
-        setExportProgress(0);
+    const triggerCloudPublish = async () => {
+        if (!activeNews) return;
+        setIsPublishing(true);
+        setPublishStatus('publishing');
         
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d', { alpha: false });
-        if (!ctx) return;
-
-        // Pre-load avatar
-        const avatarImg = new Image();
-        avatarImg.crossOrigin = "anonymous";
-        avatarImg.src = getLeaderAvatar(activeNews.leader, activeNews.state);
-        await new Promise((resolve) => { avatarImg.onload = resolve; avatarImg.onerror = resolve; });
-
-        const stream = (canvas as any).captureStream(30); // 30 FPS
-        let mimeTypes = [
-            'video/mp4',
-            'video/webm;codecs=h264',
-            'video/webm;codecs=vp9',
-            'video/webm;codecs=vp8',
-            'video/webm'
-        ];
-        let selectedMimeType = '';
-        for (let mt of mimeTypes) {
-            if (MediaRecorder.isTypeSupported(mt)) {
-                selectedMimeType = mt;
-                break;
-            }
-        }
-        
-        let recorder: MediaRecorder;
         try {
-            recorder = new MediaRecorder(stream, { 
-                mimeType: selectedMimeType,
-                videoBitsPerSecond: 5000000 // 5Mbps for high quality
+            const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+            
+            const publishRes = await fetch(`${backendUrl}/api/admin/trigger-manual-reel`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    slug: createSlug(activeNews.blog_title || activeNews.ticker_headline),
+                    title: activeNews.blog_title,
+                    summary: activeNews.blog_content,
+                    hindi_content: activeNews.blog_content
+                })
             });
-        } catch (e) {
-            console.error("MediaRecorder init failed:", e);
-            setIsExporting(false);
-            return;
+            
+            if (!publishRes.ok) {
+                const errData = await publishRes.json().catch(() => ({ error: "Server error" }));
+                throw new Error(errData.error || "Publishing failed");
+            }
+            
+            setPublishStatus('success');
+            setTimeout(() => {
+                setIsPublishing(false);
+                setPublishStatus('idle');
+            }, 5000);
+            
+        } catch (err: any) {
+            console.error("Publishing error:", err);
+            setPublishStatus('error');
         }
-        const chunks: Blob[] = [];
-        
-        recorder.ondataavailable = (e) => {
-            if (e.data.size > 0) chunks.push(e.data);
-        };
-
-        recorder.onstop = async () => {
-            // Force MP4 format where possible, as WhatsApp natively rejects .webm
-            const isMp4Compatible = selectedMimeType.includes('mp4') || selectedMimeType.includes('h264');
-            const blobType = isMp4Compatible ? 'video/mp4' : 'video/webm';
-            const extension = isMp4Compatible ? 'mp4' : 'webm';
-            
-            const blob = new Blob(chunks, { type: blobType });
-            
-            // 1. Trigger local download as before
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            const fileName = `Rajneeti-Reel-${createSlug(activeNews.blog_title || activeNews.ticker_headline)}.${extension}`;
-            a.download = fileName;
-            a.click();
-            URL.revokeObjectURL(url);
-            
-            // 2. Automate upload to Supabase and YouTube
-            setIsExporting(false);
-            setIsPublishing(true);
-            setPublishStatus('uploading');
-            
-            try {
-                if (!supabase) throw new Error("Supabase not initialized");
-                
-                // Upload to 'automated-reels' bucket
-                const { data, error: uploadError } = await supabase.storage
-                    .from('automated-reels')
-                    .upload(fileName, blob, {
-                        contentType: blobType,
-                        upsert: true
-                    });
-                
-                if (uploadError) throw uploadError;
-                
-                // Get the public URL
-                const { data: { publicUrl } } = supabase.storage
-                    .from('automated-reels')
-                    .getPublicUrl(fileName);
-                
-                setPublishStatus('publishing');
-                
-                // 3. Trigger Serverless GitHub Action to publish to YouTube
-                const githubPat = import.meta.env.VITE_GITHUB_PAT;
-                if (!githubPat) {
-                    throw new Error("Missing VITE_GITHUB_PAT to trigger serverless upload.");
-                }
-                
-                const publishRes = await fetch(`https://api.github.com/repos/Satishrana7061/Moitra-Studios/dispatches`, {
-                    method: 'POST',
-                    headers: { 
-                        'Accept': 'application/vnd.github.v3+json',
-                        'Authorization': `token ${githubPat}`,
-                        'Content-Type': 'application/json' 
-                    },
-                    body: JSON.stringify({
-                        event_type: 'youtube-upload-event',
-                        client_payload: {
-                            videoUrl: publicUrl,
-                            title: activeNews.blog_title || activeNews.ticker_headline,
-                            description: `${activeNews.blog_title}\n\nPolitical update for ${activeNews.state}.\n#Rajneeti #News #Politics #Shorts`
-                        }
-                    })
-                });
-                
-                if (!publishRes.ok) {
-                    const err = await publishRes.json();
-                    throw new Error(err.error || "YouTube publish failed");
-                }
-                
-                setPublishStatus('success');
-                setTimeout(() => {
-                    setIsPublishing(false);
-                    setPublishStatus('idle');
-                }, 5000);
-                
-            } catch (err: any) {
-                console.error("Automation error:", err);
-                setPublishStatus('error');
-            }
-        };
-
-        recorder.start();
-        const totalDuration = slides.length * 8000;
-        const startTime = performance.now();
-        let localIsExporting = true;
-        
-        const renderFrame = (now: number) => {
-            if (!localIsExporting) return;
-            const elapsed = now - startTime;
-            
-            if (elapsed >= totalDuration) {
-                if (recorder.state !== 'inactive') recorder.stop();
-                localIsExporting = false;
-                return;
-            }
-
-            const currentSlideIdx = Math.floor(elapsed / 8000);
-            const slideProgress = (elapsed % 8000) / 8000;
-            setExportProgress(Math.floor((elapsed / totalDuration) * 100));
-
-            // 1. Background (Premium Dark Gradient)
-            ctx.fillStyle = '#020617';
-            ctx.fillRect(0, 0, 1080, 1920);
-            
-            // Background Accents (Glow)
-            const grad = ctx.createRadialGradient(540, 960, 0, 540, 960, 1200);
-            grad.addColorStop(0, '#1e293b');
-            grad.addColorStop(1, '#020617');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 1080, 1920);
-
-            // 2. Header "LIVE" & Info
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(80, 120, 160, 70);
-            ctx.fillStyle = 'white';
-            ctx.font = '900 40px Rajdhani, sans-serif';
-            ctx.fillText('LIVE', 115, 170);
-
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-            ctx.font = '700 32px Rajdhani, sans-serif';
-            ctx.fillText(`${activeNews.date} | ${activeNews.state.toUpperCase()}`, 80, 240);
-
-            // 3. Leader Avatar (Circle)
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(160, 420, 80, 0, Math.PI * 2);
-            ctx.closePath();
-            ctx.clip();
-            if (avatarImg.complete) {
-                ctx.drawImage(avatarImg, 80, 340, 160, 160);
-            }
-            ctx.restore();
-            ctx.strokeStyle = '#dc2626';
-            ctx.lineWidth = 6;
-            ctx.stroke();
-
-            // 4. Slide Content
-            const slide = slides[currentSlideIdx];
-            if (slide) {
-                // Slide Tag
-                ctx.fillStyle = slide.type === 'headline' ? '#dc2626' : '#2563eb';
-                ctx.fillRect(80, 600, slide.type === 'headline' ? 440 : 400, 65);
-                ctx.fillStyle = 'white';
-                ctx.font = '900 36px Rajdhani, sans-serif';
-                ctx.fillText(slide.type === 'headline' ? 'BREAKING NEWS' : `KEY POINT ${currentSlideIdx}`, 110, 645);
-
-                // Slide Content
-                ctx.fillStyle = 'white';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 20;
-                
-                if (slide.type === 'headline') {
-                    ctx.font = '900 92px Rajdhani, sans-serif';
-                    wrapText(ctx, slide.content.toUpperCase(), 80, 800, 920, 110);
-                } else {
-                    ctx.font = '700 68px Rajdhani, sans-serif';
-                    wrapText(ctx, slide.content, 80, 800, 920, 90);
-                }
-                ctx.shadowBlur = 0;
-            }
-
-            // 5. Footer Progress & Branding
-            ctx.fillStyle = 'rgba(255,255,255,0.1)';
-            ctx.fillRect(80, 1600, 920, 8);
-            ctx.fillStyle = '#dc2626';
-            ctx.fillRect(80, 1600, 920 * slideProgress, 8);
-
-            ctx.fillStyle = 'white';
-            ctx.font = '900 56px Rajdhani, sans-serif';
-            wrapText(ctx, activeNews.blog_title, 80, 1680, 920, 60);
-            
-            // Watermark
-            ctx.fillStyle = 'rgba(220, 38, 38, 0.8)'; // Red
-            ctx.font = '900 48px Rajdhani, sans-serif';
-            const wm = "RAJNEETI TV NETWORK";
-            const wmMetrics = ctx.measureText(wm);
-            ctx.fillText(wm, 1080 - wmMetrics.width - 40, 1860);
-
-            requestAnimationFrame(renderFrame);
-        };
-
-        requestAnimationFrame(renderFrame);
     };
+
 
     const startRecording = async () => {
         try {
@@ -868,11 +671,12 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </div>
                             ) : (
                                 <button 
-                                    onClick={generateDirectReel}
+                                    onClick={triggerCloudPublish}
                                     className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
                                 >
-                                    <Video className="w-4 h-4" /> Download Reel
+                                    <Video className="w-4 h-4" /> Publish to Shorts
                                 </button>
+
                             )}
                             
                             <button 
@@ -887,20 +691,6 @@ const RajneetiNetworkTV: React.FC = () => {
                     <div key={activeIndex} className="relative bg-slate-900 border border-white/5 overflow-hidden shadow-2xl w-full max-w-[500px]"
                          style={{ aspectRatio: '9/16', height: '90vh', maxHeight: '1920px' }}>
                         
-                        {isExporting && (
-                            <div className="absolute inset-0 z-50 bg-black/90 flex flex-col items-center justify-center p-6 backdrop-blur-md">
-                                <AdBanner layoutArea="interstitial" className="mb-8 w-full max-w-sm" />
-                                <div className="flex flex-col items-center gap-4 text-white p-6 bg-slate-900/80 rounded-xl border border-white/10">
-                                    <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                                    <span className="font-rajdhani font-bold text-lg md:text-xl uppercase tracking-widest text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]">
-                                        Encoding Reel {exportProgress}%
-                                    </span>
-                                    <p className="text-slate-400 text-xs md:text-sm text-center max-w-xs leading-relaxed">
-                                        Please wait while we render your custom 9:16 reel directly to your device.
-                                    </p>
-                                </div>
-                            </div>
-                        )}
 
                         {isPublishing && (
                             <div className="absolute inset-0 z-50 bg-black/95 flex flex-col items-center justify-center p-6 backdrop-blur-md animate-fade-in">
@@ -940,7 +730,8 @@ const RajneetiNetworkTV: React.FC = () => {
                                                 <X className="text-red-500 w-8 h-8" />
                                             </div>
                                             <h3 className="text-xl font-rajdhani font-bold uppercase tracking-widest text-red-400">Publishing Failed</h3>
-                                            <p className="text-slate-400 text-sm">There was an error connecting to the YouTube API. Local download was successful.</p>
+                                            <p className="text-slate-400 text-sm">There was an error connecting to the cloud publishing pipeline.</p>
+
                                             <button 
                                                 onClick={() => setIsPublishing(false)}
                                                 className="mt-4 px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-full text-xs font-bold uppercase transition-all"

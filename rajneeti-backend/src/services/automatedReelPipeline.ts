@@ -24,12 +24,28 @@ export async function runAutomatedReelPipeline() {
         // We'll process just the absolute top news item for the reel to save resources
         const topNewsRaw = rawNews.slice(0, 1);
         
-        // Simple candidate context to force it to format as a short news brief
-        const events = await processNewsWithAI(topNewsRaw, "- National Front\n- Regional Front");
+        // candidate context to force it to format as a short news brief
+        const CANDIDATE_LIST = `
+- Narendra Modi, BJP, National
+- Rahul Gandhi, Congress, National
+- Amit Shah, BJP, National
+- Arvind Kejriwal, AAP, Delhi
+- Mamata Banerjee, TMC, West Bengal
+- Yogi Adityanath, BJP, Uttar Pradesh
+- M.K. Stalin, DMK, Tamil Nadu
+- Nitish Kumar, JDU, Bihar
+- Akhilesh Yadav, SP, Uttar Pradesh
+- Uddhav Thackeray, Shiv Sena (UBT), Maharashtra
+- National Front (NDA/BJP)
+- Regional Front (Opposition/INDIA)
+        `;
+        
+        const events = await processNewsWithAI(topNewsRaw, CANDIDATE_LIST);
         if (events.length === 0) {
              console.log(`[Pipeline] AI failed to process news. Exiting.`);
              return;
         }
+
 
         const news = events[0];
         
@@ -70,7 +86,10 @@ export async function runAutomatedReelPipeline() {
             console.warn(`[Pipeline] Skipping Instagram upload because Supabase URL generation failed.`);
         }
         
-        await SocialUploadService.uploadToYouTube(videoBuffer, news.title, news.summary);
+        
+        const youtubeDescription = `${news.blog_title || news.title}\n\nPolitical update for ${news.stateName || 'India'}.\n\nRead more: https://moitrastudios.com/rajneeti-tv-network\n\n#Rajneeti #News #India #Politics #Shorts #Trending`;
+        await SocialUploadService.uploadToYouTube(videoBuffer, (news.blog_title || news.title).slice(0, 100), youtubeDescription);
+
 
         // 6. Cleanup old files
         await SupabaseStorageService.cleanupOldVideos();

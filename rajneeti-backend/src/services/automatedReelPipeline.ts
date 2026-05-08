@@ -94,19 +94,27 @@ export async function runAutomatedReelPipeline() {
         const fileName = `reel-${Date.now()}.mp4`;
         const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
 
+        if (!publicUrl) {
+            throw new Error("Supabase upload failed. Check bucket permissions and secrets.");
+        }
+        console.log(`[Pipeline] Successfully uploaded to Supabase: ${publicUrl}`);
+
         // 5. Upload to Social Media
         console.log(`[Pipeline] Starting Social Uploads...`);
         const caption = `${news.title}\n\n#Rajneeti #IndiaNews #Politics #Trending`;
         
-        if (publicUrl) {
-            await SocialUploadService.uploadToInstagram(publicUrl, caption);
-        } else {
-            console.warn(`[Pipeline] Skipping Instagram upload because Supabase URL generation failed.`);
+        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, caption);
+        if (!igSuccess) {
+            console.warn("[Pipeline] Instagram upload failed, but continuing to YouTube...");
         }
         
-        
         const youtubeDescription = `${news.blog_title || news.title}\n\nPolitical update for ${news.stateName || 'India'}.\n\nRead more: https://moitrastudios.com/rajneeti-tv-network\n\n#Rajneeti #News #India #Politics #Shorts #Trending`;
-        await SocialUploadService.uploadToYouTube(videoBuffer, (news.blog_title || news.title).slice(0, 100), youtubeDescription);
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, (news.blog_title || news.title).slice(0, 100), youtubeDescription);
+
+        if (!ytSuccess) {
+            throw new Error("YouTube upload failed. Check refresh token and quotas.");
+        }
+
 
 
         // 6. Cleanup old files
@@ -115,5 +123,7 @@ export async function runAutomatedReelPipeline() {
         console.log("=== AUTOMATED REEL PIPELINE COMPLETED SUCCESSFULLY ===");
     } catch (err: any) {
         console.error("=== AUTOMATED REEL PIPELINE FAILED ===", err);
+        throw err; // Ensure the process exits with failure
     }
+
 }

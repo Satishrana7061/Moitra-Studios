@@ -63,6 +63,8 @@ jobs:
           # Optional Inputs
           NEWS_SLUG: ${{ github.event.inputs.news_slug || github.event.client_payload.slug }}
           NEWS_TITLE: ${{ github.event.inputs.news_title || github.event.client_payload.title }}
+          NEWS_SUMMARY: ${{ github.event.client_payload.summary }}
+
 
         run: npx tsx src/runPipeline.ts
 

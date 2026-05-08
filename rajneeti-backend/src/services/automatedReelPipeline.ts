@@ -12,20 +12,36 @@ import { SupabaseStorageService } from "./supabaseStorage.js";
 export async function runAutomatedReelPipeline() {
     console.log("=== STARTING AUTOMATED REEL PIPELINE ===");
     try {
-        // 1. Fetch Top National News
-        console.log(`[Pipeline] Fetching latest national news...`);
-        const rawNews = await fetchFilteredNews();
-        
-        if (rawNews.length === 0) {
-            console.log(`[Pipeline] No news found. Exiting pipeline.`);
-            return;
-        }
+        // 1. Handle Manual Override or Fetch Top National News
+        let news: any = null;
 
-        // We'll process just the absolute top news item for the reel to save resources
-        const topNewsRaw = rawNews.slice(0, 1);
-        
-        // candidate context to force it to format as a short news brief
-        const CANDIDATE_LIST = `
+        const manualSlug = process.env.NEWS_SLUG;
+        const manualTitle = process.env.NEWS_TITLE;
+        const manualSummary = process.env.NEWS_SUMMARY;
+
+        if (manualSlug && manualTitle) {
+            console.log(`[Pipeline] Manual override detected for slug: ${manualSlug}`);
+            news = {
+                slug: manualSlug,
+                title: manualTitle,
+                blog_title: manualTitle,
+                blog_content: manualSummary || "Latest political update from Rajneeti Network TV.",
+                hindi_content: manualSummary || manualTitle // Fallback if no hindi translation provided
+            };
+            
+            // If it's a manual trigger, we might still want to use AI to get a better Hindi script 
+            // but for now we use the provided summary to be fast.
+        } else {
+            console.log(`[Pipeline] Fetching latest national news...`);
+            const rawNews = await fetchFilteredNews();
+            
+            if (rawNews.length === 0) {
+                console.log(`[Pipeline] No news found. Exiting pipeline.`);
+                return;
+            }
+
+            const topNewsRaw = rawNews.slice(0, 1);
+            const CANDIDATE_LIST = `
 - Narendra Modi, BJP, National
 - Rahul Gandhi, Congress, National
 - Amit Shah, BJP, National
@@ -38,16 +54,18 @@ export async function runAutomatedReelPipeline() {
 - Uddhav Thackeray, Shiv Sena (UBT), Maharashtra
 - National Front (NDA/BJP)
 - Regional Front (Opposition/INDIA)
-        `;
-        
-        const events = await processNewsWithAI(topNewsRaw, CANDIDATE_LIST);
-        if (events.length === 0) {
-             console.log(`[Pipeline] AI failed to process news. Exiting.`);
-             return;
+            `;
+            
+            const events = await processNewsWithAI(topNewsRaw, CANDIDATE_LIST);
+            if (events.length === 0) {
+                 console.log(`[Pipeline] AI failed to process news. Exiting.`);
+                 return;
+            }
+            news = events[0];
         }
 
+        if (!news) throw new Error("No news item found to process.");
 
-        const news = events[0];
         
         // Ensure Hindi content
         const hindiScript = news.hindi_content;

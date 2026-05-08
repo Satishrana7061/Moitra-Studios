@@ -22,12 +22,15 @@ export async function runAutomatedReelPipeline() {
         if (manualSlug && manualTitle) {
             console.log(`[Pipeline] Manual override detected for slug: ${manualSlug}`);
             news = {
-                slug: manualSlug,
+                id: manualSlug,
+                stateName: "India",
+                politicianName: "National Update",
                 title: manualTitle,
                 blog_title: manualTitle,
-                blog_content: manualSummary || "Latest political update from Rajneeti Network TV.",
-                hindi_content: manualSummary || manualTitle // Fallback if no hindi translation provided
+                summary: manualSummary || "Latest political update from Rajneeti Network TV.",
+                hindi_content: manualSummary || manualTitle 
             };
+
             
             // If it's a manual trigger, we might still want to use AI to get a better Hindi script 
             // but for now we use the provided summary to be fast.
@@ -86,7 +89,8 @@ export async function runAutomatedReelPipeline() {
 
         // 3. Generate Video via Puppeteer (pass audio buffer)
         console.log(`[Pipeline] Capturing Headless Video...`);
-        const videoBuffer = await generateHeadlessVideo(news.slug, audioBuffer);
+        const videoBuffer = await generateHeadlessVideo(news.id, audioBuffer);
+
         console.log(`[Pipeline] Video generated successfully. Size: ${videoBuffer.length} bytes`);
 
         // 4. Upload to Supabase Storage (Required for Instagram)
@@ -108,8 +112,10 @@ export async function runAutomatedReelPipeline() {
             console.warn("[Pipeline] Instagram upload failed, but continuing to YouTube...");
         }
         
-        const youtubeDescription = `${news.blog_title || news.title}\n\nPolitical update for ${news.stateName || 'India'}.\n\nRead more: https://moitrastudios.com/rajneeti-tv-network\n\n#Rajneeti #News #India #Politics #Shorts #Trending`;
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, (news.blog_title || news.title).slice(0, 100), youtubeDescription);
+        const youtubeTitle = (news.blog_title || news.title || "Rajneeti News Update").slice(0, 100);
+        const youtubeDescription = `${news.blog_title || news.title || "Political Update"}\n\nPolitical update for ${news.stateName || 'India'}.\n\nRead more: https://moitrastudios.com/rajneeti-tv-network\n\n#Rajneeti #News #India #Politics #Shorts #Trending`;
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, youtubeTitle, youtubeDescription);
+
 
         if (!ytSuccess) {
             throw new Error("YouTube upload failed. Check refresh token and quotas.");

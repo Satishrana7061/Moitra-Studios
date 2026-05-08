@@ -60,20 +60,22 @@ const HeadlessReelGenerator: React.FC = () => {
                 const audioCtx = new AudioContext();
                 const dest = audioCtx.createMediaStreamDestination();
                 
-                if (audioUrl) {
+                if (audioUrl && audioUrl.length > 50) { // Check if it's a real base64/URL
                     try {
                         const response = await fetch(audioUrl);
                         const arrayBuffer = await response.arrayBuffer();
-                        const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                        
-                        const source = audioCtx.createBufferSource();
-                        source.buffer = audioBuffer;
-                        source.connect(dest);
-                        source.start();
+                        if (arrayBuffer.byteLength > 0) {
+                            const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                            const source = audioCtx.createBufferSource();
+                            source.buffer = audioBuffer;
+                            source.connect(dest);
+                            source.start();
+                        }
                     } catch (err) {
                         console.error("Audio mix failed", err);
                     }
                 }
+
 
                 // Combine video and audio tracks
                 const combinedStream = new MediaStream([
@@ -213,11 +215,16 @@ const HeadlessReelGenerator: React.FC = () => {
                         ctx.textAlign = 'center';
                         ctx.fillText('RAJNEETI.IN · SOCIAL CAMPAIGN', 540, 1900);
 
-                        await new Promise(r => setTimeout(r, 0));
+                        // Small delay to allow the MediaRecorder to capture the frame
+                        await new Promise(r => setTimeout(r, 33)); // ~30 FPS
+
                     }
                 }
 
+                // Wait a bit to ensure the final frames are recorded
+                await new Promise(r => setTimeout(r, 1000));
                 recorder.stop();
+
             });
         };
     }, [campaign]);

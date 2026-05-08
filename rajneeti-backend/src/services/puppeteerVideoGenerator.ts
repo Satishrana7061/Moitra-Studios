@@ -47,37 +47,34 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         const totalSlides = await page.evaluate(() => (window as any).totalSlides || 3);
         console.log(`[Puppeteer] Found ${totalSlides} slides to render.`);
 
-        // Render each slide and take a screenshot of the canvas
+        // Render each slide and export the canvas at full resolution
         for (let i = 0; i < totalSlides; i++) {
             console.log(`[Puppeteer] Rendering slide ${i + 1}/${totalSlides}...`);
 
-            const success = await page.evaluate((idx: number) => {
+            // Render the slide and export the canvas as a PNG data URL
+            const dataUrl = await page.evaluate((idx: number) => {
                 try {
-                    return (window as any).renderSlide(idx);
+                    (window as any).renderSlide(idx);
+                    const canvas = document.querySelector('canvas');
+                    if (!canvas) return null;
+                    return canvas.toDataURL('image/png');
                 } catch (err) {
                     console.error(`renderSlide(${idx}) failed:`, err);
-                    return false;
+                    return null;
                 }
             }, i);
 
-            if (!success) {
-                throw new Error(`renderSlide(${i}) returned false or threw`);
+            if (!dataUrl) {
+                throw new Error(`renderSlide(${i}) failed or canvas not found`);
             }
 
-            // Small delay to let the canvas paint settle
-            await new Promise(r => setTimeout(r, 200));
-
-            // Grab the canvas element and screenshot it
-            const canvasHandle = await page.$('canvas');
-            if (!canvasHandle) {
-                throw new Error("Canvas element not found on page");
-            }
-
+            // Convert the data URL to a PNG file
+            const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
             const framePath = path.join(tmpDir, `slide_${i}.png`);
-            await canvasHandle.screenshot({ path: framePath, type: 'png' });
+            fs.writeFileSync(framePath, Buffer.from(base64Data, 'base64'));
 
             const stat = fs.statSync(framePath);
-            console.log(`[Puppeteer] Saved ${framePath} (${stat.size} bytes)`);
+            console.log(`[Puppeteer] Saved slide ${i} → ${stat.size} bytes (1080×1920)`);
         }
 
         await browser.close();

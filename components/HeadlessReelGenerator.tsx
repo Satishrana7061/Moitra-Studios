@@ -9,9 +9,26 @@ const HeadlessReelGenerator: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [campaign, setCampaign] = useState<any>(null);
     const [status, setStatus] = useState('initializing');
+    const [searchParams] = useSearchParams();
+
+    const urlTitle = searchParams.get('title');
+    const urlSummary = searchParams.get('summary');
 
     useEffect(() => {
-        if (id) {
+        if (urlTitle) {
+            // Priority 1: Data passed via URL parameters (Most reliable)
+            setCampaign({
+                title: urlTitle,
+                issue_summary: urlSummary || "Rajneeti political update.",
+                issue_bullets: (urlSummary || "").split('. ').filter(s => s.length > 5).slice(0, 4),
+                approaches: [
+                    { style: "modi", policy_bullets: ["Development focus", "Infrastructure growth"] },
+                    { style: "rahul", policy_bullets: ["Social justice", "Grassroots connect"] }
+                ]
+            });
+            setStatus('ready');
+        } else if (id) {
+            // Priority 2: Fetch from API if no URL params
             dynamicCampaignService.getCampaignBySlug(id)
                 .then(c => {
                     if (c) {
@@ -35,7 +52,8 @@ const HeadlessReelGenerator: React.FC = () => {
                     setStatus('ready');
                 });
         }
-    }, [id]);
+    }, [id, urlTitle, urlSummary]);
+
 
 
     useEffect(() => {

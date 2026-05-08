@@ -4,7 +4,11 @@ import path from 'path';
 
 export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const targetUrl = `${FRONTEND_URL}/#/headless-reel/${campaignSlug}`;
+    const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
+    const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news from Rajneeti Network TV.');
+    
+    const targetUrl = `${FRONTEND_URL}/#/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}`;
+
 
     
     console.log(`[Puppeteer] Launching headless browser...`);

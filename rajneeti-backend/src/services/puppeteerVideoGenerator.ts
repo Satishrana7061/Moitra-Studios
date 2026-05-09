@@ -161,7 +161,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             filterComplex += `${audioStreams.join('')}amix=inputs=${audioStreams.length}:duration=first:dropout_transition=0[a]`;
             mapOptions.push('-map', '[a]');
         } else if (audioStreams.length === 1) {
-            mapOptions.push('-map', audioStreams[0]);
+            const streamStr = audioStreams[0].replace(/\[|\]/g, '');
+            mapOptions.push('-map', streamStr);
         }
 
         // Remove trailing semicolon from filterComplex if present

@@ -107,13 +107,30 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             fs.writeFileSync(voiceAudioPath, audioBuffer);
         }
 
-        // Check for Background audio and the Anchor MP4
+        // Check for Background audio
         const bgAudioPath = path.join(process.cwd(), 'news-bg.wav');
         const hasBgAudio = fs.existsSync(bgAudioPath);
+
+        // Dynamic search for AI Avators folder and any MP4 file inside it
+        let anchorVideoPath = '';
+        let hasAnchorVideo = false;
+        const possibleDirs = [
+            path.join(process.cwd(), 'AI Avators'),
+            path.join(process.cwd(), '..', 'AI Avators')
+        ];
         
-        // Use Cartoon by default
-        const anchorVideoPath = path.join(process.cwd(), 'AI Avators', 'Cartoon_anchor_talking_enthusias.mp4');
-        const hasAnchorVideo = fs.existsSync(anchorVideoPath);
+        for (const dir of possibleDirs) {
+            if (fs.existsSync(dir)) {
+                const files = fs.readdirSync(dir);
+                const mp4File = files.find(f => f.endsWith('.mp4'));
+                if (mp4File) {
+                    anchorVideoPath = path.join(dir, mp4File);
+                    hasAnchorVideo = true;
+                    console.log(`[Puppeteer] Found AI Anchor video: ${anchorVideoPath}`);
+                    break;
+                }
+            }
+        }
 
         const ffmpegCmdArgs = ['ffmpeg', '-y'];
         
@@ -146,11 +163,11 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         // Build Video Filter
         if (hasAnchorVideo) {
             filterComplex += `[${anchorInputIdx}:v][${slidesInputIdx}:v]overlay=x=0:y=0:shortest=1[v];`;
+            mapOptions.push('-map', '[v]');
         } else {
-            // No anchor video, just slides with Ken Burns
-            filterComplex += `[${slidesInputIdx}:v]zoompan=z='min(zoom+0.001,1.15)':d=105:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920,format=yuv420p[v];`;
+            // No anchor video, just use slides directly (zoompan removed by user request)
+            mapOptions.push('-map', `${slidesInputIdx}:v`);
         }
-        mapOptions.push('-map', '[v]');
 
         // Build Audio Filter
         const audioStreams = [];

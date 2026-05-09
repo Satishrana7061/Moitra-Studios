@@ -100,9 +100,12 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         const concatFilePath = path.join(tmpDir, 'concat.txt');
         fs.writeFileSync(concatFilePath, concatLines.join('\n'));
 
-        // Save the ElevenLabs audio buffer to a temp file for FFmpeg to use
+        // Determine if we have voice audio (ElevenLabs might fail due to Free Tier limits)
+        const hasVoice = audioBuffer && audioBuffer.length > 0;
         const voiceAudioPath = path.join(tmpDir, 'voice.mp3');
-        fs.writeFileSync(voiceAudioPath, audioBuffer);
+        if (hasVoice) {
+            fs.writeFileSync(voiceAudioPath, audioBuffer);
+        }
 
         // Check for Background audio and the Anchor MP4
         const bgAudioPath = path.join(process.cwd(), 'news-bg.wav');
@@ -113,63 +116,71 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         const hasAnchorVideo = fs.existsSync(anchorVideoPath);
 
         const ffmpegCmdArgs = ['ffmpeg', '-y'];
-
+        
+        let inputIndex = 0;
+        
+        let anchorInputIdx = -1;
         if (hasAnchorVideo) {
-            // [0:v] and [0:a] Looping background anchor video
             ffmpegCmdArgs.push('-stream_loop', '-1', '-i', `"${anchorVideoPath}"`);
-            
-            // [1:v] Transparent PNG sequence
-            ffmpegCmdArgs.push('-f', 'concat', '-safe', '0', '-i', concatFilePath);
-            
-            // [2:a] ElevenLabs Audio
+            anchorInputIdx = inputIndex++;
+        }
+
+        ffmpegCmdArgs.push('-f', 'concat', '-safe', '0', '-i', concatFilePath);
+        const slidesInputIdx = inputIndex++;
+
+        let voiceInputIdx = -1;
+        if (hasVoice) {
             ffmpegCmdArgs.push('-i', voiceAudioPath);
+            voiceInputIdx = inputIndex++;
+        }
 
-            let filterComplex = '';
-            let mapOptions = [];
+        let bgAudioInputIdx = -1;
+        if (hasBgAudio) {
+            ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
+            bgAudioInputIdx = inputIndex++;
+        }
 
-            if (hasBgAudio) {
-                // [3:a] Background music
-                ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
-                
-                // Overlay text on video, mix ElevenLabs with BG music, cut video to length of audio
-                filterComplex = `[0:v][1:v]overlay=x=0:y=0:shortest=1[v];[2:a][3:a]amix=inputs=2:duration=first:dropout_transition=0[a]`;
-                mapOptions = ['-map', '[v]', '-map', '[a]'];
-            } else {
-                // Overlay text on video, use only ElevenLabs audio
-                filterComplex = `[0:v][1:v]overlay=x=0:y=0:shortest=1[v]`;
-                mapOptions = ['-map', '[v]', '-map', '2:a'];
-            }
+        let filterComplex = '';
+        let mapOptions = [];
 
-            ffmpegCmdArgs.push(
-                '-filter_complex', filterComplex,
-                ...mapOptions,
-                '-c:v', 'libx264',
-                '-preset', 'fast',
-                '-c:a', 'aac',
-                '-b:a', '128k',
-                '-shortest'
-            );
+        // Build Video Filter
+        if (hasAnchorVideo) {
+            filterComplex += `[${anchorInputIdx}:v][${slidesInputIdx}:v]overlay=x=0:y=0:shortest=1[v];`;
         } else {
-            // FALLBACK: No anchor video found, just use static slides and audio
-            ffmpegCmdArgs.push('-f', 'concat', '-safe', '0', '-i', concatFilePath);
-            ffmpegCmdArgs.push('-i', voiceAudioPath);
-            
-            if (hasBgAudio) {
-                ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
-                ffmpegCmdArgs.push('-filter_complex', `[1:a][2:a]amix=inputs=2:duration=first:dropout_transition=0[a]`);
-                ffmpegCmdArgs.push('-map', '0:v', '-map', '[a]');
-            } else {
-                ffmpegCmdArgs.push('-map', '0:v', '-map', '1:a');
-            }
+            // No anchor video, just slides with Ken Burns
+            filterComplex += `[${slidesInputIdx}:v]zoompan=z='min(zoom+0.001,1.15)':d=105:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920,format=yuv420p[v];`;
+        }
+        mapOptions.push('-map', '[v]');
 
-            ffmpegCmdArgs.push(
-                '-vf', '"zoompan=z=\'min(zoom+0.001,1.15)\':d=105:x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':s=1080x1920,format=yuv420p"',
-                '-c:v', 'libx264',
-                '-preset', 'fast',
-                '-c:a', 'aac',
-                '-b:a', '128k',
-                '-shortest'
-            );
+        // Build Audio Filter
+        const audioStreams = [];
+        if (hasVoice) audioStreams.push(`[${voiceInputIdx}:a]`);
+        if (hasBgAudio) audioStreams.push(`[${bgAudioInputIdx}:a]`);
+
+        if (audioStreams.length > 1) {
+            filterComplex += `${audioStreams.join('')}amix=inputs=${audioStreams.length}:duration=first:dropout_transition=0[a]`;
+            mapOptions.push('-map', '[a]');
+        } else if (audioStreams.length === 1) {
+            mapOptions.push('-map', audioStreams[0]);
+        }
+
+        // Remove trailing semicolon from filterComplex if present
+        if (filterComplex.endsWith(';')) {
+            filterComplex = filterComplex.slice(0, -1);
+        }
+
+        if (filterComplex) {
+            ffmpegCmdArgs.push('-filter_complex', `"${filterComplex}"`);
+        }
+
+        ffmpegCmdArgs.push(
+            ...mapOptions,
+            '-c:v', 'libx264',
+            '-preset', 'fast'
+        );
+        
+        if (audioStreams.length > 0) {
+            ffmpegCmdArgs.push('-c:a', 'aac', '-b:a', '128k', '-shortest');
         }
 
         ffmpegCmdArgs.push('-movflags', '+faststart', outputPath);

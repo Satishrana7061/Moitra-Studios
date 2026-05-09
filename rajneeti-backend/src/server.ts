@@ -139,7 +139,7 @@ app.get("/api/youtube/connect", (req, res) => {
         process.env.YOUTUBE_REDIRECT_URI || "http://localhost:4000/api/youtube/callback"
     );
 
-    const scopes = ['https://www.googleapis.com/auth/youtube.upload'];
+    const scopes = ['https://www.googleapis.com/auth/youtube'];
 
     const url = oauth2Client.generateAuthUrl({
         access_type: 'offline',

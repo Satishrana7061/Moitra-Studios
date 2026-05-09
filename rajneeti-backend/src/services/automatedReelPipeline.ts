@@ -114,7 +114,19 @@ export async function runAutomatedReelPipeline() {
         }
         
         const youtubeTitle = (news.blog_title || news.title || "Rajneeti News Update").slice(0, 100);
-        const youtubeDescription = `${news.blog_title || news.title || "Political Update"}\n\nPolitical update for ${news.stateName || 'India'}.\n\nRead more: https://moitrastudios.com/rajneeti-tv-network\n\n#Rajneeti #News #India #Politics #Shorts #Trending`;
+        
+        // Build a professional description including the full news content
+        const youtubeDescription = `${news.blog_title || news.title || "Political Update"}
+
+${news.blog_content || news.summary || ""}
+
+—
+📺 RAJNEETI TV NETWORK
+Official Channel for Indian Political News & Election Strategy
+🌐 Website: https://moitrastudios.com/rajneeti-tv-network
+📍 State: ${news.stateName || 'National'}
+
+#Rajneeti #RajneetiTVNetwork #IndiaNews #Politics #Shorts #Trending`;
         
         // Generate dynamic tags to make the reel viral
         const dynamicTags = [

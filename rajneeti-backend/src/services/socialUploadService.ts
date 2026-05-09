@@ -141,6 +141,30 @@ export class SocialUploadService {
             });
 
             console.log(`[SocialUploadService] YouTube Upload successful. Video ID: ${res.data.id}`);
+
+            // Add to Playlist if configured
+            const playlistId = process.env.YOUTUBE_PLAYLIST_ID;
+            if (playlistId && res.data.id) {
+                try {
+                    console.log(`[SocialUploadService] Adding video to Playlist: ${playlistId}`);
+                    await youtube.playlistItems.insert({
+                        part: ['snippet'],
+                        requestBody: {
+                            snippet: {
+                                playlistId: playlistId,
+                                resourceId: {
+                                    kind: 'youtube#video',
+                                    videoId: res.data.id
+                                }
+                            }
+                        }
+                    });
+                    console.log(`[SocialUploadService] Successfully added to playlist.`);
+                } catch (playlistErr: any) {
+                    console.error("[SocialUploadService] Could not add to playlist (You may need to re-authenticate with full YouTube scope):", playlistErr.message);
+                }
+            }
+
             return true;
         } catch (err: any) {
             console.error("[SocialUploadService] YouTube Upload Failed:", err?.message || err);

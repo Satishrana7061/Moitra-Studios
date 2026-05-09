@@ -95,7 +95,8 @@ export async function runAutomatedReelPipeline() {
 
         // 4. Upload to Supabase Storage (Required for Instagram)
         console.log(`[Pipeline] Uploading to Supabase Storage...`);
-        const fileName = `reel-${Date.now()}.mp4`;
+        const safeSlug = news.id ? news.id.slice(0, 50) : "reel";
+        const fileName = `${safeSlug}-${Date.now()}.mp4`;
         const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
 
         if (!publicUrl) {

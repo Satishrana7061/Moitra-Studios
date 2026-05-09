@@ -69,14 +69,14 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             await new Promise(r => setTimeout(r, 800));
 
             // Grab the reel container element and screenshot it
-            // We use the unique class or styling we gave it in HeadlessReelGenerator
-            const containerHandle = await page.$('div.bg-slate-900.border.border-white\\/5');
+            const containerHandle = await page.$('#reel-container');
             if (!containerHandle) {
                 throw new Error("Reel container element not found on page");
             }
 
             const framePath = path.join(tmpDir, `slide_${i}.png`);
-            await containerHandle.screenshot({ path: framePath, type: 'png' });
+            // omitBackground: true ensures the background is transparent
+            await containerHandle.screenshot({ path: framePath, type: 'png', omitBackground: true });
 
             const stat = fs.statSync(framePath);
             console.log(`[Puppeteer] Saved slide ${i} → ${stat.size} bytes (1080×1920)`);
@@ -100,43 +100,79 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         const concatFilePath = path.join(tmpDir, 'concat.txt');
         fs.writeFileSync(concatFilePath, concatLines.join('\n'));
 
-        // Check if news-bg.wav exists to use as background music
+        // Save the ElevenLabs audio buffer to a temp file for FFmpeg to use
+        const voiceAudioPath = path.join(tmpDir, 'voice.mp3');
+        fs.writeFileSync(voiceAudioPath, audioBuffer);
+
+        // Check for Background audio and the Anchor MP4
         const bgAudioPath = path.join(process.cwd(), 'news-bg.wav');
         const hasBgAudio = fs.existsSync(bgAudioPath);
+        
+        // Use Cartoon by default
+        const anchorVideoPath = path.join(process.cwd(), 'AI Avators', 'Cartoon_anchor_talking_enthusias.mp4');
+        const hasAnchorVideo = fs.existsSync(anchorVideoPath);
 
-        // Build ffmpeg command with Ken Burns effect (zoompan)
-        const ffmpegCmdArgs = [
-            'ffmpeg', '-y',
-            '-f', 'concat', '-safe', '0',
-            '-i', concatFilePath
-        ];
+        const ffmpegCmdArgs = ['ffmpeg', '-y'];
 
-        if (hasBgAudio) {
-            // Loop the background audio indefinitely
-            ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
-        }
+        if (hasAnchorVideo) {
+            // [0:v] and [0:a] Looping background anchor video
+            ffmpegCmdArgs.push('-stream_loop', '-1', '-i', `"${anchorVideoPath}"`);
+            
+            // [1:v] Transparent PNG sequence
+            ffmpegCmdArgs.push('-f', 'concat', '-safe', '0', '-i', concatFilePath);
+            
+            // [2:a] ElevenLabs Audio
+            ffmpegCmdArgs.push('-i', voiceAudioPath);
 
-        ffmpegCmdArgs.push(
-            // Ken Burns zoom effect: slowly zoom into the center of each image
-            '-vf', '"zoompan=z=\'min(zoom+0.001,1.15)\':d=105:x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':s=1080x1920,format=yuv420p"',
-            '-c:v', 'libx264',
-            '-preset', 'fast',
-            '-r', '30'
-        );
+            let filterComplex = '';
+            let mapOptions = [];
 
-        if (hasBgAudio) {
-            // Map the video stream and the audio stream together, cut to shortest
+            if (hasBgAudio) {
+                // [3:a] Background music
+                ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
+                
+                // Overlay text on video, mix ElevenLabs with BG music, cut video to length of audio
+                filterComplex = `[0:v][1:v]overlay=x=0:y=0:shortest=1[v];[2:a][3:a]amix=inputs=2:duration=first:dropout_transition=0[a]`;
+                mapOptions = ['-map', '[v]', '-map', '[a]'];
+            } else {
+                // Overlay text on video, use only ElevenLabs audio
+                filterComplex = `[0:v][1:v]overlay=x=0:y=0:shortest=1[v]`;
+                mapOptions = ['-map', '[v]', '-map', '2:a'];
+            }
+
             ffmpegCmdArgs.push(
+                '-filter_complex', filterComplex,
+                ...mapOptions,
+                '-c:v', 'libx264',
+                '-preset', 'fast',
                 '-c:a', 'aac',
                 '-b:a', '128k',
-                '-shortest',
-                '-map', '0:v:0',
-                '-map', '1:a:0'
+                '-shortest'
+            );
+        } else {
+            // FALLBACK: No anchor video found, just use static slides and audio
+            ffmpegCmdArgs.push('-f', 'concat', '-safe', '0', '-i', concatFilePath);
+            ffmpegCmdArgs.push('-i', voiceAudioPath);
+            
+            if (hasBgAudio) {
+                ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
+                ffmpegCmdArgs.push('-filter_complex', `[1:a][2:a]amix=inputs=2:duration=first:dropout_transition=0[a]`);
+                ffmpegCmdArgs.push('-map', '0:v', '-map', '[a]');
+            } else {
+                ffmpegCmdArgs.push('-map', '0:v', '-map', '1:a');
+            }
+
+            ffmpegCmdArgs.push(
+                '-vf', '"zoompan=z=\'min(zoom+0.001,1.15)\':d=105:x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':s=1080x1920,format=yuv420p"',
+                '-c:v', 'libx264',
+                '-preset', 'fast',
+                '-c:a', 'aac',
+                '-b:a', '128k',
+                '-shortest'
             );
         }
 
         ffmpegCmdArgs.push('-movflags', '+faststart', outputPath);
-
         const ffmpegCmd = ffmpegCmdArgs.join(' ');
 
         console.log(`[ffmpeg] Running: ${ffmpegCmd}`);

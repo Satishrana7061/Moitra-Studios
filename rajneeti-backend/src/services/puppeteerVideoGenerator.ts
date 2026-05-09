@@ -100,18 +100,44 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         const concatFilePath = path.join(tmpDir, 'concat.txt');
         fs.writeFileSync(concatFilePath, concatLines.join('\n'));
 
-        // Build ffmpeg command
-        const ffmpegCmd = [
+        // Check if news-bg.wav exists to use as background music
+        const bgAudioPath = path.join(process.cwd(), 'news-bg.wav');
+        const hasBgAudio = fs.existsSync(bgAudioPath);
+
+        // Build ffmpeg command with Ken Burns effect (zoompan)
+        const ffmpegCmdArgs = [
             'ffmpeg', '-y',
             '-f', 'concat', '-safe', '0',
-            '-i', concatFilePath,
-            '-vf', 'scale=1080:1920,format=yuv420p',
+            '-i', concatFilePath
+        ];
+
+        if (hasBgAudio) {
+            // Loop the background audio indefinitely
+            ffmpegCmdArgs.push('-stream_loop', '-1', '-i', bgAudioPath);
+        }
+
+        ffmpegCmdArgs.push(
+            // Ken Burns zoom effect: slowly zoom into the center of each image
+            '-vf', "zoompan=z='min(zoom+0.001,1.15)':d=105:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920,format=yuv420p",
             '-c:v', 'libx264',
             '-preset', 'fast',
-            '-r', '30',
-            '-movflags', '+faststart',
-            outputPath
-        ].join(' ');
+            '-r', '30'
+        );
+
+        if (hasBgAudio) {
+            // Map the video stream and the audio stream together, cut to shortest
+            ffmpegCmdArgs.push(
+                '-c:a', 'aac',
+                '-b:a', '128k',
+                '-shortest',
+                '-map', '0:v:0',
+                '-map', '1:a:0'
+            );
+        }
+
+        ffmpegCmdArgs.push('-movflags', '+faststart', outputPath);
+
+        const ffmpegCmd = ffmpegCmdArgs.join(' ');
 
         console.log(`[ffmpeg] Running: ${ffmpegCmd}`);
         execSync(ffmpegCmd, { stdio: 'pipe', timeout: 60000 });

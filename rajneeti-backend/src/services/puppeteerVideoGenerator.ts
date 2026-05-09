@@ -47,31 +47,36 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         const totalSlides = await page.evaluate(() => (window as any).totalSlides || 3);
         console.log(`[Puppeteer] Found ${totalSlides} slides to render.`);
 
-        // Render each slide and export the canvas at full resolution
+        // Render each slide and export the element as a PNG
         for (let i = 0; i < totalSlides; i++) {
             console.log(`[Puppeteer] Rendering slide ${i + 1}/${totalSlides}...`);
 
-            // Render the slide and export the canvas as a PNG data URL
-            const dataUrl = await page.evaluate((idx: number) => {
+            // Tell the browser to render the slide
+            const success = await page.evaluate((idx: number) => {
                 try {
-                    (window as any).renderSlide(idx);
-                    const canvas = document.querySelector('canvas');
-                    if (!canvas) return null;
-                    return canvas.toDataURL('image/png');
+                    return (window as any).renderSlide(idx);
                 } catch (err) {
                     console.error(`renderSlide(${idx}) failed:`, err);
-                    return null;
+                    return false;
                 }
             }, i);
 
-            if (!dataUrl) {
-                throw new Error(`renderSlide(${i}) failed or canvas not found`);
+            if (!success) {
+                throw new Error(`renderSlide(${i}) failed`);
             }
 
-            // Convert the data URL to a PNG file
-            const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+            // Small delay to allow CSS transitions and text to settle
+            await new Promise(r => setTimeout(r, 800));
+
+            // Grab the reel container element and screenshot it
+            // We use the unique class or styling we gave it in HeadlessReelGenerator
+            const containerHandle = await page.$('div.bg-slate-900.border.border-white\\/5');
+            if (!containerHandle) {
+                throw new Error("Reel container element not found on page");
+            }
+
             const framePath = path.join(tmpDir, `slide_${i}.png`);
-            fs.writeFileSync(framePath, Buffer.from(base64Data, 'base64'));
+            await containerHandle.screenshot({ path: framePath, type: 'png' });
 
             const stat = fs.statSync(framePath);
             console.log(`[Puppeteer] Saved slide ${i} → ${stat.size} bytes (1080×1920)`);

@@ -1,196 +1,196 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { dynamicCampaignService } from '../services/dynamicCampaignService';
+import { Radio } from 'lucide-react';
+
+const createSlug = (text: string): string => {
+    return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+};
+
+const parseBulletPoints = (text: string): string[] => {
+    if (!text) return [];
+    return text.split(/(?<=[.!?])\s+/)
+               .map(s => s.trim())
+               .filter(s => s.length > 15);
+};
 
 // This is a hidden route /#/headless-reel/:id optimized for Puppeteer.
-// It exposes window.renderSlide(index) which draws a single slide onto the canvas,
-// then Puppeteer takes a screenshot.  ffmpeg stitches the PNGs into an MP4 server-side.
 const HeadlessReelGenerator: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [campaign, setCampaign] = useState<any>(null);
-    const [status, setStatus] = useState('initializing');
     const [searchParams] = useSearchParams();
+    
+    const [newsItem, setNewsItem] = useState<any>(null);
+    const [status, setStatus] = useState('initializing');
+    const [slideIndex, setSlideIndex] = useState(0);
 
     const urlTitle = searchParams.get('title');
     const urlSummary = searchParams.get('summary');
 
     useEffect(() => {
-        if (urlTitle) {
-            setCampaign({
-                title: urlTitle,
-                issue_summary: urlSummary || "Rajneeti political update.",
-                issue_bullets: (urlSummary || "").split('. ').filter((s: string) => s.length > 5).slice(0, 4),
-                approaches: [
-                    { style: "modi", policy_bullets: ["Development focus", "Infrastructure growth"] },
-                    { style: "rahul", policy_bullets: ["Social justice", "Grassroots connect"] }
-                ]
-            });
-            setStatus('ready');
-        } else if (id) {
-            dynamicCampaignService.getCampaignBySlug(id)
-                .then(c => {
-                    if (c) { setCampaign(c); setStatus('ready'); }
-                    else { throw new Error("Empty campaign"); }
-                })
-                .catch(err => {
-                    console.warn("Using mock campaign for testing/fallback", err);
-                    setCampaign({
-                        title: "Nationwide Infrastructure Drive",
-                        issue_summary: "A major push for connectivity across India.",
-                        issue_bullets: ["Highway expansion", "Railway modernization", "Digital infrastructure", "Rural connectivity"],
-                        approaches: [
-                            { style: "modi", policy_bullets: ["PM Gati Shakti focus", "Smart cities mission"] },
-                            { style: "rahul", policy_bullets: ["Social justice focus", "Inclusive growth"] }
-                        ]
-                    });
-                    setStatus('ready');
-                });
-        }
-    }, [id, urlTitle, urlSummary]);
-
-    // ── Expose slide-rendering helpers for Puppeteer ──────────────
-    useEffect(() => {
-        if (!campaign) return;
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-
-        const ctx = canvas.getContext('2d', { alpha: false });
-        if (!ctx) return;
-
-        canvas.width = 1080;
-        canvas.height = 1920;
-
-        // ── helpers ──────────────────────────────────────────────
-        const wrapText = (text: string, x: number, y: number, maxW: number, lineH: number) => {
-            const words = text.split(' ');
-            let line = '';
-            let cy = y;
-            for (const word of words) {
-                const test = line + word + ' ';
-                if (ctx.measureText(test).width > maxW && line) {
-                    ctx.fillText(line.trim(), x, cy);
-                    line = word + ' ';
-                    cy += lineH;
-                } else { line = test; }
+        const fetchNews = async () => {
+            let foundNews = null;
+            
+            // Try fetching from daily_news.json
+            const paths = [
+                `${import.meta.env.BASE_URL}daily_news.json`,
+                './daily_news.json',
+                '/Moitra-Studios/daily_news.json',
+                'https://raw.githubusercontent.com/Satishrana7061/Moitra-Studios/main/public/daily_news.json'
+            ];
+            
+            for (const path of paths) {
+                try {
+                    const response = await fetch(`${path}?t=${Date.now()}`);
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (!text.trim().startsWith('<')) {
+                            const parsed = JSON.parse(text);
+                            const jsonData = Array.isArray(parsed) ? parsed : [parsed];
+                            const match = jsonData.find((n: any) => createSlug(n.ticker_headline || n.blog_title) === id);
+                            if (match) {
+                                foundNews = match;
+                                break;
+                            }
+                        }
+                    }
+                } catch (e) { }
             }
-            if (line) ctx.fillText(line.trim(), x, cy);
-            return cy;
+
+            if (foundNews) {
+                setNewsItem(foundNews);
+            } else {
+                // Fallback to URL params if JSON fetch fails
+                setNewsItem({
+                    ticker_headline: urlTitle || "Breaking News",
+                    blog_title: urlTitle || "Rajneeti Update",
+                    blog_content: urlSummary || "Detailed analysis coming soon.",
+                    date: new Date().toISOString().split('T')[0],
+                    state: "National"
+                });
+            }
         };
 
-        const modiApproach = campaign.approaches?.find((a: any) => a.style === 'modi');
-        const rahulApproach = campaign.approaches?.find((a: any) => a.style === 'rahul');
+        fetchNews();
+    }, [id, urlTitle, urlSummary]);
 
-        const slides = [
-            {
-                label: 'THE DEBATE',
-                color: '#6366f1', accent: '#818cf8',
-                bullets: (campaign.issue_bullets || []).slice(0, 4),
-                intro: campaign.issue_summary?.slice(0, 200) || campaign.title,
-            },
-            {
-                label: "MODI'S APPROACH",
-                color: '#ea580c', accent: '#fb923c',
-                bullets: (modiApproach?.policy_bullets || []).slice(0, 4),
-                intro: '',
-            },
-            {
-                label: "RAHUL'S APPROACH",
-                color: '#2563eb', accent: '#60a5fa',
-                bullets: (rahulApproach?.policy_bullets || []).slice(0, 4),
-                intro: '',
-            },
+    const slides = React.useMemo(() => {
+        if (!newsItem) return [];
+        return [
+            { type: 'headline', content: newsItem.ticker_headline },
+            ...parseBulletPoints(newsItem.blog_content).map(b => ({ type: 'bullet', content: b }))
         ];
+    }, [newsItem]);
 
-        // ── renderSlide(index) → draws a full slide with all bullets visible ──
-        (window as any).renderSlide = (slideIndex: number) => {
-            const slide = slides[slideIndex] || slides[0];
-
-            // Background
-            const grad = ctx.createLinearGradient(0, 0, 0, 1920);
-            grad.addColorStop(0, '#09090f');
-            grad.addColorStop(1, '#0d0d1c');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, 1080, 1920);
-
-            // Top accent bar
-            ctx.fillStyle = slide.color;
-            ctx.fillRect(0, 0, 1080, 10);
-
-            // Label pill
-            ctx.fillStyle = slide.color + '22';
-            ctx.beginPath();
-            ctx.roundRect(80, 80, 400, 60, 30);
-            ctx.fill();
-            ctx.fillStyle = slide.color;
-            ctx.font = 'bold 30px Arial';
-            ctx.textAlign = 'left';
-            ctx.fillText(slide.label, 110, 120);
-
-            // Divider
-            ctx.strokeStyle = slide.accent + '33';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath(); ctx.moveTo(80, 165); ctx.lineTo(1000, 165); ctx.stroke();
-
-            // Title
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 56px Arial';
-            ctx.textAlign = 'center';
-            const titleEndY = wrapText(campaign.title, 540, 250, 940, 70);
-
-            // Intro
-            let contentStartY = titleEndY + 60;
-            if (slide.intro) {
-                ctx.fillStyle = 'rgba(148,163,184,0.9)';
-                ctx.font = '34px Arial';
-                contentStartY = wrapText(slide.intro, 540, contentStartY, 900, 48) + 70;
-            }
-
-            // Bullets (all visible)
-            let bulletY = contentStartY;
-            ctx.textAlign = 'left';
-            for (let bi = 0; bi < slide.bullets.length; bi++) {
-                const bullet = slide.bullets[bi];
-                if (!bullet) continue;
-
-                ctx.fillStyle = slide.accent;
-                ctx.beginPath();
-                ctx.arc(100, bulletY - 10, 8, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.fillStyle = 'rgba(226,232,240,1)';
-                ctx.font = '36px Arial';
-                bulletY = wrapText(String(bullet), 128, bulletY, 870, 50) + 65;
-            }
-
-            // Dots
-            for (let d = 0; d < slides.length; d++) {
-                ctx.fillStyle = d === slideIndex ? slide.accent : '#2a2a3a';
-                ctx.beginPath();
-                ctx.arc(540 + (d - 1) * 44, 1840, d === slideIndex ? 13 : 8, 0, Math.PI * 2);
-                ctx.fill();
-            }
-
-            // Watermark
-            ctx.fillStyle = 'rgba(255,255,255,0.12)';
-            ctx.font = 'bold 26px Arial';
-            ctx.textAlign = 'center';
-            ctx.fillText('RAJNEETI.IN · SOCIAL CAMPAIGN', 540, 1900);
-
+    // Expose helpers for Puppeteer
+    useEffect(() => {
+        if (!newsItem || slides.length === 0) return;
+        
+        (window as any).totalSlides = slides.length;
+        
+        // This function is called by Puppeteer to render a specific slide
+        (window as any).renderSlide = (idx: number) => {
+            setSlideIndex(idx);
             return true;
         };
 
-        // Expose the total number of slides
-        (window as any).totalSlides = slides.length;
-
+        setStatus('ready');
         console.log(`[HeadlessReel] Ready. ${slides.length} slides prepared.`);
-    }, [campaign]);
+    }, [newsItem, slides.length]);
+
+    if (!newsItem) {
+        return <div style={{ color: 'white' }}>Loading... <span id="status">{status}</span></div>;
+    }
 
     return (
         <div style={{ background: '#000', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h1 style={{ color: 'white' }}>Headless Reel Generator</h1>
-            <p style={{ color: 'white' }}>Status: <span id="status">{status}</span></p>
-            <canvas ref={canvasRef} style={{ width: '270px', height: '480px', border: '1px solid #333' }} />
+            <div id="status" style={{ display: 'none' }}>{status}</div>
+            
+            {/* THIS IS THE EXACT UI FROM RAJNEETINETWORKTV */}
+            <div className="relative bg-slate-900 border border-white/5 overflow-hidden shadow-2xl"
+                 style={{ width: '1080px', height: '1920px' }}>
+                
+                {/* Background animations */}
+                <div className="absolute inset-0 bg-blue-900/20 flex flex-col items-center justify-center space-y-8 opacity-50 pointer-events-none">
+                    <div className="w-[150%] aspect-square border-[40px] border-white/5 rounded-full animate-spin-slow absolute"></div>
+                    <div className="w-[100%] aspect-square border-t-[8px] border-red-600/30 rounded-full animate-reverse-spin absolute"></div>
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none"></div>
+
+                <div className="relative h-full flex flex-col justify-between p-16 z-10 w-full">
+                    
+                    {/* Header */}
+                    <div className="mt-16 flex flex-col gap-4 relative z-20">
+                        <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-6 py-3 text-2xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
+                            <Radio size={32} className="animate-pulse" /> LIVE
+                        </div>
+                        <div className="text-white/80 font-bold uppercase tracking-widest text-xl bg-black/40 px-5 py-2 rounded w-fit backdrop-blur-sm">
+                            {newsItem.date} | {newsItem.state}
+                        </div>
+                    </div>
+
+                    {/* Content Slides */}
+                    <div className="flex-1 flex flex-col justify-center relative mt-8 z-10 px-8 pb-32 overflow-hidden">
+                        {slides.map((slide, i) => (
+                            <div 
+                                key={i} 
+                                className={`absolute w-full transition-all duration-700 ease-out transform ${
+                                    i === slideIndex ? 'translate-x-0 opacity-100 scale-100' : 
+                                    i < slideIndex ? '-translate-x-[150%] opacity-0 scale-95' : 'translate-x-[150%] opacity-0 scale-95'
+                                }`}
+                                style={{ paddingRight: '64px' }}
+                            >
+                                <div className={`inline-block text-white px-6 py-3 font-black uppercase tracking-widest mb-10 shadow-lg text-2xl ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
+                                    {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                                </div>
+                                <h2 className={`font-rajdhani leading-snug drop-shadow-xl ${
+                                    slide.type === 'headline' ? 'text-7xl font-black text-white' : 'text-6xl font-bold text-slate-100'
+                                }`}>
+                                    {slide.content}
+                                </h2>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="mb-16 relative z-20">
+                        <div className="w-full h-[6px] bg-white/20 mb-10 rounded-full overflow-hidden relative">
+                            {/* Static full width progress bar for headless mode since we capture static frames */}
+                            <div className="h-full bg-red-600 w-full" />
+                        </div>
+                        <div className="flex flex-col gap-4">
+                            <div className="bg-red-600 text-white text-xl font-black px-5 py-2 uppercase tracking-widest w-fit shadow-lg">
+                                RN Update
+                            </div>
+                            <h3 className="text-white font-bold font-sans text-4xl leading-tight line-clamp-3 mb-4 drop-shadow-md pr-8">
+                                {newsItem.blog_title}
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Watermark */}
+                <div className="absolute bottom-12 right-12 opacity-80 z-20 pointer-events-none">
+                    <span className="font-rajdhani font-black text-red-600 text-3xl tracking-widest uppercase drop-shadow-[0_0_5px_rgba(220,38,38,0.5)]">
+                        RAJNEETI TV NETWORK
+                    </span>
+                </div>
+            </div>
+
+            <style>{`
+                .animate-reverse-spin {
+                  animation: reverse-spin 20s linear infinite;
+                }
+                @keyframes reverse-spin {
+                  from { transform: rotate(360deg); }
+                  to { transform: rotate(0deg); }
+                }
+                .animate-spin-slow {
+                  animation: spin 30s linear infinite;
+                }
+                @keyframes spin {
+                  from { transform: rotate(0deg); }
+                  to { transform: rotate(360deg); }
+                }
+            `}</style>
         </div>
     );
 };

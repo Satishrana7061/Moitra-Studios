@@ -118,7 +118,7 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
 
         ffmpegCmdArgs.push(
             // Ken Burns zoom effect: slowly zoom into the center of each image
-            '-vf', "zoompan=z='min(zoom+0.001,1.15)':d=105:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=1080x1920,format=yuv420p",
+            '-vf', '"zoompan=z=\'min(zoom+0.001,1.15)\':d=105:x=\'iw/2-(iw/zoom/2)\':y=\'ih/2-(ih/zoom/2)\':s=1080x1920,format=yuv420p"',
             '-c:v', 'libx264',
             '-preset', 'fast',
             '-r', '30'

@@ -115,7 +115,17 @@ export async function runAutomatedReelPipeline() {
         
         const youtubeTitle = (news.blog_title || news.title || "Rajneeti News Update").slice(0, 100);
         const youtubeDescription = `${news.blog_title || news.title || "Political Update"}\n\nPolitical update for ${news.stateName || 'India'}.\n\nRead more: https://moitrastudios.com/rajneeti-tv-network\n\n#Rajneeti #News #India #Politics #Shorts #Trending`;
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, youtubeTitle, youtubeDescription);
+        
+        // Generate dynamic tags to make the reel viral
+        const dynamicTags = [
+            news.stateName?.toLowerCase().replace(/\s+/g, ''),
+            news.politicianName?.toLowerCase().replace(/\s+/g, ''),
+            'election',
+            'viral',
+            'newsupdate'
+        ].filter(Boolean) as string[];
+
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, youtubeTitle, youtubeDescription, dynamicTags);
 
 
         if (!ytSuccess) {

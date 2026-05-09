@@ -88,7 +88,7 @@ export class SocialUploadService {
     /**
      * Uploads to YouTube Shorts via YouTube Data API v3
      */
-    static async uploadToYouTube(videoBuffer: Buffer, title: string, description: string): Promise<boolean> {
+    static async uploadToYouTube(videoBuffer: Buffer, title: string, description: string, tags: string[] = []): Promise<boolean> {
         console.log("[SocialUploadService] Uploading to YouTube Shorts...");
         
         const clientId = process.env.YOUTUBE_CLIENT_ID;
@@ -128,7 +128,7 @@ export class SocialUploadService {
                     snippet: {
                         title: title,
                         description: description + "\n\n#shorts #news",
-                        tags: ['shorts', 'news', 'india', 'rajneeti']
+                        tags: [...new Set(['shorts', 'news', 'india', 'rajneeti', ...tags])]
                     },
                     status: {
                         privacyStatus: 'public', 

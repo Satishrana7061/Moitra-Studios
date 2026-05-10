@@ -115,6 +115,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         let anchorVideoPath = '';
         let hasAnchorVideo = false;
         const possibleDirs = [
+            path.join(process.cwd(), 'public'),
+            path.join(process.cwd(), '..', 'public'),
             path.join(process.cwd(), 'AI Avators'),
             path.join(process.cwd(), '..', 'AI Avators')
         ];
@@ -122,7 +124,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         for (const dir of possibleDirs) {
             if (fs.existsSync(dir)) {
                 const files = fs.readdirSync(dir);
-                const mp4File = files.find(f => f.endsWith('.mp4'));
+                // Prioritize 'anchor.mp4' if it exists, otherwise take first mp4
+                const mp4File = files.find(f => f === 'anchor.mp4') || files.find(f => f.endsWith('.mp4'));
                 if (mp4File) {
                     anchorVideoPath = path.join(dir, mp4File);
                     hasAnchorVideo = true;

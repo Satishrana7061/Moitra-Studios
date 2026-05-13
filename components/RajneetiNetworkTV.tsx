@@ -717,55 +717,56 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </span>
                                 </div>
                             ) : (
-                            <button 
-                                onClick={async () => {
-                                    setIsGeneratingAi(true);
-                                    try {
-                                        const url = await falService.generateTeenAnchor();
-                                        setAiAnchorImage(url);
-                                        localStorage.setItem('rajneeti_ai_anchor', url);
-                                    } catch (e) {
-                                        console.error(e);
-                                        alert("Failed to generate anchor. Make sure VITE_FAL_KEY is set.");
-                                    } finally {
-                                        setIsGeneratingAi(false);
-                                    }
-                                }}
-                                disabled={isGeneratingAi}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all disabled:opacity-50"
-                            >
-                                {isGeneratingAi ? 'Generating...' : 'Gen AI Anchor'}
-                            </button>
+                                <>
+                                    <button 
+                                        onClick={async () => {
+                                            setIsGeneratingAi(true);
+                                            try {
+                                                const url = await falService.generateTeenAnchor();
+                                                setAiAnchorImage(url);
+                                                localStorage.setItem('rajneeti_ai_anchor', url);
+                                            } catch (e) {
+                                                console.error(e);
+                                                alert("Failed to generate anchor. Make sure VITE_FAL_KEY is set.");
+                                            } finally {
+                                                setIsGeneratingAi(false);
+                                            }
+                                        }}
+                                        disabled={isGeneratingAi}
+                                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all disabled:opacity-50"
+                                    >
+                                        {isGeneratingAi ? 'Generating...' : 'Gen AI Anchor'}
+                                    </button>
 
-                            {aiAnchorImage && (
-                                <button 
-                                    onClick={async () => {
-                                        setIsGeneratingAi(true);
-                                        try {
-                                            const url = await falService.generateTalkingReel(aiAnchorImage, activeNews.blog_content);
-                                            setTalkingReelUrl(url);
-                                            window.open(url, '_blank');
-                                        } catch (e) {
-                                            console.error(e);
-                                            alert("Failed to generate talking reel.");
-                                        } finally {
-                                            setIsGeneratingAi(false);
-                                        }
-                                    }}
-                                    disabled={isGeneratingAi}
-                                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all disabled:opacity-50 animate-pulse"
-                                >
-                                    {isGeneratingAi ? 'Syncing...' : 'Gen Talking Reel'}
-                                </button>
-                            )}
+                                    {aiAnchorImage && (
+                                        <button 
+                                            onClick={async () => {
+                                                setIsGeneratingAi(true);
+                                                try {
+                                                    const url = await falService.generateTalkingReel(aiAnchorImage, activeNews.blog_content);
+                                                    setTalkingReelUrl(url);
+                                                    window.open(url, '_blank');
+                                                } catch (e) {
+                                                    console.error(e);
+                                                    alert("Failed to generate talking reel.");
+                                                } finally {
+                                                    setIsGeneratingAi(false);
+                                                }
+                                            }}
+                                            disabled={isGeneratingAi}
+                                            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all disabled:opacity-50 animate-pulse"
+                                        >
+                                            {isGeneratingAi ? 'Syncing...' : 'Gen Talking Reel'}
+                                        </button>
+                                    )}
 
-                            <button 
-                                onClick={triggerCloudPublish}
-                                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
-                            >
-                                <Video className="w-4 h-4" /> Publish to Shorts
-                            </button>
-
+                                    <button 
+                                        onClick={triggerCloudPublish}
+                                        className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
+                                    >
+                                        <Video className="w-4 h-4" /> Publish to Shorts
+                                    </button>
+                                </>
                             )}
                             
                             <button 

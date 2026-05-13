@@ -6,7 +6,6 @@ import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampa
 import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 import { AdBanner } from './AdBanner';
-import { VignetteAdBanner } from './VignetteAdBanner';
 
 const INDIAN_STATES = [
     'All States', 'National', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
@@ -553,15 +552,12 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Vignette Ad — Below TV Screen */}
-                                <VignetteAdBanner className="mt-4 !min-h-[120px]" />
-
-                                {/* Vignette Ad — Above Reel Studio Button */}
-                                <VignetteAdBanner className="mt-2 !min-h-[90px]" />
+                                {/* Ad Banner — Between TV Screen and Reel Studio */}
+                                <AdBanner layoutArea="leaderboard" className="mt-4" />
 
                                 <button 
                                     onClick={() => setIsStudioMode(true)}
-                                    className="mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-black font-rajdhani tracking-widest uppercase py-4 rounded-xl border border-white/10 transition-all shadow-lg group relative overflow-hidden"
+                                    className="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-black font-rajdhani tracking-widest uppercase py-4 rounded-xl border border-white/10 transition-all shadow-lg group relative overflow-hidden"
                                 >
                                     <div className="absolute inset-0 bg-gameOrange/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <Video className="w-5 h-5 text-gameOrange group-hover:scale-110 transition-transform relative z-10" />

@@ -101,72 +101,78 @@ const HeadlessReelGenerator: React.FC = () => {
     }
 
     return (
-        <div style={{ background: 'transparent', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ background: '#000', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <div id="status" style={{ display: 'none' }}>{status}</div>
             
-            {/* THIS IS THE EXACT UI FROM RAJNEETINETWORKTV, MODIFIED FOR TRANSPARENCY */}
-            <div id="reel-container" className="relative overflow-hidden"
-                 style={{ width: '1080px', height: '1920px', background: 'transparent' }}>
+            <div id="reel-container" className="relative overflow-hidden bg-black"
+                 style={{ width: '1080px', height: '1920px' }}>
 
-                <div className="relative h-full flex flex-col justify-end p-12 z-10 w-full pb-16">
-                    
-                    {/* Header - Moved to Top Left */}
-                    <div className="absolute top-16 left-12 flex flex-col gap-4 z-20">
-                        <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-6 py-3 text-2xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
-                            <Radio size={32} className="animate-pulse" /> LIVE
-                        </div>
-                        <div className="text-white/80 font-bold uppercase tracking-widest text-xl bg-black/60 px-5 py-2 rounded w-fit backdrop-blur-md border border-white/10">
-                            {newsItem.date} | {newsItem.state}
+                <div className="flex flex-col h-full w-full">
+                    {/* Top Section: Anchor Video */}
+                    <div className="h-[55%] relative overflow-hidden border-b-[8px] border-red-600 shadow-2xl">
+                        <video 
+                            src="/anchor.mp4" 
+                            autoPlay 
+                            loop 
+                            muted 
+                            playsInline 
+                            className="absolute inset-0 w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                        
+                        {/* Header Overlay */}
+                        <div className="absolute top-16 left-12 flex flex-col gap-4 z-20">
+                            <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-8 py-3 text-3xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
+                                <Radio size={32} className="animate-pulse" /> LIVE
+                            </div>
+                            <div className="text-white/80 font-bold uppercase tracking-widest text-xl bg-black/60 px-6 py-2 rounded w-fit backdrop-blur-md border border-white/10">
+                                {newsItem.date} | {newsItem.state}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Content Slides - Bottom positioned */}
-                    <div className="w-full relative z-10 mb-8 overflow-visible h-[450px]">
-                        {slides.map((slide, i) => (
-                            <div 
-                                key={i} 
-                                className={`absolute w-full bottom-0 transition-all duration-700 ease-out transform ${
-                                    i === slideIndex ? 'translate-x-0 opacity-100 scale-100' : 
-                                    i < slideIndex ? '-translate-x-[150%] opacity-0 scale-95' : 'translate-x-[150%] opacity-0 scale-95'
-                                }`}
-                            >
-                                <div className="bg-black/80 backdrop-blur-lg border-t-4 border-red-600 p-8 rounded-t-3xl shadow-2xl">
-                                    <div className={`inline-block text-white px-6 py-2 font-black uppercase tracking-widest mb-6 shadow-lg text-xl rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
-                                        {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                    {/* Bottom Section: News Content */}
+                    <div className="flex-1 relative flex flex-col justify-between p-16 bg-gradient-to-b from-slate-900 to-black z-10 overflow-hidden">
+                        <div className="w-full relative z-10 mb-8 flex-1">
+                            {slides.map((slide, i) => (
+                                <div 
+                                    key={i} 
+                                    className={`absolute w-full top-0 transition-all duration-700 ease-out transform ${
+                                        i === slideIndex ? 'translate-y-0 opacity-100 scale-100' : 
+                                        i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
+                                    }`}
+                                >
+                                    <div className="bg-black/40 backdrop-blur-lg border-l-[12px] border-red-600 p-10 rounded-r-3xl shadow-2xl">
+                                        <div className={`inline-block text-white px-8 py-2 font-black uppercase tracking-widest mb-8 shadow-lg text-2xl rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
+                                            {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                                        </div>
+                                        <h2 className={`font-rajdhani leading-tight drop-shadow-xl ${
+                                            slide.type === 'headline' ? 'text-7xl font-black text-white' : 'text-6xl font-bold text-slate-100'
+                                        }`}>
+                                            {slide.content}
+                                        </h2>
                                     </div>
-                                    <h2 className={`font-rajdhani leading-snug drop-shadow-xl ${
-                                        slide.type === 'headline' ? 'text-6xl font-black text-white' : 'text-5xl font-bold text-slate-100'
-                                    }`}>
-                                        {slide.content}
-                                    </h2>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Footer */}
-                    <div className="relative z-20 bg-black/90 p-6 rounded-b-3xl border-t border-white/10 shadow-2xl">
-                        <div className="w-full h-[6px] bg-white/20 mb-6 rounded-full overflow-hidden relative">
-                            {/* Static full width progress bar for headless mode since we capture static frames */}
-                            <div className="h-full bg-red-600 w-full" />
+                            ))}
                         </div>
-                        <div className="flex items-center gap-6">
-                            <div className="bg-red-600 text-white text-xl font-black px-5 py-2 uppercase tracking-widest shadow-lg rounded">
-                                RN Update
+
+                        {/* Footer Section */}
+                        <div className="relative z-20 mt-auto bg-white/5 p-10 rounded-3xl border border-white/10 shadow-2xl">
+                            <div className="w-full h-3 bg-white/10 mb-8 rounded-full overflow-hidden relative">
+                                <div className="h-full bg-red-600 w-full" />
                             </div>
-                            <h3 className="text-white font-bold font-sans text-3xl leading-tight line-clamp-2 drop-shadow-md flex-1">
-                                {newsItem.blog_title}
-                            </h3>
+                            <div className="flex items-center gap-8">
+                                <div className="bg-red-600 text-white text-3xl font-black px-8 py-3 uppercase tracking-widest shadow-lg rounded">
+                                    RN Update
+                                </div>
+                                <h3 className="text-white font-bold font-sans text-4xl leading-tight line-clamp-2 flex-1">
+                                    {newsItem.blog_title}
+                                </h3>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                {/* Watermark */}
-                <div className="absolute bottom-12 right-12 opacity-80 z-20 pointer-events-none">
-                    <span className="font-rajdhani font-black text-red-600 text-3xl tracking-widest uppercase drop-shadow-[0_0_5px_rgba(220,38,38,0.5)]">
-                        RAJNEETI TV NETWORK
-                    </span>
-                </div>
             </div>
 
             <style>{`

@@ -779,63 +779,69 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Background Video */}
-                        <video 
-                            src="/anchor.mp4" 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline 
-                            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-                        />
-
-                        <div className="relative h-full flex flex-col justify-end p-8 md:p-10 z-10 w-full pb-12">
-                            <div className="absolute top-12 left-8 flex flex-col gap-3 z-20">
-                                <div className="flex items-center gap-2 self-start bg-red-600 text-white font-black px-4 py-1.5 text-sm md:text-base uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
-                                    <Radio size={16} className="animate-pulse" /> LIVE
-                                </div>
-                                <div className="text-white/80 font-bold uppercase tracking-widest text-[10px] md:text-xs bg-black/60 px-3 py-1 rounded w-fit backdrop-blur-md border border-white/10">
-                                    {activeNews.date} | {activeNews.state}
+                        <div className="flex flex-col h-full bg-black">
+                            {/* Top Section: Anchor Video */}
+                            <div className="h-[55%] relative overflow-hidden border-b-4 border-red-600 shadow-2xl">
+                                <video 
+                                    src="/anchor.mp4" 
+                                    autoPlay 
+                                    loop 
+                                    muted 
+                                    playsInline 
+                                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                
+                                <div className="absolute top-8 left-6 flex flex-col gap-2 z-20">
+                                    <div className="flex items-center gap-2 self-start bg-red-600 text-white font-black px-4 py-1.5 text-xs md:text-sm uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
+                                        <Radio size={14} className="animate-pulse" /> LIVE
+                                    </div>
+                                    <div className="text-white/80 font-bold uppercase tracking-widest text-[9px] md:text-[10px] bg-black/60 px-3 py-1 rounded w-fit backdrop-blur-md border border-white/10">
+                                        {activeNews.date} | {activeNews.state}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="w-full relative z-10 mb-4 overflow-visible h-[300px] md:h-[350px]">
-                                {slides.map((slide, i) => (
-                                    <div 
-                                        key={i} 
-                                        className={`absolute w-full bottom-0 transition-all duration-500 ease-out transform ${
-                                            i === slideIndex ? 'translate-x-0 opacity-100 scale-100' : 
-                                            i < slideIndex ? '-translate-x-[150%] opacity-0 scale-95' : 'translate-x-[150%] opacity-0 scale-95'
-                                        }`}
-                                    >
-                                        <div className="bg-black/80 backdrop-blur-lg border-t-2 md:border-t-4 border-red-600 p-4 md:p-6 rounded-t-2xl shadow-2xl">
-                                            <div className={`inline-block text-white px-3 md:px-4 py-1 font-black uppercase tracking-widest mb-3 md:mb-4 shadow-lg text-[10px] md:text-xs rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
-                                                {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                            {/* Bottom Section: News Content */}
+                            <div className="flex-1 relative flex flex-col justify-between p-6 md:p-8 bg-gradient-to-b from-slate-900 to-black z-10 overflow-hidden">
+                                <div className="w-full relative z-10 mb-2 flex-1">
+                                    {slides.map((slide, i) => (
+                                        <div 
+                                            key={i} 
+                                            className={`absolute w-full top-0 transition-all duration-500 ease-out transform ${
+                                                i === slideIndex ? 'translate-y-0 opacity-100 scale-100' : 
+                                                i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
+                                            }`}
+                                        >
+                                            <div className="bg-black/40 backdrop-blur-md border-l-4 border-red-600 p-4 md:p-6 rounded-r-2xl shadow-xl">
+                                                <div className={`inline-block text-white px-3 md:px-4 py-1 font-black uppercase tracking-widest mb-3 md:mb-4 shadow-lg text-[10px] md:text-xs rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
+                                                    {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                                                </div>
+                                                <h2 className={`font-rajdhani leading-tight drop-shadow-xl ${
+                                                    slide.type === 'headline' ? 'text-2xl md:text-3xl font-black text-white' : 'text-xl md:text-2xl font-bold text-slate-100'
+                                                }`}>
+                                                    {slide.content}
+                                                </h2>
                                             </div>
-                                            <h2 className={`font-rajdhani leading-snug drop-shadow-xl ${
-                                                slide.type === 'headline' ? 'text-2xl md:text-4xl font-black text-white' : 'text-xl md:text-3xl font-bold text-slate-100'
-                                            }`}>
-                                                {slide.content}
-                                            </h2>
                                         </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="relative z-20 bg-black/90 p-4 md:p-6 rounded-b-2xl border-t border-white/10 shadow-2xl">
-                                <div className="w-full h-1 bg-white/20 mb-4 rounded-full overflow-hidden relative">
-                                    <div 
-                                        className="h-full bg-red-600 transition-all duration-300 ease-linear"
-                                        style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
-                                    />
+                                    ))}
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <div className="bg-red-600 text-white text-[10px] md:text-xs font-black px-3 py-1 uppercase tracking-widest shadow-lg rounded whitespace-nowrap">
-                                        RN Update
+
+                                <div className="relative z-20 mt-auto bg-white/5 p-4 md:p-6 rounded-2xl border border-white/10 shadow-2xl">
+                                    <div className="w-full h-1 bg-white/10 mb-4 rounded-full overflow-hidden relative">
+                                        <div 
+                                            className="h-full bg-red-600 transition-all duration-300 ease-linear"
+                                            style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
+                                        />
                                     </div>
-                                    <h3 className="text-white font-bold font-sans text-sm md:text-lg leading-tight line-clamp-2 drop-shadow-md flex-1">
-                                        {activeNews.blog_title}
-                                    </h3>
+                                    <div className="flex items-center gap-4">
+                                        <div className="bg-red-600 text-white text-[10px] md:text-xs font-black px-3 py-1 uppercase tracking-widest shadow-lg rounded whitespace-nowrap">
+                                            RN Update
+                                        </div>
+                                        <h3 className="text-white font-bold font-sans text-xs md:text-sm leading-tight line-clamp-2 flex-1">
+                                            {activeNews.blog_title}
+                                        </h3>
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -30,11 +30,10 @@ export const falService = {
 
   /**
    * Generates a lip-synced video using a character image and text content.
-   * This uses ElevenLabs for voice and LivePortrait for lip-sync.
+   * This uses ElevenLabs for voice and the CHEAPER Lipsync 1.9.0 model on Fal.
    */
   async generateTalkingReel(imageUrl: string, text: string): Promise<string> {
-    // 1. Generate Voiceover using ElevenLabs via Fal.ai
-    // Note: We use a younger male voice (e.g., 'Clyde' or custom)
+    // 1. Generate Voiceover using ElevenLabs via Fal.ai (~$0.08 per reel)
     const audioResponse = await fetch(`${FAL_PROXY_URL}/fal-ai/elevenlabs/tts`, {
       method: 'POST',
       headers: {
@@ -43,14 +42,14 @@ export const falService = {
       },
       body: JSON.stringify({
         text: text,
-        voice_id: "21m00Tcm4TlvDq8ikWAM", // Example: Adam (can be changed to a teen voice)
+        voice_id: "pNInz6obpgDQGcFmaJgB", // 'Adam' - clear and authoritative
       }),
     });
     const audioData = await audioResponse.json();
     const audioUrl = audioData.audio.url;
 
-    // 2. Perform Lip-Sync (LivePortrait is fast and cost-effective)
-    const videoResponse = await fetch(`${FAL_PROXY_URL}/fal-ai/live-portrait/video`, {
+    // 2. Perform Lip-Sync using the cheaper 1.9.0 model (~$0.35 per 30s reel)
+    const videoResponse = await fetch(`${FAL_PROXY_URL}/fal-ai/lipsync-1.9.0-beta`, {
       method: 'POST',
       headers: {
         'Authorization': `Key ${import.meta.env.VITE_FAL_KEY}`,
@@ -59,11 +58,13 @@ export const falService = {
       body: JSON.stringify({
         image_url: imageUrl,
         audio_url: audioUrl,
-        num_frames: 900, // Max for 30 seconds at 30fps
+        sync_mode: "audio", // Focus on high precision lip movement
+        num_inference_steps: 20, // Balanced for speed and quality
       }),
     });
 
     const videoData = await videoResponse.json();
-    return videoData.video.url;
+    // Lipsync 1.9.0 returns video in a slightly different structure
+    return videoData.video?.url || videoData.url;
   }
 };

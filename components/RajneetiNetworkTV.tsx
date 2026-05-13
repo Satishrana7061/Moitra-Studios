@@ -6,6 +6,7 @@ import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampa
 import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 import { AdBanner } from './AdBanner';
+import { VignetteAdBanner } from './VignetteAdBanner';
 
 const INDIAN_STATES = [
     'All States', 'National', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
@@ -552,9 +553,15 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {/* Vignette Ad — Below TV Screen */}
+                                <VignetteAdBanner className="mt-4 !min-h-[120px]" />
+
+                                {/* Vignette Ad — Above Reel Studio Button */}
+                                <VignetteAdBanner className="mt-2 !min-h-[90px]" />
+
                                 <button 
                                     onClick={() => setIsStudioMode(true)}
-                                    className="mt-4 flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-black font-rajdhani tracking-widest uppercase py-4 rounded-xl border border-white/10 transition-all shadow-lg group relative overflow-hidden"
+                                    className="mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-slate-900 to-slate-800 hover:from-slate-800 hover:to-slate-700 text-white font-black font-rajdhani tracking-widest uppercase py-4 rounded-xl border border-white/10 transition-all shadow-lg group relative overflow-hidden"
                                 >
                                     <div className="absolute inset-0 bg-gameOrange/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <Video className="w-5 h-5 text-gameOrange group-hover:scale-110 transition-transform relative z-10" />
@@ -796,7 +803,7 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
 
                             <div className="w-full relative z-10 mb-4 overflow-visible h-[300px] md:h-[350px]">
-                                {activeNewsSlides.map((slide, i) => (
+                                {slides.map((slide, i) => (
                                     <div 
                                         key={i} 
                                         className={`absolute w-full bottom-0 transition-all duration-500 ease-out transform ${
@@ -806,7 +813,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                     >
                                         <div className="bg-black/80 backdrop-blur-lg border-t-2 md:border-t-4 border-red-600 p-4 md:p-6 rounded-t-2xl shadow-2xl">
                                             <div className={`inline-block text-white px-3 md:px-4 py-1 font-black uppercase tracking-widest mb-3 md:mb-4 shadow-lg text-[10px] md:text-xs rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
-                                                {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${activeNewsSlides.length - 1}`}
+                                                {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
                                             </div>
                                             <h2 className={`font-rajdhani leading-snug drop-shadow-xl ${
                                                 slide.type === 'headline' ? 'text-2xl md:text-4xl font-black text-white' : 'text-xl md:text-3xl font-bold text-slate-100'
@@ -822,7 +829,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                 <div className="w-full h-1 bg-white/20 mb-4 rounded-full overflow-hidden relative">
                                     <div 
                                         className="h-full bg-red-600 transition-all duration-300 ease-linear"
-                                        style={{ width: `${((slideIndex + 1) / activeNewsSlides.length) * 100}%` }}
+                                        style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
                                     />
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -830,7 +837,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                         RN Update
                                     </div>
                                     <h3 className="text-white font-bold font-sans text-sm md:text-lg leading-tight line-clamp-2 drop-shadow-md flex-1">
-                                        {activeNews.title}
+                                        {activeNews.blog_title}
                                     </h3>
                                 </div>
                             </div>

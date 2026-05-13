@@ -5,6 +5,7 @@ import { fetchBreakingNews, fetchNewsByState, fetchNationalNews, BreakingNewsEve
 import InteractiveParticles from './InteractiveParticles';
 import { X, ArrowRight } from 'lucide-react';
 import { AdBanner } from './AdBanner';
+import { MonetagBanner } from './MonetagBanner';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 
@@ -494,8 +495,8 @@ const RajneetiMap: React.FC = () => {
                     </span>
                 </div>
                 <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
-                    <AdBanner layoutArea="interstitial" className="flex-shrink-0 !h-[250px]" />
-                    <AdBanner layoutArea="skyscraper" dataAdSlot="5773005388" className="flex-1" />
+                    <MonetagBanner zoneId="11001039" className="flex-shrink-0 !h-[250px]" />
+                    <MonetagBanner zoneId="11001039" className="flex-1" />
                 </div>
             </div>
         </div>

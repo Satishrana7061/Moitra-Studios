@@ -6,6 +6,7 @@ import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampa
 import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 import { AdBanner } from './AdBanner';
+import { MonetagBanner } from './MonetagBanner';
 
 const INDIAN_STATES = [
     'All States', 'National', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
@@ -552,8 +553,8 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Ad Banner — Between TV Screen and Reel Studio */}
-                                <AdBanner layoutArea="leaderboard" className="mt-4" />
+                                {/* Monetag In-Page Push — Between TV Screen and Reel Studio */}
+                                <MonetagBanner zoneId="11001039" className="mt-4 !h-[120px]" />
 
                                 <button 
                                     onClick={() => setIsStudioMode(true)}
@@ -595,7 +596,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                                 </div>
                                                 </article>
                                                 {idx > 0 && idx % 3 === 0 && (
-                                                    <AdBanner layoutArea="sidebar" className="my-4" />
+                                                    <MonetagBanner zoneId="11001039" className="my-4" />
                                                 )}
                                             </React.Fragment>
                                         );

@@ -7,6 +7,7 @@ import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 import { AdBanner } from './AdBanner';
 import { MonetagBanner } from './MonetagBanner';
+import { falService } from '../lib/fal';
 
 const INDIAN_STATES = [
     'All States', 'National', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
@@ -57,6 +58,9 @@ const RajneetiNetworkTV: React.FC = () => {
     const [isStudioDropdownOpen, setIsStudioDropdownOpen] = useState(false);
     const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
+    const [aiAnchorImage, setAiAnchorImage] = useState<string | null>(localStorage.getItem('rajneeti_ai_anchor'));
+    const [talkingReelUrl, setTalkingReelUrl] = useState<string | null>(null);
+    const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
     const activeIndex = useMemo(() => {
         if (!newsData || newsData.length === 0) return 0;
@@ -713,12 +717,54 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </span>
                                 </div>
                             ) : (
+                            <button 
+                                onClick={async () => {
+                                    setIsGeneratingAi(true);
+                                    try {
+                                        const url = await falService.generateTeenAnchor();
+                                        setAiAnchorImage(url);
+                                        localStorage.setItem('rajneeti_ai_anchor', url);
+                                    } catch (e) {
+                                        console.error(e);
+                                        alert("Failed to generate anchor. Make sure VITE_FAL_KEY is set.");
+                                    } finally {
+                                        setIsGeneratingAi(false);
+                                    }
+                                }}
+                                disabled={isGeneratingAi}
+                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all disabled:opacity-50"
+                            >
+                                {isGeneratingAi ? 'Generating...' : 'Gen AI Anchor'}
+                            </button>
+
+                            {aiAnchorImage && (
                                 <button 
-                                    onClick={triggerCloudPublish}
-                                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
+                                    onClick={async () => {
+                                        setIsGeneratingAi(true);
+                                        try {
+                                            const url = await falService.generateTalkingReel(aiAnchorImage, activeNews.blog_content);
+                                            setTalkingReelUrl(url);
+                                            window.open(url, '_blank');
+                                        } catch (e) {
+                                            console.error(e);
+                                            alert("Failed to generate talking reel.");
+                                        } finally {
+                                            setIsGeneratingAi(false);
+                                        }
+                                    }}
+                                    disabled={isGeneratingAi}
+                                    className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all disabled:opacity-50 animate-pulse"
                                 >
-                                    <Video className="w-4 h-4" /> Publish to Shorts
+                                    {isGeneratingAi ? 'Syncing...' : 'Gen Talking Reel'}
                                 </button>
+                            )}
+
+                            <button 
+                                onClick={triggerCloudPublish}
+                                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
+                            >
+                                <Video className="w-4 h-4" /> Publish to Shorts
+                            </button>
 
                             )}
                             
@@ -788,17 +834,25 @@ const RajneetiNetworkTV: React.FC = () => {
                         )}
 
                         <div className="flex flex-col h-full bg-black">
-                            {/* Top Section: Anchor Video */}
+                            {/* Top Section: Anchor Video or AI Static/Video */}
                             <div className="h-[55%] relative overflow-hidden border-b-4 border-red-600 shadow-2xl bg-slate-900">
-                                <video 
-                                    ref={videoRef}
-                                    src="/anchor.mp4" 
-                                    autoPlay 
-                                    loop 
-                                    muted 
-                                    playsInline 
-                                    className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
-                                />
+                                {aiAnchorImage ? (
+                                    <img 
+                                        src={aiAnchorImage} 
+                                        className="absolute inset-0 w-full h-full object-cover object-top"
+                                        alt="AI Anchor"
+                                    />
+                                ) : (
+                                    <video 
+                                        ref={videoRef}
+                                        src="/anchor.mp4" 
+                                        autoPlay 
+                                        loop 
+                                        muted 
+                                        playsInline 
+                                        className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
+                                    />
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                                 
                                 <div className="absolute top-8 left-6 flex flex-col gap-2 z-20">

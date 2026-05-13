@@ -38,11 +38,8 @@ export const MonetagBanner: React.FC<MonetagBannerProps> = ({ zoneId, className 
   return (
     <div
       ref={adRef}
-      className={`relative bg-slate-900/50 border border-white/5 rounded-xl flex items-center justify-center overflow-hidden min-h-[100px] ${className}`}
-    >
-      <div className="absolute inset-0 flex flex-col items-center justify-center p-4 text-center z-0 opacity-20 pointer-events-none">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-white font-bold">Sponsored Content</span>
-      </div>
-    </div>
+      className={`hidden ${className}`}
+      aria-hidden="true"
+    />
   );
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { Radio } from 'lucide-react';
+import { useRef } from 'react';
 
 const createSlug = (text: string): string => {
     return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -21,6 +22,7 @@ const HeadlessReelGenerator: React.FC = () => {
     const [newsItem, setNewsItem] = useState<any>(null);
     const [status, setStatus] = useState('initializing');
     const [slideIndex, setSlideIndex] = useState(0);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
     const urlTitle = searchParams.get('title');
     const urlSummary = searchParams.get('summary');
@@ -96,6 +98,15 @@ const HeadlessReelGenerator: React.FC = () => {
         console.log(`[HeadlessReel] Ready. ${slides.length} slides prepared.`);
     }, [newsItem, slides.length]);
 
+    // Force video playback
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.play().catch(err => {
+                console.log("Headless autoplay waiting:", err);
+            });
+        }
+    }, [newsItem]);
+
     if (!newsItem) {
         return <div style={{ color: 'white' }}>Loading... <span id="status">{status}</span></div>;
     }
@@ -111,12 +122,13 @@ const HeadlessReelGenerator: React.FC = () => {
                     {/* Top Section: Anchor Video */}
                     <div className="h-[55%] relative overflow-hidden border-b-[8px] border-red-600 shadow-2xl">
                         <video 
+                            ref={videoRef}
                             src="/anchor.mp4" 
                             autoPlay 
                             loop 
                             muted 
                             playsInline 
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="absolute inset-0 w-full h-full object-cover object-top"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                         

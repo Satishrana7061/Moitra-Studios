@@ -81,9 +81,8 @@ const RajneetiNetworkTV: React.FC = () => {
     const recorderRef = useRef<MediaRecorder | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const chunksRef = useRef<Blob[]>([]);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    const articleRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const articleRefs = useRef<(HTMLElement | null)[]>([]);
     const sidebarScrollRef = useRef<HTMLDivElement | null>(null);
 
     // Helper for canvas text wrapping
@@ -404,6 +403,15 @@ const RajneetiNetworkTV: React.FC = () => {
         return () => clearInterval(timer);
     }, [slides]);
 
+
+    // Force video playback when entering Studio Mode
+    useEffect(() => {
+        if (isStudioMode && videoRef.current) {
+            videoRef.current.play().catch(err => {
+                console.log("Autoplay prevented, waiting for interaction:", err);
+            });
+        }
+    }, [isStudioMode]);
 
     return (
         <div className="min-h-screen bg-black text-slate-200 font-sans flex flex-col overflow-x-hidden">
@@ -781,14 +789,15 @@ const RajneetiNetworkTV: React.FC = () => {
 
                         <div className="flex flex-col h-full bg-black">
                             {/* Top Section: Anchor Video */}
-                            <div className="h-[55%] relative overflow-hidden border-b-4 border-red-600 shadow-2xl">
+                            <div className="h-[55%] relative overflow-hidden border-b-4 border-red-600 shadow-2xl bg-slate-900">
                                 <video 
+                                    ref={videoRef}
                                     src="/anchor.mp4" 
                                     autoPlay 
                                     loop 
                                     muted 
                                     playsInline 
-                                    className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                                    className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                                 

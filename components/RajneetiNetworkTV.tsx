@@ -85,6 +85,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const recorderRef = useRef<MediaRecorder | null>(null);
     const streamRef = useRef<MediaStream | null>(null);
     const chunksRef = useRef<Blob[]>([]);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const articleRefs = useRef<(HTMLElement | null)[]>([]);
     const sidebarScrollRef = useRef<HTMLDivElement | null>(null);

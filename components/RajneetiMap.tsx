@@ -495,8 +495,8 @@ const RajneetiMap: React.FC = () => {
                     </span>
                 </div>
                 <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
-                    <MonetagBanner zoneId="11001039" className="flex-shrink-0 !h-[250px]" />
-                    <MonetagBanner zoneId="11001039" className="flex-1" />
+                    <MonetagBanner zoneId="11007318" className="flex-shrink-0 !h-[250px]" />
+                    <MonetagBanner zoneId="11007318" className="flex-1" />
                 </div>
             </div>
         </div>

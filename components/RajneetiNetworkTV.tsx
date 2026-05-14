@@ -567,7 +567,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </div>
 
                                 {/* Monetag In-Page Push — Between TV Screen and Reel Studio */}
-                                <MonetagBanner zoneId="11001039" className="mt-4 !h-[120px]" />
+                                <MonetagBanner zoneId="11007318" className="mt-4 !h-[120px]" />
 
                                 <button 
                                     onClick={() => setIsStudioMode(true)}
@@ -609,7 +609,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                                 </div>
                                                 </article>
                                                 {idx > 0 && idx % 3 === 0 && (
-                                                    <MonetagBanner zoneId="11001039" className="my-4" />
+                                                    <MonetagBanner zoneId="11007318" className="my-4" />
                                                 )}
                                             </React.Fragment>
                                         );

@@ -47,7 +47,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const navigate = useNavigate();
     const { slug } = useParams<{ slug?: string }>();
     const initialStateIndex = location.state?.activeIndex ?? 0;
-    const initialFilterState = location.state?.filterState || 'National';
+    const initialFilterState = location.state?.filterState || 'All States';
 
     const [newsData, setNewsData] = useState<DailyNews[] | null>(null);
     const [loading, setLoading] = useState(true);
@@ -262,7 +262,7 @@ const RajneetiNetworkTV: React.FC = () => {
 
                     if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
                         if (selectedFilter === 'National') {
-                            const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front'];
+                            const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front', 'General News'];
                             query = query.in('leader', nationalLeaders);
                         } else {
                             query = query.ilike('state', selectedFilter);
@@ -311,7 +311,7 @@ const RajneetiNetworkTV: React.FC = () => {
                         // Apply client-side filter for JSON fallback
                         if (!shouldSkipFilter && selectedFilter && selectedFilter !== 'All States') {
                             if (selectedFilter === 'National') {
-                                const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front'];
+                                const nationalLeaders = ['Narendra Modi', 'Rahul Gandhi', 'Amit Shah', 'Mallikarjun Kharge', 'Nirmala Sitharaman', 'Rajnath Singh', 'National Front', 'Regional Front', 'General News'];
                                 jsonData = jsonData.filter(item => 
                                     item.state?.toLowerCase() === 'national' || nationalLeaders.includes(item.leader)
                                 );

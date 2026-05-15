@@ -32,3 +32,32 @@ export interface AdvisorMessage {
   role: 'user' | 'advisor';
   text: string;
 }
+
+export type PromiseStatus = 'Fulfilled' | 'Partially Fulfilled' | 'Not Fulfilled' | 'In Progress' | 'Unclear';
+
+export interface ManifestoPromise {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  title: string;
+  description: string;
+  source_manifesto_year: number;
+  category: string;
+  status: PromiseStatus;
+  verdict_summary: string;
+  reel_link?: string;
+  published: boolean;
+  slug: string;
+}
+
+export type EvidenceSourceType = 'Official' | 'Independent Tracker' | 'News Media' | 'Fact Check';
+
+export interface PromiseEvidence {
+  id: string;
+  created_at: string;
+  promise_id: string;
+  title: string;
+  url: string;
+  source_type: EvidenceSourceType;
+  date_published?: string;
+}

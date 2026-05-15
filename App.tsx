@@ -13,6 +13,8 @@ const SocialCampaignsList = lazy(() => import('./components/SocialCampaignsList'
 const SocialCampaignDetail = lazy(() => import('./components/SocialCampaignDetail'));
 const HeadlessReelGenerator = lazy(() => import('./components/HeadlessReelGenerator'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
+const ManifestoHub = lazy(() => import('./components/ManifestoHub'));
+const PromiseDetail = lazy(() => import('./components/PromiseDetail'));
 
 
 const PageLoader = () => (
@@ -67,6 +69,8 @@ const App: React.FC = () => {
             <Route path="/social-campaign/:id" element={<SocialCampaignDetail />} />
             <Route path="/headless-reel/:id" element={<HeadlessReelGenerator />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
+            <Route path="/manifesto" element={<ManifestoHub />} />
+            <Route path="/manifesto/:slug" element={<PromiseDetail />} />
 
             <Route path="*" element={<RajneetiMap />} />
           </Routes>

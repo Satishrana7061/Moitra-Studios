@@ -48,14 +48,14 @@ const App: React.FC = () => {
   useSEO({});
 
   return (
-    <div className="h-[100dvh] w-screen bg-lokBlue-950 text-white font-sans flex flex-col overflow-hidden">
+    <div className={`w-screen bg-lokBlue-950 text-white font-sans flex flex-col ${isMapPage ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
       <ScrollToTop mainRef={mainRef} />
       <div className={`${isMapPage ? 'absolute top-0' : 'relative'} w-full z-50`}>
         <Navbar />
       </div>
       <main
         ref={mainRef}
-        className="flex-1 w-full relative overflow-y-auto overflow-x-hidden"
+        className={isMapPage ? "flex-1 w-full relative overflow-y-auto overflow-x-hidden" : "w-full flex-1 flex flex-col"}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes>

@@ -31,8 +31,8 @@ jobs:
       - run: npm install
       - run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL || 'https://xbgjkmahmyuoaspevipd.supabase.co' }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY || 'sb_publishable_HOCcMDFfM0cyzsEEuj8opg_EZMZIUZ5' }}
           VITE_GITHUB_PAT: ${{ secrets.VITE_GITHUB_PAT }}
 
 

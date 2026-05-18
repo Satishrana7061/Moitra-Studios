@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { AlertCircle } from 'lucide-react';
+import { MonetagBanner } from './MonetagBanner';
 
 interface AdBannerProps {
   layoutArea: 'sidebar' | 'leaderboard' | 'interstitial' | 'skyscraper';

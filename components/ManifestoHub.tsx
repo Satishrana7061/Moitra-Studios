@@ -88,7 +88,7 @@ const ManifestoHub: React.FC = () => {
           
           <h1 className="text-4xl md:text-6xl font-black font-heading text-white mb-4 leading-tight">
             Prime Minister's <br/>
-            <span className="text-gameOrange">Manifest Tracker</span>
+            <span className="text-gameOrange">Promises</span>
           </h1>
           <p className="text-slate-400 max-w-2xl text-base md:text-lg leading-relaxed">
             A neutral, data-driven accountability tracker. We document election promises from official manifestos, 

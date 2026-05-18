@@ -69,7 +69,7 @@ const PromiseDetail: React.FC = () => {
           className="inline-flex items-center text-slate-400 hover:text-gameOrange transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Manifesto Hub
+          Back to MP Promises
         </Link>
 
         {/* Header Section */}

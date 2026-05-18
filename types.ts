@@ -46,6 +46,10 @@ export interface ManifestoPromise {
   status: PromiseStatus;
   verdict_summary: string;
   reel_link?: string;
+  announced_date?: string;
+  announced_situation?: string;
+  fulfilled_details?: string;
+  unfulfilled_details?: string;
   published: boolean;
   slug: string;
 }

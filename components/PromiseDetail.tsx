@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, Calendar, BookOpen, AlertCircle, PlayCircle } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Calendar, BookOpen, AlertCircle, PlayCircle, Video, Loader, CheckCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { ManifestoPromise, PromiseEvidence } from '../types';
 import PromiseStatusBadge from './PromiseStatusBadge';
@@ -11,6 +11,88 @@ const PromiseDetail: React.FC = () => {
   const [promise, setPromise] = useState<ManifestoPromise | null>(null);
   const [evidence, setEvidence] = useState<PromiseEvidence[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  // Studio & Publishing States
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [publishStatus, setPublishStatus] = useState<'idle' | 'generating' | 'capturing' | 'publishing' | 'success' | 'error'>('idle');
+  const [customHindiScript, setCustomHindiScript] = useState('');
+
+  useEffect(() => {
+    if (promise) {
+      setCustomHindiScript(
+        `प्रधानमंत्री नरेंद्र मोदी का वादा: ${promise.title}। वादा था: ${promise.description}। हमारा निष्पक्ष विश्लेषण: ${promise.verdict_summary}।`
+      );
+    }
+  }, [promise]);
+
+  const triggerCloudPublish = async () => {
+    if (!promise) return;
+    setIsPublishing(true);
+    setPublishStatus('generating');
+    
+    try {
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const cleanSlug = promise.slug;
+      const title = `PM Promise Audit: ${promise.title}`;
+      const summary = `Promise: "${promise.description}"\n\nVerdict: ${promise.verdict_summary}`;
+      
+      if (isLocal) {
+        setPublishStatus('capturing');
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
+        const publishRes = await fetch(`${backendUrl}/api/admin/trigger-manual-reel`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            slug: cleanSlug,
+            title,
+            summary,
+            hindi_content: customHindiScript
+          })
+        });
+        
+        if (!publishRes.ok) {
+          const errData = await publishRes.json().catch(() => ({ error: "Server error" }));
+          throw new Error(errData.error || "Publishing failed");
+        }
+      } else {
+        setPublishStatus('publishing');
+        const githubPat = import.meta.env.VITE_GITHUB_PAT;
+        if (!githubPat) throw new Error("GitHub PAT not configured for live publishing.");
+
+        const res = await fetch('https://api.github.com/repos/Satishrana7061/Moitra-Studios/dispatches', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${githubPat}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            event_type: 'daily-reels-manual',
+            client_payload: {
+              slug: cleanSlug,
+              title,
+              summary: customHindiScript
+            }
+          })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "GitHub Dispatch failed");
+        }
+      }
+      
+      setPublishStatus('success');
+      setTimeout(() => {
+        setIsPublishing(false);
+        setPublishStatus('idle');
+      }, 5000);
+      
+    } catch (err: any) {
+      console.error("Publishing error:", err);
+      setPublishStatus('error');
+    }
+  };
 
   useEffect(() => {
     if (slug) {
@@ -30,7 +112,7 @@ const PromiseDetail: React.FC = () => {
 
       if (promiseError) throw promiseError;
       if (!promiseData) {
-        navigate('/manifesto');
+        navigate('/prime-ministers-promises');
         return;
       }
       setPromise(promiseData);
@@ -65,7 +147,7 @@ const PromiseDetail: React.FC = () => {
     <div className="min-h-screen bg-lokBlue-950 text-white p-4 md:p-8 pt-24">
       <div className="max-w-4xl mx-auto">
         <Link 
-          to="/manifesto" 
+          to="/prime-ministers-promises" 
           className="inline-flex items-center text-slate-400 hover:text-gameOrange transition-colors mb-8"
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
@@ -100,11 +182,37 @@ const PromiseDetail: React.FC = () => {
           {/* Main Content: Verdict & Evidence */}
           <div className="lg:col-span-2 space-y-8">
             
+            {/* Announcement Details */}
+            <section className="bg-lokBlue-900/20 border border-slate-700/50 rounded-xl p-6 md:p-8">
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <Calendar className="text-gameOrange w-5 h-5" />
+                Announcement Context
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                <div>
+                  <span className="text-slate-400 block mb-1">Announcement Date</span>
+                  <span className="text-white font-medium text-base">
+                    {promise.announced_date ? new Date(promise.announced_date).toLocaleDateString(undefined, {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    }) : `Prior to the ${promise.source_manifesto_year} Elections`}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-400 block mb-1">Situation / Location</span>
+                  <span className="text-white font-medium text-base">
+                    {promise.announced_situation || `Released in the Official BJP Sankalp Patra (${promise.source_manifesto_year} Manifesto) by PM Narendra Modi.`}
+                  </span>
+                </div>
+              </div>
+            </section>
+
             {/* Verdict Summary */}
             <section className="bg-lokBlue-900/20 border border-slate-700/50 rounded-xl p-6 md:p-8">
               <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <AlertCircle className="text-gameOrange w-6 h-6" />
-                Our Verdict
+                Neutral Verdict
               </h2>
               <div className="prose prose-invert prose-orange max-w-none">
                 <p className="text-slate-300 leading-relaxed whitespace-pre-wrap text-lg">
@@ -112,6 +220,30 @@ const PromiseDetail: React.FC = () => {
                 </p>
               </div>
             </section>
+
+            {/* Detailed Performance Audit */}
+            {(promise.fulfilled_details || promise.unfulfilled_details) && (
+              <section className="bg-lokBlue-900/20 border border-slate-700/50 rounded-xl p-6 md:p-8 space-y-6">
+                <h2 className="text-2xl font-bold flex items-center gap-2 text-white">
+                  <AlertCircle className="text-gameOrange w-6 h-6" />
+                  Accountability Audit
+                </h2>
+                
+                {promise.fulfilled_details && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-emerald-400 uppercase tracking-wider">Fulfillment & Actions Delivered</h3>
+                    <p className="text-slate-300 leading-relaxed text-base whitespace-pre-wrap">{promise.fulfilled_details}</p>
+                  </div>
+                )}
+                
+                {promise.unfulfilled_details && (
+                  <div className="space-y-2 border-t border-slate-800 pt-6">
+                    <h3 className="text-sm font-semibold text-rose-400 uppercase tracking-wider">What is Missing / Why Not Fulfilled & What Went Wrong</h3>
+                    <p className="text-slate-300 leading-relaxed text-base whitespace-pre-wrap">{promise.unfulfilled_details}</p>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Evidence List */}
             <section className="bg-lokBlue-900/20 border border-slate-700/50 rounded-xl p-6 md:p-8">
@@ -153,10 +285,10 @@ const PromiseDetail: React.FC = () => {
             </section>
           </div>
 
-          {/* Sidebar: Reel Integration */}
-          <div className="space-y-6">
+          {/* Sidebar: Reel Integration & Publisher Studio */}
+          <div className="space-y-6 sticky top-24">
             {promise.reel_link ? (
-              <div className="bg-lokBlue-900/40 border border-slate-700 rounded-xl p-1 overflow-hidden sticky top-24">
+              <div className="bg-lokBlue-900/40 border border-slate-700 rounded-xl p-1 overflow-hidden">
                 <div className="bg-slate-900 p-4 text-center rounded-t-lg border-b border-slate-800">
                   <h3 className="font-bold flex items-center justify-center gap-2">
                     <PlayCircle className="text-gameOrange w-5 h-5" />
@@ -178,12 +310,87 @@ const PromiseDetail: React.FC = () => {
                 </div>
               </div>
             ) : (
-               <div className="bg-lokBlue-900/20 border border-slate-700/50 border-dashed rounded-xl p-8 text-center sticky top-24">
+               <div className="bg-lokBlue-900/20 border border-slate-700/50 border-dashed rounded-xl p-8 text-center">
                  <PlayCircle className="w-12 h-12 text-slate-600 mx-auto mb-4" />
                  <h3 className="text-lg font-bold text-slate-300 mb-2">Reel Coming Soon</h3>
                  <p className="text-slate-500 text-sm">We are producing the video breakdown for this promise.</p>
                </div>
             )}
+
+            {/* Premium Reel Generation & Publishing Studio */}
+            <div className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-md">
+              <div className="absolute top-0 right-0 w-24 h-24 bg-gameOrange/5 rounded-full blur-2xl" />
+              
+              <h3 className="text-md font-bold uppercase tracking-wider text-gameOrange flex items-center gap-2 mb-3">
+                <Video className="w-5 h-5 text-gameOrange" />
+                Reality Check Studio
+              </h3>
+              
+              <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                Generate a dynamic, high-impact YouTube Short showcasing our neutral review of this PM Promise.
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                    AI Voice Narrator Script (Hindi)
+                  </label>
+                  <textarea
+                    value={customHindiScript}
+                    onChange={(e) => setCustomHindiScript(e.target.value)}
+                    rows={4}
+                    disabled={isPublishing}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-200 focus:outline-none focus:border-gameOrange/50 focus:ring-1 focus:ring-gameOrange/20 transition-all font-sans leading-relaxed resize-none"
+                    placeholder="Enter the voiceover script for ElevenLabs..."
+                  />
+                </div>
+
+                <button
+                  onClick={triggerCloudPublish}
+                  disabled={isPublishing || !customHindiScript.trim()}
+                  className={`w-full py-3 px-4 rounded-lg font-black text-xs uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-2 ${
+                    isPublishing 
+                      ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' 
+                      : 'bg-gameOrange hover:bg-gameOrange/90 text-white shadow-[0_0_20px_rgba(255,107,0,0.2)] active:scale-98'
+                  }`}
+                >
+                  {isPublishing ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin text-gameOrange" />
+                      {publishStatus === 'generating' && 'Generating Audio...'}
+                      {publishStatus === 'capturing' && 'Capturing Video...'}
+                      {publishStatus === 'publishing' && 'Publishing to YouTube...'}
+                    </>
+                  ) : (
+                    <>
+                      <Video className="w-4 h-4" />
+                      Publish Short to YouTube
+                    </>
+                  )}
+                </button>
+
+                {/* Status Messages */}
+                {publishStatus === 'success' && (
+                  <div className="bg-emerald-950/40 border border-emerald-800/30 rounded-lg p-3 flex items-center gap-3 text-xs text-emerald-400 animate-fade-in">
+                    <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <span className="font-bold block">Video Published!</span>
+                      The Short is live on your YouTube channel.
+                    </div>
+                  </div>
+                )}
+
+                {publishStatus === 'error' && (
+                  <div className="bg-red-950/40 border border-red-800/30 rounded-lg p-3 flex items-center gap-3 text-xs text-red-400 animate-fade-in">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+                    <div>
+                      <span className="font-bold block">Production Failed</span>
+                      Check your backend API keys & local connection.
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

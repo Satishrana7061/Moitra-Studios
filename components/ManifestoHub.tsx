@@ -91,8 +91,7 @@ const ManifestoHub: React.FC = () => {
             <span className="text-gameOrange">Promises</span>
           </h1>
           <p className="text-slate-400 max-w-2xl text-base md:text-lg leading-relaxed">
-            A neutral, data-driven accountability tracker. We document election promises from official manifestos, 
-            verify their status with legitimate sources, and present the facts transparently.
+            A neutral, data-driven accountability tracker. We exclusively document election promises made in the official party manifestos by the Prime Minister, tracking their status with verified, non-partisan facts.
           </p>
         </div>
       </div>
@@ -195,7 +194,7 @@ const ManifestoHub: React.FC = () => {
               {filteredPromises.map((promise, idx) => (
                 <Link 
                   key={promise.id} 
-                  to={`/manifesto/${promise.slug}`}
+                  to={`/prime-ministers-promises/${promise.slug}`}
                   className="bg-slate-900/50 border border-slate-700/40 hover:border-gameOrange/40 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(255,107,0,0.08)] group backdrop-blur-sm relative overflow-hidden"
                   style={{ animationDelay: `${idx * 50}ms` }}
                 >

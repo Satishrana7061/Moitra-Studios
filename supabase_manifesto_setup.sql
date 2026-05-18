@@ -20,6 +20,10 @@ CREATE TABLE public.manifesto_promises (
     status TEXT NOT NULL CHECK (status IN ('Fulfilled', 'Partially Fulfilled', 'Not Fulfilled', 'In Progress', 'Unclear')),
     verdict_summary TEXT NOT NULL,
     reel_link TEXT,
+    announced_date DATE,
+    announced_situation TEXT,
+    fulfilled_details TEXT,
+    unfulfilled_details TEXT,
     published BOOLEAN DEFAULT false NOT NULL,
     slug TEXT UNIQUE NOT NULL
 );
@@ -76,3 +80,11 @@ $$ language 'plpgsql';
 CREATE TRIGGER update_manifesto_promises_modtime
 BEFORE UPDATE ON public.manifesto_promises
 FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+-- ==============================================================================
+-- MIGRATION: RUN THIS TO UPGRADE EXISTING TABLES (DO NOT RUN IF STARTING FRESH)
+-- ==============================================================================
+-- ALTER TABLE public.manifesto_promises ADD COLUMN IF NOT EXISTS announced_date DATE;
+-- ALTER TABLE public.manifesto_promises ADD COLUMN IF NOT EXISTS announced_situation TEXT;
+-- ALTER TABLE public.manifesto_promises ADD COLUMN IF NOT EXISTS fulfilled_details TEXT;
+-- ALTER TABLE public.manifesto_promises ADD COLUMN IF NOT EXISTS unfulfilled_details TEXT;

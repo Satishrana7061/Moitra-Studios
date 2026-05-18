@@ -69,8 +69,8 @@ const App: React.FC = () => {
             <Route path="/social-campaign/:id" element={<SocialCampaignDetail />} />
             <Route path="/headless-reel/:id" element={<HeadlessReelGenerator />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
-            <Route path="/manifesto" element={<ManifestoHub />} />
-            <Route path="/manifesto/:slug" element={<PromiseDetail />} />
+            <Route path="/prime-ministers-promises" element={<ManifestoHub />} />
+            <Route path="/prime-ministers-promises/:slug" element={<PromiseDetail />} />
 
             <Route path="*" element={<RajneetiMap />} />
           </Routes>

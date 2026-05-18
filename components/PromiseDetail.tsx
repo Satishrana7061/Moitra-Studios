@@ -19,9 +19,51 @@ const PromiseDetail: React.FC = () => {
 
   useEffect(() => {
     if (promise) {
-      setCustomHindiScript(
-        `प्रधानमंत्री नरेंद्र मोदी का वादा: ${promise.title}। वादा था: ${promise.description}। हमारा निष्पक्ष विश्लेषण: ${promise.verdict_summary}।`
-      );
+      let script = `प्रधानमंत्री नरेंद्र मोदी का बड़ा वादा: ${promise.title}। `;
+      if (promise.announced_situation) {
+        script += `${promise.announced_situation} के दौरान यह वादा किया गया था। `;
+      } else {
+        script += `यह वादा ${promise.source_manifesto_year} के चुनावी घोषणापत्र में किया गया था। `;
+      }
+      
+      script += `मूल वादा था कि: ${promise.description}। `;
+      
+      script += `हमारा निष्पक्ष विश्लेषण: `;
+      if (promise.status === 'Fulfilled') {
+        script += `यह वादा पूर्ण रूप से पूरा हो चुका है। `;
+        if (promise.fulfilled_details) {
+          script += `${promise.fulfilled_details} `;
+        }
+      } else if (promise.status === 'Partially Fulfilled') {
+        script += `यह वादा आंशिक रूप से ही पूरा हो सका है। `;
+        if (promise.fulfilled_details) {
+          script += `${promise.fulfilled_details} `;
+        }
+        if (promise.unfulfilled_details) {
+          script += `हालांकि, ${promise.unfulfilled_details} `;
+        }
+      } else if (promise.status === 'In Progress') {
+        script += `इस वादे पर कार्य अभी प्रगति पर है। `;
+        if (promise.fulfilled_details) {
+          script += `${promise.fulfilled_details} `;
+        }
+        if (promise.unfulfilled_details) {
+          script += `लेकिन इसे पूरी तरह पूरा होने में ${promise.unfulfilled_details} `;
+        }
+      } else if (promise.status === 'Not Fulfilled') {
+        script += `यह वादा अधूरा रह गया है। `;
+        if (promise.unfulfilled_details) {
+          script += `${promise.unfulfilled_details} `;
+        }
+      } else {
+        script += `${promise.verdict_summary} `;
+      }
+      
+      script += `सच्चे और निष्पक्ष विश्लेषण के लिए Moitra Studios को फॉलो करें।`;
+      
+      // Clean up multiple spaces or backslashes
+      script = script.replace(/\s+/g, ' ').trim();
+      setCustomHindiScript(script);
     }
   }, [promise]);
 

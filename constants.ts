@@ -4,8 +4,8 @@ import { Game } from './types';
 export const NAV_LINKS = [
   { label: 'Home', href: '/indian-politics-game-home', page: 'home' },
   { label: 'Rajneeti TV Network', href: '/rajneeti-tv-network', page: 'tv' },
-  { label: 'Manifesto Hub', href: '/manifesto', page: 'manifesto' },
   { label: 'Social Campaigns', href: '/social-campaign', page: 'campaigns' },
+  { label: 'Manifesto Hub', href: '/manifesto', page: 'manifesto' },
   { label: 'Privacy Policy', href: '/privacy-policy', page: 'privacy' },
   { label: 'Contact Us', href: '/contact-us', page: 'contact' },
 ];

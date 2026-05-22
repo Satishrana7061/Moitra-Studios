@@ -59,7 +59,7 @@ export class SupabaseStorageService {
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
             const filesToDelete = files
-                .filter(file => new Date(file.created_at) < threeDaysAgo)
+                .filter(file => file.created_at && new Date(file.created_at) < threeDaysAgo)
                 .map(file => file.name);
 
             if (filesToDelete.length > 0) {

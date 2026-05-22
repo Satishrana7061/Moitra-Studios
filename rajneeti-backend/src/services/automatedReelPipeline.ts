@@ -110,7 +110,12 @@ export async function runAutomatedReelPipeline() {
         
         const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, caption);
         if (!igSuccess) {
-            console.warn("[Pipeline] Instagram upload failed, but continuing to YouTube...");
+            console.warn("[Pipeline] Instagram upload failed, but continuing...");
+        }
+
+        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, caption);
+        if (!fbSuccess) {
+            console.warn("[Pipeline] Facebook upload failed, but continuing...");
         }
         
         const youtubeTitle = (news.blog_title || news.title || "Rajneeti News Update").slice(0, 100);

@@ -181,6 +181,103 @@ app.get("/api/youtube/disconnect", (req, res) => {
     res.send(`<h1>Disconnected</h1><p>YouTube has been disconnected successfully.</p>`);
 });
 
+app.post("/api/admin/setup-instagram", async (req, res) => {
+    const { appId, appSecret, userAccessToken } = req.body;
+
+    if (!appId || !appSecret || !userAccessToken) {
+        return res.status(400).json({ error: "Missing appId, appSecret, or userAccessToken" });
+    }
+
+    try {
+        console.log("[Instagram Setup] Exchanging short-lived user token for long-lived user token...");
+        
+        // 1. Exchange token
+        const exchangeUrl = `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${userAccessToken}`;
+        const exchangeRes = await fetch(exchangeUrl);
+        const exchangeData: any = await exchangeRes.json();
+
+        if (exchangeData.error) {
+            throw new Error(`Meta Token Exchange Error: ${exchangeData.error.message}`);
+        }
+
+        const longLivedUserToken = exchangeData.access_token;
+        console.log("[Instagram Setup] Successfully obtained long-lived user access token.");
+
+        // 2. Fetch pages
+        const pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?access_token=${longLivedUserToken}`;
+        const pagesRes = await fetch(pagesUrl);
+        const pagesData: any = await pagesRes.json();
+
+        if (pagesData.error) {
+            throw new Error(`Meta Fetch Pages Error: ${pagesData.error.message}`);
+        }
+
+        const pages = pagesData.data || [];
+        console.log(`[Instagram Setup] Found ${pages.length} Facebook Page(s) managed by user.`);
+
+        let instagramUserId = "";
+        let instagramAccessToken = "";
+        let connectedPageName = "";
+
+        // 3. Find connected Instagram Business Account
+        for (const page of pages) {
+            console.log(`[Instagram Setup] Checking Page: ${page.name} (ID: ${page.id})...`);
+            const igUrl = `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`;
+            const igRes = await fetch(igUrl);
+            const igData: any = await igRes.json();
+
+            if (igData.instagram_business_account) {
+                instagramUserId = igData.instagram_business_account.id;
+                instagramAccessToken = page.access_token; // Permanent page access token!
+                connectedPageName = page.name;
+                console.log(`[Instagram Setup] Found connected Instagram account ID: ${instagramUserId} on page ${connectedPageName}`);
+                break;
+            }
+        }
+
+        if (!instagramUserId || !instagramAccessToken) {
+            return res.status(404).json({
+                error: "No connected Instagram Business Account found.",
+                details: "Make sure you have an Instagram Business Account connected to at least one of your Facebook Pages, and that you granted 'instagram_basic' and 'instagram_content_publish' permissions.",
+                pagesFound: pages.map((p: any) => p.name)
+            });
+        }
+
+        // 4. Update or create .env file in rajneeti-backend
+        const envPath = path.join(__dirname, '../.env');
+        let envContent = "";
+        if (fs.existsSync(envPath)) {
+            envContent = fs.readFileSync(envPath, 'utf8');
+        }
+
+        // Helper to replace or append env vars
+        const updateEnvVar = (key: string, value: string) => {
+            const regex = new RegExp(`^${key}=.*$`, 'm');
+            if (regex.test(envContent)) {
+                envContent = envContent.replace(regex, `${key}=${value}`);
+            } else {
+                envContent += `\n${key}=${value}`;
+            }
+        };
+
+        updateEnvVar("INSTAGRAM_ACCESS_TOKEN", instagramAccessToken);
+        updateEnvVar("INSTAGRAM_USER_ID", instagramUserId);
+
+        fs.writeFileSync(envPath, envContent.trim() + "\n");
+        console.log("[Instagram Setup] Successfully saved Instagram credentials to rajneeti-backend/.env");
+
+        res.json({
+            success: true,
+            message: `Instagram Reels setup completed successfully via Facebook Page "${connectedPageName}"!`,
+            instagramUserId,
+            instagramAccessTokenSnippet: instagramAccessToken.substring(0, 15) + "..."
+        });
+    } catch (err: any) {
+        console.error("[Instagram Setup] Error:", err.message || err);
+        res.status(500).json({ error: err.message || "Internal server error during Instagram setup." });
+    }
+});
+
 app.post("/api/youtube/upload", async (_req, res) => {
     // This triggers the pipeline, which includes uploading to YouTube
     runAutomatedReelPipeline().catch(console.error);
@@ -245,8 +342,25 @@ app.post("/api/youtube/publish-direct", upload.single('video'), async (req, res)
             console.log(`[Direct Upload] Saved to storage: ${publicUrl}`);
         }
 
-        // 2. Upload to YouTube Shorts
+        // 2. Upload to YouTube Shorts & Instagram Reels
         const { SocialUploadService } = await import("./services/socialUploadService.js");
+        
+        if (publicUrl) {
+            console.log(`[Direct Upload] Publishing to Instagram Reels...`);
+            const caption = `${title}\n\n${description || "Political update from Rajneeti TV Network."}\n\n#Rajneeti #Reels #News`;
+            const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, caption);
+            if (!igSuccess) {
+                console.warn("[Direct Upload] Instagram upload failed or skipped.");
+            }
+
+            console.log(`[Direct Upload] Publishing to Facebook Reels...`);
+            const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, caption);
+            if (!fbSuccess) {
+                console.warn("[Direct Upload] Facebook upload failed or skipped.");
+            }
+        }
+
+        console.log(`[Direct Upload] Publishing to YouTube Shorts...`);
         const success = await SocialUploadService.uploadToYouTube(
             videoBuffer,
             title,
@@ -256,7 +370,7 @@ app.post("/api/youtube/publish-direct", upload.single('video'), async (req, res)
         if (success) {
             res.json({ 
                 success: true, 
-                message: "Successfully published to YouTube Shorts!",
+                message: "Successfully published to YouTube Shorts & Instagram Reels!",
                 storageUrl: publicUrl
             });
         } else {
@@ -306,6 +420,21 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
         const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
 
         // 4. Social
+        if (publicUrl) {
+            console.log(`[Manual Pipeline] Publishing to Instagram Reels...`);
+            const caption = `${title || "Rajneeti Update"}\n\n${summary || ""}\n\n#Rajneeti #Reels #News #Politics`;
+            const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, caption);
+            if (!igSuccess) {
+                console.warn("[Manual Pipeline] Instagram upload failed or skipped.");
+            }
+
+            console.log(`[Manual Pipeline] Publishing to Facebook Reels...`);
+            const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, caption);
+            if (!fbSuccess) {
+                console.warn("[Manual Pipeline] Facebook upload failed or skipped.");
+            }
+        }
+
         console.log(`[Manual Pipeline] Publishing to YouTube...`);
         const success = await SocialUploadService.uploadToYouTube(
             videoBuffer, 
@@ -316,7 +445,7 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
         if (success) {
             res.json({ 
                 success: true, 
-                message: "Full pipeline test successful! Reel is live on YouTube.",
+                message: "Full pipeline test successful! Reel is live on YouTube & Instagram.",
                 publicUrl 
             });
         } else {

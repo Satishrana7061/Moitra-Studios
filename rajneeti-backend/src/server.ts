@@ -8,9 +8,15 @@ import { PORT, REFRESH_INTERVAL_MS } from "./config.js";
 import { runAutomatedReelPipeline } from "./services/automatedReelPipeline.js";
 import { google } from 'googleapis';
 import multer from 'multer';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 const upload = multer({ storage: multer.memoryStorage() });
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const TOKENS_FILE = path.join(__dirname, '../tokens.json');
 
 const app = express();
 app.use(cors());
@@ -50,6 +56,11 @@ FALLBACK RULES:
    - "Regional Front" (for Opposition/Regional news like TMC, DMK, SP, etc.)
 2. NEVER attribute news to journalists, authors, or news organizations.
 `;
+
+// ── Helper: Save YouTube Tokens ─────────────────────────────────
+function saveTokens(tokens: any) {
+    fs.writeFileSync(TOKENS_FILE, JSON.stringify(tokens, null, 2));
+}
 
 // ── Refresh Logic ───────────────────────────────────────────────
 async function refreshEvents() {
@@ -119,19 +130,7 @@ app.get("/api/health", (_req, res) => {
     });
 });
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const TOKENS_FILE = path.join(__dirname, '../tokens.json');
-
-// Helper to save tokens
-function saveTokens(tokens: any) {
-    fs.writeFileSync(TOKENS_FILE, JSON.stringify(tokens, null, 2));
-}
-
+// ── YouTube OAuth ───────────────────────────────────────────────
 app.get("/api/youtube/connect", (req, res) => {
     const oauth2Client = new google.auth.OAuth2(
         process.env.YOUTUBE_CLIENT_ID,
@@ -181,6 +180,7 @@ app.get("/api/youtube/disconnect", (req, res) => {
     res.send(`<h1>Disconnected</h1><p>YouTube has been disconnected successfully.</p>`);
 });
 
+// ── Instagram Setup ─────────────────────────────────────────────
 app.post("/api/admin/setup-instagram", async (req, res) => {
     const { appId, appSecret, userAccessToken } = req.body;
 
@@ -192,7 +192,7 @@ app.post("/api/admin/setup-instagram", async (req, res) => {
         console.log("[Instagram Setup] Exchanging short-lived user token for long-lived user token...");
         
         // 1. Exchange token
-        const exchangeUrl = `https://graph.facebook.com/v19.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${userAccessToken}`;
+        const exchangeUrl = `https://graph.facebook.com/v21.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${userAccessToken}`;
         const exchangeRes = await fetch(exchangeUrl);
         const exchangeData: any = await exchangeRes.json();
 
@@ -204,7 +204,7 @@ app.post("/api/admin/setup-instagram", async (req, res) => {
         console.log("[Instagram Setup] Successfully obtained long-lived user access token.");
 
         // 2. Fetch pages
-        const pagesUrl = `https://graph.facebook.com/v19.0/me/accounts?access_token=${longLivedUserToken}`;
+        const pagesUrl = `https://graph.facebook.com/v21.0/me/accounts?access_token=${longLivedUserToken}`;
         const pagesRes = await fetch(pagesUrl);
         const pagesData: any = await pagesRes.json();
 
@@ -222,7 +222,7 @@ app.post("/api/admin/setup-instagram", async (req, res) => {
         // 3. Find connected Instagram Business Account
         for (const page of pages) {
             console.log(`[Instagram Setup] Checking Page: ${page.name} (ID: ${page.id})...`);
-            const igUrl = `https://graph.facebook.com/v19.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`;
+            const igUrl = `https://graph.facebook.com/v21.0/${page.id}?fields=instagram_business_account&access_token=${page.access_token}`;
             const igRes = await fetch(igUrl);
             const igData: any = await igRes.json();
 
@@ -277,6 +277,8 @@ app.post("/api/admin/setup-instagram", async (req, res) => {
         res.status(500).json({ error: err.message || "Internal server error during Instagram setup." });
     }
 });
+
+// ── Upload Endpoints ────────────────────────────────────────────
 
 app.post("/api/youtube/upload", async (_req, res) => {
     // This triggers the pipeline, which includes uploading to YouTube
@@ -392,8 +394,6 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
 
     console.log(`[Manual Pipeline Trigger] Starting full pipeline for: ${slug}`);
 
-    // We'll run this in a separate promise so we don't block the request if it takes too long
-    // but we'll try to return the result if it's fast enough for the UI to wait.
     try {
         const { generateAudio } = await import("./services/elevenLabsService.js");
         const { generateHeadlessVideo } = await import("./services/puppeteerVideoGenerator.js");
@@ -457,13 +457,35 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
     }
 });
 
+// ── Admin/Pipeline Endpoints ────────────────────────────────────
 
-
-// Endpoint to manually trigger the pipeline for testing
+// Endpoint to manually trigger the full automated pipeline for testing
 app.post("/api/admin/trigger-pipeline", async (_req, res) => {
-    // In production, add auth here
     runAutomatedReelPipeline().catch(console.error);
     res.json({ message: "Pipeline triggered in background." });
+});
+
+// Endpoint to manually trigger the Truth Engine verification (test one promise)
+app.post("/api/admin/verify-promise", async (_req, res) => {
+    try {
+        const { verifyNextPromise } = await import("./services/truthEngine.js");
+        const result = await verifyNextPromise();
+        if (result) {
+            res.json({
+                success: true,
+                message: `Verified: "${result.title}" → ${result.status}`,
+                promise: result,
+            });
+        } else {
+            res.json({
+                success: false,
+                message: "No unverified promises found, or the two AI models disagreed.",
+            });
+        }
+    } catch (err: any) {
+        console.error("[Verify Promise] Error:", err.message);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ── Start ───────────────────────────────────────────────────────
@@ -477,7 +499,12 @@ app.listen(PORT, async () => {
     // Schedule periodic refreshes
     setInterval(refreshEvents, REFRESH_INTERVAL_MS);
     
-    // Schedule the automated social reel pipeline (every 24 hours)
-    const PIPELINE_INTERVAL_MS = 24 * 60 * 60 * 1000;
-    setInterval(runAutomatedReelPipeline, PIPELINE_INTERVAL_MS);
+    // Schedule the automated social reel pipeline (every 24 hours) — gated by env var
+    if (process.env.ENABLE_AUTO_POSTING === 'true') {
+        const PIPELINE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+        setInterval(runAutomatedReelPipeline, PIPELINE_INTERVAL_MS);
+        console.log('🚀 Auto-posting ENABLED! Pipeline will run every 24 hours.');
+    } else {
+        console.log('⏸️  Auto-posting is DISABLED. Set ENABLE_AUTO_POSTING=true in .env to enable.');
+    }
 });

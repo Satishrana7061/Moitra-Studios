@@ -1,163 +1,195 @@
-import fs from 'fs';
-import { fetchFilteredNews } from "../rssFetcher.js";
-import { processNewsWithAI } from "../aiProcessor.js";
 import { generateAudio } from "./elevenLabsService.js";
 import { generateHeadlessVideo } from "./puppeteerVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
+import { verifyNextPromise, getNextVerifiedPromiseForReel } from "./truthEngine.js";
+import { createClient } from '@supabase/supabase-js';
+
+// ── Supabase client for marking reels as posted ─────────────────
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
+let supabase: ReturnType<typeof createClient> | null = null;
+if (SUPABASE_URL && SUPABASE_KEY) {
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+}
 
 /**
- * The master pipeline that orchestrates the entire headless video generation process.
+ * Builds a professional Hindi script for a manifesto promise reel.
+ */
+function buildHindiScript(promise: {
+    title: string;
+    description: string;
+    source_manifesto_year: number;
+    status: string;
+    verdict_summary: string;
+    fulfilled_details?: string;
+    unfulfilled_details?: string;
+}): string {
+    let script = `प्रधानमंत्री नरेंद्र मोदी का बड़ा वादा: ${promise.title}। `;
+    script += `यह वादा ${promise.source_manifesto_year} के चुनावी घोषणापत्र में किया गया था। `;
+    script += `मूल वादा था कि: ${promise.description}। `;
+    script += `हमारा निष्पक्ष विश्लेषण: `;
+
+    if (promise.status === 'Fulfilled') {
+        script += `यह वादा पूर्ण रूप से पूरा हो चुका है। `;
+        if (promise.fulfilled_details) script += `${promise.fulfilled_details} `;
+    } else if (promise.status === 'Partially Fulfilled') {
+        script += `यह वादा आंशिक रूप से ही पूरा हो सका है। `;
+        if (promise.fulfilled_details) script += `${promise.fulfilled_details} `;
+        if (promise.unfulfilled_details) script += `हालांकि, ${promise.unfulfilled_details} `;
+    } else if (promise.status === 'In Progress') {
+        script += `इस वादे पर कार्य अभी प्रगति पर है। `;
+        if (promise.fulfilled_details) script += `${promise.fulfilled_details} `;
+        if (promise.unfulfilled_details) script += `लेकिन ${promise.unfulfilled_details} `;
+    } else if (promise.status === 'Not Fulfilled') {
+        script += `यह वादा अधूरा रह गया है। `;
+        if (promise.unfulfilled_details) script += `${promise.unfulfilled_details} `;
+    } else {
+        script += `${promise.verdict_summary} `;
+    }
+
+    script += `सच्चे और निष्पक्ष विश्लेषण के लिए Moitra Studios को फॉलो करें।`;
+    return script.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * The master pipeline that orchestrates the entire automated reel process.
+ * 
+ * Flow:
+ * 1. Check if auto-posting is enabled
+ * 2. Verify one unverified promise (dual-model fact-check)
+ * 3. Pick a verified promise for reel generation
+ * 4. Generate Hindi audio → capture video → upload to all platforms
+ * 5. Mark promise as posted in Supabase
  */
 export async function runAutomatedReelPipeline() {
-    console.log("=== STARTING AUTOMATED REEL PIPELINE ===");
+    // ── GATE: Check if auto-posting is enabled ──────────────────
+    if (process.env.ENABLE_AUTO_POSTING !== 'true') {
+        console.log('\n⏸️  [Pipeline] Auto-posting is DISABLED. Set ENABLE_AUTO_POSTING=true in .env to enable.');
+        console.log('   [Pipeline] You can still manually trigger reels from the frontend Creator Studio.');
+        return;
+    }
+
+    console.log('\n=== STARTING AUTOMATED REEL PIPELINE ===');
+
     try {
-        // 1. Handle Manual Override or Fetch Top National News
-        let news: any = null;
-
-        const manualSlug = process.env.NEWS_SLUG;
-        const manualTitle = process.env.NEWS_TITLE;
-        const manualSummary = process.env.NEWS_SUMMARY;
-
-        if (manualSlug && manualTitle) {
-            console.log(`[Pipeline] Manual override detected for slug: ${manualSlug}`);
-            news = {
-                id: manualSlug,
-                stateName: "India",
-                politicianName: "National Update",
-                title: manualTitle,
-                blog_title: manualTitle,
-                summary: manualSummary || "Latest political update from Rajneeti Network TV.",
-                hindi_content: manualSummary || manualTitle 
-            };
-
-            
-            // If it's a manual trigger, we might still want to use AI to get a better Hindi script 
-            // but for now we use the provided summary to be fast.
+        // ── Step 1: Verify one promise (daily fact-check) ────────
+        console.log('\n📋 Step 1: Running Truth Engine verification...');
+        const verifiedPromise = await verifyNextPromise();
+        if (verifiedPromise) {
+            console.log(`[Pipeline] Verified: "${verifiedPromise.title}" → ${verifiedPromise.status}`);
         } else {
-            console.log(`[Pipeline] Fetching latest national news...`);
-            const rawNews = await fetchFilteredNews();
-            
-            if (rawNews.length === 0) {
-                console.log(`[Pipeline] No news found. Exiting pipeline.`);
-                return;
-            }
-
-            const topNewsRaw = rawNews.slice(0, 1);
-            const CANDIDATE_LIST = `
-- Narendra Modi, BJP, National
-- Rahul Gandhi, Congress, National
-- Amit Shah, BJP, National
-- Arvind Kejriwal, AAP, Delhi
-- Mamata Banerjee, TMC, West Bengal
-- Yogi Adityanath, BJP, Uttar Pradesh
-- M.K. Stalin, DMK, Tamil Nadu
-- Nitish Kumar, JDU, Bihar
-- Akhilesh Yadav, SP, Uttar Pradesh
-- Uddhav Thackeray, Shiv Sena (UBT), Maharashtra
-- National Front (NDA/BJP)
-- Regional Front (Opposition/INDIA)
-            `;
-            
-            const events = await processNewsWithAI(topNewsRaw, CANDIDATE_LIST);
-            if (events.length === 0) {
-                 console.log(`[Pipeline] AI failed to process news. Exiting.`);
-                 return;
-            }
-            news = events[0];
+            console.log('[Pipeline] No new promise to verify (all done or conflict detected).');
         }
 
-        if (!news) throw new Error("No news item found to process.");
+        // ── Step 2: Get next verified promise for reel ───────────
+        console.log('\n🎬 Step 2: Selecting next verified promise for reel...');
+        const reelPromise = await getNextVerifiedPromiseForReel();
 
-        
-        // Ensure Hindi content
-        const hindiScript = news.hindi_content;
-        if (!hindiScript) {
-             throw new Error("No Hindi translation provided by AI.");
+        if (!reelPromise) {
+            console.log('[Pipeline] No verified promises waiting for reel generation. Pipeline complete.');
+            return;
         }
 
-        // 2. Generate Audio via ElevenLabs
-        console.log(`[Pipeline] Generating ElevenLabs Audio...`);
+        console.log(`[Pipeline] Generating reel for: "${reelPromise.title}" (${reelPromise.source_manifesto_year})`);
+
+        // ── Step 3: Generate Hindi AI Script ─────────────────────
+        console.log('\n📝 Step 3: Building Hindi voiceover script...');
+        const hindiScript = buildHindiScript(reelPromise);
+        console.log(`[Pipeline] Script length: ${hindiScript.length} characters`);
+
+        // ── Step 4: Generate Audio via ElevenLabs ────────────────
+        console.log('\n🎤 Step 4: Generating ElevenLabs audio...');
         let audioBuffer: Buffer;
         try {
             audioBuffer = await generateAudio(hindiScript);
+            console.log(`[Pipeline] Audio generated: ${audioBuffer.length} bytes`);
         } catch (err: any) {
-            console.error(`[Pipeline] ElevenLabs API failed (Likely Free Tier Restriction): ${err.message}`);
-            console.log(`[Pipeline] Falling back to no-audio for demonstration purposes...`);
-            audioBuffer = Buffer.alloc(0); // Proceed without audio
+            console.error(`[Pipeline] ElevenLabs failed: ${err.message}. Continuing without audio.`);
+            audioBuffer = Buffer.alloc(0);
         }
 
-        // 3. Generate Video via Puppeteer (pass audio buffer)
-        console.log(`[Pipeline] Capturing Headless Video...`);
-        const videoBuffer = await generateHeadlessVideo(news.id, audioBuffer);
+        // ── Step 5: Generate Video via Puppeteer ─────────────────
+        console.log('\n🎥 Step 5: Capturing headless video...');
 
-        console.log(`[Pipeline] Video generated successfully. Size: ${videoBuffer.length} bytes`);
+        // Set env vars for the puppeteer video generator
+        process.env.NEWS_TITLE = `PM Promise: ${reelPromise.title}`;
+        process.env.NEWS_SUMMARY = reelPromise.verdict_summary;
 
-        // 4. Upload to Supabase Storage (Required for Instagram)
-        console.log(`[Pipeline] Uploading to Supabase Storage...`);
-        const safeSlug = news.id ? news.id.slice(0, 50) : "reel";
-        const fileName = `${safeSlug}-${Date.now()}.mp4`;
+        const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer);
+        console.log(`[Pipeline] Video generated: ${videoBuffer.length} bytes`);
+
+        // ── Step 6: Upload to Supabase Storage ───────────────────
+        console.log('\n☁️ Step 6: Uploading to Supabase Storage...');
+        const safeSlug = reelPromise.slug.slice(0, 50);
+        const fileName = `promise-reel-${safeSlug}-${Date.now()}.mp4`;
         const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
 
         if (!publicUrl) {
-            throw new Error("Supabase upload failed. Check bucket permissions and secrets.");
+            throw new Error('Supabase upload failed. Check bucket permissions and secrets.');
         }
-        console.log(`[Pipeline] Successfully uploaded to Supabase: ${publicUrl}`);
+        console.log(`[Pipeline] Stored at: ${publicUrl}`);
 
-        // 5. Upload to Social Media
-        console.log(`[Pipeline] Starting Social Uploads...`);
-        const caption = `${news.title}\n\n#Rajneeti #IndiaNews #Politics #Trending`;
-        
+        // ── Step 7: Publish to Social Media ──────────────────────
+        console.log('\n📱 Step 7: Publishing to social platforms...');
+        const caption = `PM Promise Audit: ${reelPromise.title}\n\n` +
+            `Verdict: ${reelPromise.status}\n` +
+            `${reelPromise.verdict_summary}\n\n` +
+            `#Rajneeti #PMPromises #IndiaNews #Politics #Accountability #Trending`;
+
+        // Instagram
         const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, caption);
-        if (!igSuccess) {
-            console.warn("[Pipeline] Instagram upload failed, but continuing...");
-        }
+        if (!igSuccess) console.warn('[Pipeline] Instagram upload failed, but continuing...');
 
+        // Facebook
         const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, caption);
-        if (!fbSuccess) {
-            console.warn("[Pipeline] Facebook upload failed, but continuing...");
-        }
-        
-        const youtubeTitle = (news.blog_title || news.title || "Rajneeti News Update").slice(0, 100);
-        
-        // Build a professional description including the full news content
-        const youtubeDescription = `${news.blog_title || news.title || "Political Update"}
+        if (!fbSuccess) console.warn('[Pipeline] Facebook upload failed, but continuing...');
 
-${news.blog_content || news.summary || ""}
+        // YouTube
+        const ytTitle = `PM Promise: ${reelPromise.title} | ${reelPromise.status}`.slice(0, 100);
+        const ytDescription = `${reelPromise.title}\n\n` +
+            `Promise: "${reelPromise.description}"\n\n` +
+            `Verdict: ${reelPromise.status}\n` +
+            `${reelPromise.verdict_summary}\n\n` +
+            `—\n📺 MOITRA STUDIOS\nNon-Partisan Political Accountability Tracker\n🌐 https://moitrastudios.com/prime-ministers-promises\n\n` +
+            `#Shorts #PMPromises #Rajneeti #IndiaNews #Politics`;
 
-—
-📺 RAJNEETI TV NETWORK
-Official Channel for Indian Political News & Election Strategy
-🌐 Website: https://moitrastudios.com/rajneeti-tv-network
-📍 State: ${news.stateName || 'National'}
-
-#Rajneeti #RajneetiTVNetwork #IndiaNews #Politics #Shorts #Trending`;
-        
-        // Generate dynamic tags to make the reel viral
         const dynamicTags = [
-            news.stateName?.toLowerCase().replace(/\s+/g, ''),
-            news.politicianName?.toLowerCase().replace(/\s+/g, ''),
-            'election',
-            'viral',
-            'newsupdate'
+            reelPromise.category?.toLowerCase().replace(/\s+/g, ''),
+            `manifesto${reelPromise.source_manifesto_year}`,
+            'accountability',
+            'factcheck',
         ].filter(Boolean) as string[];
 
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, youtubeTitle, youtubeDescription, dynamicTags);
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, dynamicTags);
+        if (!ytSuccess) console.warn('[Pipeline] YouTube upload failed.');
 
+        // ── Step 8: Mark promise as posted in Supabase ───────────
+        if (supabase) {
+            console.log('\n✏️ Step 8: Marking promise as reel-posted in database...');
+            const { error: markError } = await (supabase as any)
+                .from('manifesto_promises')
+                .update({
+                    reel_posted: true,
+                    reel_link: publicUrl,
+                })
+                .eq('id', reelPromise.id);
 
-        if (!ytSuccess) {
-            throw new Error("YouTube upload failed. Check refresh token and quotas.");
+            if (markError) {
+                console.error(`[Pipeline] Failed to mark as posted: ${markError.message}`);
+            }
         }
 
-
-
-        // 6. Cleanup old files
+        // ── Step 9: Cleanup old videos ───────────────────────────
         await SupabaseStorageService.cleanupOldVideos();
 
-        console.log("=== AUTOMATED REEL PIPELINE COMPLETED SUCCESSFULLY ===");
-    } catch (err: any) {
-        console.error("=== AUTOMATED REEL PIPELINE FAILED ===", err);
-        throw err; // Ensure the process exits with failure
-    }
+        console.log('\n=== AUTOMATED REEL PIPELINE COMPLETED SUCCESSFULLY ===');
+        console.log(`   Promise: "${reelPromise.title}"`);
+        console.log(`   Status: ${reelPromise.status}`);
+        console.log(`   Platforms: IG=${igSuccess} FB=${fbSuccess} YT=${ytSuccess}`);
 
+    } catch (err: any) {
+        console.error('\n=== AUTOMATED REEL PIPELINE FAILED ===', err.message || err);
+        throw err;
+    }
 }

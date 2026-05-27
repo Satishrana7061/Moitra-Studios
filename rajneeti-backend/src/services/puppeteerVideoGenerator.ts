@@ -9,7 +9,7 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
     const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
     const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news from Rajneeti Network TV.');
 
-    const targetUrl = `${FRONTEND_URL}/#/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}`;
+    const targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}`;
 
     // Create a temp directory for our frames
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));

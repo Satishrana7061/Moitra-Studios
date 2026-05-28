@@ -133,7 +133,7 @@ export async function runAutomatedReelPipeline() {
                         messages: [
                             { 
                                 role: 'system', 
-                                content: 'You are an 18-year-old local Delhi guy auditing Prime Minister promises from your bedroom. You speak extremely casual, street Hinglish. Output ONLY valid JSON.' 
+                                content: 'You are an 18-year-old local Delhi student auditing election promises from home. You talk in a polite, natural, yet casual Hinglish street tone (like a normal Delhi teen talking on camera). Output ONLY valid JSON.' 
                             },
                             { 
                                 role: 'user', 
@@ -142,13 +142,19 @@ Reality Fact-check status: "${reelPromise.status}"
 Evidence details: "${reelPromise.verdict_summary}"
 
 Generate a short Hinglish script and 3 short Hindi slide points.
-Tone guidelines:
-- Casual, informal Delhi teenager (use words like "bhai", "yaar", "reality check", "chalo dekhte hain", "locha").
-- MUST sound like an 18-year-old local Delhi guy talking by himself, NOT a mature/professional AI anchor.
-- Keep it extremely short (voiceover MUST be under 35-45 words, so it takes exactly 9-10 seconds to read).
+Tone & Content guidelines:
+- Speak in a natural, casual Delhi teen Hinglish tone (use simple words like "bhai", "yaar", "reality check", "chalo dekhte hain").
+- CRITICAL: Do NOT use low-quality street slang like "locha", "laphda", "jhol" or offensive language. Keep it polite, clean, but informal.
+- Keep it extremely short (voiceover MUST be under 30-35 words, so it takes exactly 9-10 seconds to read).
 - Clearly mention the manifesto year (${reelPromise.source_manifesto_year}) and the sequential Reel Number: ${reelNumber}.
-- Mention the specific data source/evidence (e.g. "Supreme Court judgment", "Ministry report") for the audit.
-- If the status is 'In Progress' or 'Partially Fulfilled', briefly state how much is left and future plans.
+- Mention the specific data source/evidence (e.g. "Supreme Court judgment", "Ministry report", "Official data") for the audit.
+- If the status is 'In Progress' or 'Partially Fulfilled', briefly state what is left and future plans.
+
+Slide formatting rules (to prevent text overlap/truncation):
+- Keep slide1, slide2, and slide3 extremely short (MAX 5-6 words per slide!).
+- slide1 MUST be a short translation of the promise topic in Hindi.
+- slide2 MUST state the status and source in Hindi.
+- slide3 MUST state progress or future plans in Hindi.
 
 Output STRICT JSON ONLY (no markdown, no extra text):
 {

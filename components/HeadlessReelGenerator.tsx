@@ -126,10 +126,12 @@ const HeadlessReelGenerator: React.FC = () => {
             <div id="reel-container" className="relative overflow-hidden bg-black"
                  style={{ width: '1080px', height: '1920px' }}>
 
-                <div className="flex flex-col h-full w-full bg-gradient-to-b from-slate-950 via-slate-900 to-black p-16 justify-between">
+                <div className="flex flex-col h-full w-full bg-black relative p-16 justify-between overflow-hidden">
+                    {/* Premium Radial Vignette Backdrop overlay */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,41,59,0.3)_0%,rgba(0,0,0,1)_100%)] pointer-events-none z-0" />
                     
                     {/* Header Section (Exactly matching screenshot 2 layout) */}
-                    <div className="flex flex-col gap-4 mt-8">
+                    <div className="flex flex-col gap-4 mt-8 relative z-10">
                         <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-8 py-3 text-3xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded">
                             <Radio size={32} className="animate-pulse" /> LIVE
                         </div>
@@ -138,8 +140,8 @@ const HeadlessReelGenerator: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Middle Section: Centered Punchy Content */}
-                    <div className="flex-1 relative flex items-center justify-center my-16">
+                    {/* Middle Section: Centered Punchy Content (Directly on background, font-serif, uppercase) */}
+                    <div className="flex-1 relative flex items-center justify-center my-16 z-10">
                         <div className="w-full relative">
                             {slides.map((slide, i) => (
                                 <div 
@@ -149,11 +151,11 @@ const HeadlessReelGenerator: React.FC = () => {
                                         i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
                                     }`}
                                 >
-                                    <div className="bg-white/[0.02] border-l-[12px] border-red-600 p-12 rounded-r-3xl shadow-3xl backdrop-blur-md border border-white/5">
-                                        <div className={`inline-block text-white px-8 py-3 font-black uppercase tracking-widest mb-10 shadow-lg text-2xl rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
+                                    <div className="flex flex-col items-start px-4">
+                                        <div className="bg-[#1d4ed8] text-white px-6 py-2 font-bold uppercase tracking-widest mb-10 text-2xl rounded">
                                             {slide.type === 'headline' ? 'Audit Summary' : `Analysis Point ${i}/${slides.length - 1}`}
                                         </div>
-                                        <h2 className="font-sans leading-relaxed drop-shadow-xl text-5xl md:text-6xl font-extrabold text-white text-left tracking-wide" style={{ textTransform: 'none' }}>
+                                        <h2 className="font-serif leading-relaxed text-5xl md:text-6xl font-extrabold text-white text-left tracking-wide uppercase">
                                             {slide.content}
                                         </h2>
                                     </div>

@@ -22,10 +22,18 @@ const HeadlessReelGenerator: React.FC = () => {
     const [newsItem, setNewsItem] = useState<any>(null);
     const [status, setStatus] = useState('initializing');
     const [slideIndex, setSlideIndex] = useState(0);
-    const videoRef = useRef<HTMLVideoElement>(null);
 
     const urlTitle = searchParams.get('title');
     const urlSummary = searchParams.get('summary');
+    
+    // Support custom Hindi slide points for Hinglish 10s reels
+    const urlSlide1 = searchParams.get('slide1');
+    const urlSlide2 = searchParams.get('slide2');
+    const urlSlide3 = searchParams.get('slide3');
+    
+    // Reel details
+    const reelNumber = searchParams.get('reelNum') || '1';
+    const manifestoYear = searchParams.get('year') || '2014';
 
     useEffect(() => {
         const fetchNews = async () => {
@@ -75,12 +83,21 @@ const HeadlessReelGenerator: React.FC = () => {
     }, [id, urlTitle, urlSummary]);
 
     const slides = React.useMemo(() => {
+        // If custom short Hindi slides are provided, use them!
+        if (urlSlide1 && urlSlide2 && urlSlide3) {
+            return [
+                { type: 'headline', content: urlSlide1 },
+                { type: 'bullet', content: urlSlide2 },
+                { type: 'bullet', content: urlSlide3 }
+            ];
+        }
+        
         if (!newsItem) return [];
         return [
             { type: 'headline', content: newsItem.ticker_headline },
             ...parseBulletPoints(newsItem.blog_content).map(b => ({ type: 'bullet', content: b }))
         ];
-    }, [newsItem]);
+    }, [newsItem, urlSlide1, urlSlide2, urlSlide3]);
 
     // Expose helpers for Puppeteer
     useEffect(() => {
@@ -98,15 +115,6 @@ const HeadlessReelGenerator: React.FC = () => {
         console.log(`[HeadlessReel] Ready. ${slides.length} slides prepared.`);
     }, [newsItem, slides.length]);
 
-    // Force video playback
-    useEffect(() => {
-        if (videoRef.current) {
-            videoRef.current.play().catch(err => {
-                console.log("Headless autoplay waiting:", err);
-            });
-        }
-    }, [newsItem]);
-
     if (!newsItem) {
         return <div style={{ color: 'white' }}>Loading... <span id="status">{status}</span></div>;
     }
@@ -118,69 +126,56 @@ const HeadlessReelGenerator: React.FC = () => {
             <div id="reel-container" className="relative overflow-hidden bg-black"
                  style={{ width: '1080px', height: '1920px' }}>
 
-                <div className="flex flex-col h-full w-full">
-                    {/* Top Section: Anchor Video */}
-                    <div className="h-[55%] relative overflow-hidden border-b-[8px] border-red-600 shadow-2xl">
-                        <video 
-                            ref={videoRef}
-                            src="/anchor.mp4" 
-                            autoPlay 
-                            loop 
-                            muted 
-                            playsInline 
-                            className="absolute inset-0 w-full h-full object-cover object-top"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                        
-                        {/* Header Overlay */}
-                        <div className="absolute top-16 left-12 flex flex-col gap-4 z-20">
-                            <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-8 py-3 text-3xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
-                                <Radio size={32} className="animate-pulse" /> LIVE
-                            </div>
-                            <div className="text-white/80 font-bold uppercase tracking-widest text-xl bg-black/60 px-6 py-2 rounded w-fit backdrop-blur-md border border-white/10">
-                                {newsItem.date} | {newsItem.state}
-                            </div>
+                <div className="flex flex-col h-full w-full bg-black relative p-16 justify-between overflow-hidden">
+                    {/* Premium Radial Vignette Backdrop overlay */}
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,41,59,0.3)_0%,rgba(0,0,0,1)_100%)] pointer-events-none z-0" />
+                    
+                    {/* Header Section (Exactly matching screenshot 2 layout) */}
+                    <div className="flex flex-col gap-4 mt-8 relative z-10">
+                        <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-8 py-3 text-3xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded">
+                            <Radio size={32} className="animate-pulse" /> LIVE
+                        </div>
+                        <div className="text-white/80 font-bold uppercase tracking-widest text-2xl bg-white/5 px-6 py-3 rounded w-fit backdrop-blur-md border border-white/10">
+                            REEL #{reelNumber} | {manifestoYear} BJP MANIFESTO
                         </div>
                     </div>
 
-                    {/* Bottom Section: News Content */}
-                    <div className="flex-1 relative flex flex-col justify-between p-16 bg-gradient-to-b from-slate-900 to-black z-10 overflow-hidden">
-                        <div className="w-full relative z-10 mb-8 flex-1">
+                    {/* Middle Section: Centered Punchy Content (Directly on background, font-serif, uppercase) */}
+                    <div className="flex-1 relative flex items-center justify-center my-16 z-10">
+                        <div className="w-full relative">
                             {slides.map((slide, i) => (
                                 <div 
                                     key={i} 
-                                    className={`absolute w-full top-0 transition-all duration-700 ease-out transform ${
+                                    className={`absolute w-full left-0 transition-all duration-700 ease-out transform ${
                                         i === slideIndex ? 'translate-y-0 opacity-100 scale-100' : 
                                         i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
                                     }`}
                                 >
-                                    <div className="bg-black/40 backdrop-blur-lg border-l-[12px] border-red-600 p-10 rounded-r-3xl shadow-2xl">
-                                        <div className={`inline-block text-white px-8 py-2 font-black uppercase tracking-widest mb-8 shadow-lg text-2xl rounded ${slide.type === 'headline' ? 'bg-red-600' : 'bg-blue-600'}`}>
-                                            {slide.type === 'headline' ? 'Breaking News' : `Analysis Point ${i}/${slides.length - 1}`}
+                                    <div className="flex flex-col items-start px-8 py-12 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] mx-4">
+                                        <div className="bg-[#1d4ed8] text-white px-8 py-3 font-bold uppercase tracking-widest mb-12 text-3xl rounded-xl shadow-lg">
+                                            {slide.type === 'headline' ? 'Audit Summary' : `Analysis Point ${i}/${slides.length - 1}`}
                                         </div>
-                                        <h2 className={`font-rajdhani leading-tight drop-shadow-xl ${
-                                            slide.type === 'headline' ? 'text-7xl font-black text-white' : 'text-6xl font-bold text-slate-100'
-                                        }`}>
+                                        <h2 className="font-serif leading-[1.4] text-6xl md:text-7xl font-extrabold text-white text-left tracking-wide uppercase">
                                             {slide.content}
                                         </h2>
                                     </div>
                                 </div>
                             ))}
                         </div>
+                    </div>
 
-                        {/* Footer Section */}
-                        <div className="relative z-20 mt-auto bg-white/5 p-10 rounded-3xl border border-white/10 shadow-2xl">
-                            <div className="w-full h-3 bg-white/10 mb-8 rounded-full overflow-hidden relative">
-                                <div className="h-full bg-red-600 w-full" />
+                    {/* Footer Section */}
+                    <div className="relative z-20 mt-auto bg-white/5 p-10 rounded-3xl border border-white/10 shadow-2xl">
+                        <div className="w-full h-3 bg-white/10 mb-8 rounded-full overflow-hidden relative">
+                            <div className="h-full bg-red-600 w-full" />
+                        </div>
+                        <div className="flex items-center gap-8">
+                            <div className="bg-red-600 text-white text-3xl font-black px-8 py-3 uppercase tracking-widest shadow-lg rounded">
+                                RN Update
                             </div>
-                            <div className="flex items-center gap-8">
-                                <div className="bg-red-600 text-white text-3xl font-black px-8 py-3 uppercase tracking-widest shadow-lg rounded">
-                                    RN Update
-                                </div>
-                                <h3 className="text-white font-bold font-sans text-4xl leading-tight line-clamp-2 flex-1">
-                                    {newsItem.blog_title}
-                                </h3>
-                            </div>
+                            <h3 className="text-white font-bold font-sans text-4xl leading-tight line-clamp-2 flex-1">
+                                {newsItem.blog_title}
+                            </h3>
                         </div>
                     </div>
                 </div>
@@ -188,7 +183,6 @@ const HeadlessReelGenerator: React.FC = () => {
             </div>
 
             <style>{`
-                /* Removed animations since background is now transparent MP4 */
                 body { background-color: transparent !important; }
             `}</style>
         </div>

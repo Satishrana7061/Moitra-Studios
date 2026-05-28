@@ -2,10 +2,45 @@ import fs from 'fs';
 import path from 'path';
 
 export class SocialUploadService {
-    
+
+    /**
+     * Diagnoses common Meta API errors and logs actionable advice.
+     */
+    private static diagnoseMetaError(error: any, context: string): void {
+        const code = error.code;
+        const subcode = error.error_subcode;
+        const msg = error.message || '';
+
+        if (code === 190) {
+            console.error(`\n🔴 [${context}] ACCESS TOKEN EXPIRED!`);
+            console.error('   → Your Instagram/Facebook access token has expired.');
+            console.error('   → Go to developers.facebook.com → Tools → Graph API Explorer to generate a new one.');
+            console.error('   → Or re-run the /api/admin/setup-instagram endpoint with a fresh user token.\n');
+        } else if (code === 10) {
+            console.error(`\n🔴 [${context}] APP NOT IN LIVE MODE!`);
+            console.error('   → Your Facebook App is still in Development Mode.');
+            console.error('   → Go to developers.facebook.com → Your App → App Review → Permissions.');
+            console.error('   → Request approval for: instagram_basic, instagram_content_publish');
+            console.error('   → Then toggle the app to LIVE MODE in the top bar.\n');
+        } else if (code === 100 && subcode === 2207050) {
+            console.log(`[${context}] Container not ready yet (subcode 2207050). This is normal, will keep polling.`);
+        } else if (code === 4) {
+            console.error(`\n🔴 [${context}] RATE LIMIT HIT!`);
+            console.error('   → You have exceeded the Instagram API rate limit.');
+            console.error('   → Wait a few minutes before trying again.\n');
+        } else if (msg.includes('permission')) {
+            console.error(`\n🔴 [${context}] PERMISSION ERROR: ${msg}`);
+            console.error('   → Make sure your app has instagram_content_publish permission approved.\n');
+        }
+    }
+
     /**
      * Uploads to Instagram Reels via Meta Graph API
      * Requires a publicly accessible video URL (e.g. from Supabase Storage)
+     * 
+     * Required permissions: instagram_basic, instagram_content_publish,
+     * pages_show_list, pages_read_engagement.
+     * The Facebook App must be in Live Mode (not Development Mode).
      */
     static async uploadToInstagram(videoUrl: string, caption: string): Promise<boolean> {
         console.log("[SocialUploadService] Uploading to Instagram Reels...");
@@ -19,7 +54,18 @@ export class SocialUploadService {
         }
 
         try {
-            const baseUrl = `https://graph.facebook.com/v19.0/${igUserId}`;
+            // Validate video URL is accessible and not too small
+            console.log("[SocialUploadService] Validating video URL...");
+            const headRes = await fetch(videoUrl, { method: 'HEAD' });
+            if (!headRes.ok) {
+                throw new Error(`Video URL returned ${headRes.status}. URL may be expired or inaccessible.`);
+            }
+            const contentLength = parseInt(headRes.headers.get('content-length') || '0', 10);
+            if (contentLength > 0 && contentLength < 5000) {
+                console.warn(`[SocialUploadService] ⚠️ Video file is very small (${contentLength} bytes). It might be invalid or corrupted.`);
+            }
+
+            const baseUrl = `https://graph.facebook.com/v21.0/${igUserId}`;
 
             // 1. Initialize the media container for the Reel
             console.log("[SocialUploadService] Initializing media container...");
@@ -34,8 +80,9 @@ export class SocialUploadService {
                 })
             });
 
-            const initData = await initRes.json();
+            const initData: any = await initRes.json();
             if (initData.error) {
+                SocialUploadService.diagnoseMetaError(initData.error, 'Instagram Init');
                 throw new Error(`Instagram Init Error: ${initData.error.message}`);
             }
 
@@ -43,17 +90,17 @@ export class SocialUploadService {
             console.log(`[SocialUploadService] Container created: ${creationId}. Waiting for processing...`);
 
             // 2. Poll for status (Instagram processes videos asynchronously)
-            // We wait up to 2 minutes (24 attempts * 5 seconds)
+            // Wait up to 3 minutes (36 attempts * 5 seconds)
             let status = 'IN_PROGRESS';
             let attempts = 0;
-            while ((status === 'IN_PROGRESS' || status === 'STARTED') && attempts < 24) {
+            while ((status === 'IN_PROGRESS' || status === 'STARTED') && attempts < 36) {
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 
-                const statusRes = await fetch(`https://graph.facebook.com/v19.0/${creationId}?fields=status_code&access_token=${accessToken}`);
-                const statusData = await statusRes.json();
+                const statusRes = await fetch(`https://graph.facebook.com/v21.0/${creationId}?fields=status_code&access_token=${accessToken}`);
+                const statusData: any = await statusRes.json();
                 status = statusData.status_code;
                 
-                console.log(`[SocialUploadService] Status check ${attempts + 1}: ${status}`);
+                console.log(`[SocialUploadService] Status check ${attempts + 1}/36: ${status}`);
                 attempts++;
             }
 
@@ -72,18 +119,102 @@ export class SocialUploadService {
                 })
             });
 
-            const publishData = await publishRes.json();
+            const publishData: any = await publishRes.json();
             if (publishData.error) {
+                SocialUploadService.diagnoseMetaError(publishData.error, 'Instagram Publish');
                 throw new Error(`Instagram Publish Error: ${publishData.error.message}`);
             }
 
-            console.log(`[SocialUploadService] Instagram Upload Success! Reel ID: ${publishData.id}`);
+            console.log(`[SocialUploadService] ✅ Instagram Upload Success! Reel ID: ${publishData.id}`);
             return true;
         } catch (err: any) {
             console.error("[SocialUploadService] Instagram Upload Failed:", err.message || err);
             return false;
         }
     }
+
+    /**
+     * Uploads to Facebook Reels via Meta Graph API
+     * Requires a publicly accessible video URL
+     */
+    static async uploadToFacebook(videoUrl: string, caption: string): Promise<boolean> {
+        console.log("[SocialUploadService] Uploading to Facebook Reels...");
+        
+        const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN; // Page Access Token
+        
+        if (!accessToken) {
+            console.warn("[SocialUploadService] Missing Facebook credentials (INSTAGRAM_ACCESS_TOKEN). Skipping upload.");
+            return false;
+        }
+
+        try {
+            // 1. Get Page ID dynamically using /me
+            const meRes = await fetch(`https://graph.facebook.com/v21.0/me?access_token=${accessToken}`);
+            const meData: any = await meRes.json();
+            if (meData.error) {
+                SocialUploadService.diagnoseMetaError(meData.error, 'Facebook Me');
+                throw new Error(`Facebook Me Error: ${meData.error.message}`);
+            }
+            const pageId = meData.id;
+            console.log(`[SocialUploadService] Found Facebook Page ID: ${pageId} (${meData.name})`);
+
+            // 2. Initialize the upload
+            const initRes = await fetch(`https://graph.facebook.com/v21.0/${pageId}/video_reels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    upload_phase: 'start',
+                    access_token: accessToken
+                })
+            });
+            const initData: any = await initRes.json();
+            if (initData.error) {
+                SocialUploadService.diagnoseMetaError(initData.error, 'Facebook Init');
+                throw new Error(`Facebook Reels Init Error: ${initData.error.message}`);
+            }
+            const { video_id, upload_url } = initData;
+            console.log(`[SocialUploadService] Facebook Reel initialized: ${video_id}. Uploading...`);
+
+            // 3. Upload the video from the public URL
+            const uploadRes = await fetch(upload_url, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `OAuth ${accessToken}`,
+                    'file_url': videoUrl
+                }
+            });
+            const uploadData: any = await uploadRes.json();
+            if (uploadData.error) {
+                throw new Error(`Facebook Reels Upload Error: ${uploadData.error.message}`);
+            }
+            console.log("[SocialUploadService] Video uploaded to Facebook. Publishing...");
+
+            // 4. Publish the Reel
+            const publishRes = await fetch(`https://graph.facebook.com/v21.0/${pageId}/video_reels`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    upload_phase: 'finish',
+                    video_state: 'PUBLISHED',
+                    description: caption,
+                    video_id: video_id,
+                    access_token: accessToken
+                })
+            });
+            const publishData: any = await publishRes.json();
+            if (publishData.error) {
+                SocialUploadService.diagnoseMetaError(publishData.error, 'Facebook Publish');
+                throw new Error(`Facebook Reels Publish Error: ${publishData.error.message}`);
+            }
+
+            console.log(`[SocialUploadService] ✅ Facebook Upload Success! Reel ID: ${video_id}`);
+            return true;
+        } catch (err: any) {
+            console.error("[SocialUploadService] Facebook Upload Failed:", err.message || err);
+            return false;
+        }
+    }
+
 
     /**
      * Uploads to YouTube Shorts via YouTube Data API v3

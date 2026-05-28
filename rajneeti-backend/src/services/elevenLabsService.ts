@@ -5,7 +5,7 @@
 
 export async function generateAudio(text: string): Promise<Buffer> {
     const apiKey = process.env.ELEVENLABS_API_KEY;
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || 'Ms9OTvWb99V6DwRHZn6q'; // Default to Monika
+    const voiceId = process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs'; // User defined voice
 
     if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
 
@@ -21,7 +21,7 @@ export async function generateAudio(text: string): Promise<Buffer> {
             },
             body: JSON.stringify({
                 text: text,
-                model_id: 'eleven_multilingual_v2',
+                model_id: 'eleven_flash_v2_5',
                 voice_settings: {
                     stability: 0.5,
                     similarity_boost: 0.75,

@@ -7,9 +7,15 @@ import os from 'os';
 export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
     const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
-    const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news from Rajneeti Network TV.');
+    const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news.');
+    
+    const slide1 = encodeURIComponent(process.env.SLIDE_1 || '');
+    const slide2 = encodeURIComponent(process.env.SLIDE_2 || '');
+    const slide3 = encodeURIComponent(process.env.SLIDE_3 || '');
+    const reelNum = encodeURIComponent(process.env.REEL_NUM || '1');
+    const year = encodeURIComponent(process.env.MANIFESTO_YEAR || '2014');
 
-    const targetUrl = `${FRONTEND_URL}/#/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}`;
+    const targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}&slide1=${slide1}&slide2=${slide2}&slide3=${slide3}&reelNum=${reelNum}&year=${year}`;
 
     // Create a temp directory for our frames
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));
@@ -75,8 +81,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             }
 
             const framePath = path.join(tmpDir, `slide_${i}.png`);
-            // omitBackground: true ensures the background is transparent
-            await containerHandle.screenshot({ path: framePath, type: 'png', omitBackground: true });
+            // omitBackground: false ensures the background is captured correctly
+            await containerHandle.screenshot({ path: framePath, type: 'png', omitBackground: false });
 
             const stat = fs.statSync(framePath);
             console.log(`[Puppeteer] Saved slide ${i} → ${stat.size} bytes (1080×1920)`);
@@ -87,19 +93,6 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         // ── Use ffmpeg to stitch PNGs into an MP4 ────────────────────
         console.log(`[Puppeteer] Stitching ${totalSlides} slides into MP4 with ffmpeg...`);
 
-        // Build a concat file for ffmpeg (each slide shown for 3.5 seconds)
-        const concatLines: string[] = [];
-        for (let i = 0; i < totalSlides; i++) {
-            const framePath = path.join(tmpDir, `slide_${i}.png`);
-            concatLines.push(`file '${framePath}'`);
-            concatLines.push(`duration 3.5`);
-        }
-        // Repeat last frame (ffmpeg concat demuxer requirement)
-        concatLines.push(`file '${path.join(tmpDir, `slide_${totalSlides - 1}.png`)}'`);
-
-        const concatFilePath = path.join(tmpDir, 'concat.txt');
-        fs.writeFileSync(concatFilePath, concatLines.join('\n'));
-
         // Determine if we have voice audio (ElevenLabs might fail due to Free Tier limits)
         const hasVoice = audioBuffer && audioBuffer.length > 0;
         const voiceAudioPath = path.join(tmpDir, 'voice.mp3');
@@ -107,44 +100,46 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             fs.writeFileSync(voiceAudioPath, audioBuffer);
         }
 
+        // Determine audio duration using ffprobe
+        let audioDuration = 15; // default fallback
+        if (hasVoice) {
+            try {
+                const ffprobeOut = execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${voiceAudioPath}"`);
+                audioDuration = parseFloat(ffprobeOut.toString().trim()) + 0.5; // Add small buffer
+                console.log(`[Puppeteer] Detected voice audio duration: ${audioDuration} seconds`);
+            } catch (ffprobeErr: any) {
+                console.warn(`[Puppeteer] ffprobe failed to get duration: ${ffprobeErr.message}. Using default 15s.`);
+            }
+        }
+
+        const slideDuration = audioDuration / totalSlides;
+        console.log(`[Puppeteer] Calculated slide duration: ${slideDuration}s per slide (total: ${audioDuration}s)`);
+
+        // Build a concat file for ffmpeg
+        const concatLines: string[] = [];
+        for (let i = 0; i < totalSlides; i++) {
+            const framePath = path.join(tmpDir, `slide_${i}.png`);
+            concatLines.push(`file '${framePath}'`);
+            concatLines.push(`duration ${slideDuration}`);
+        }
+        // Repeat last frame (ffmpeg concat demuxer requirement)
+        concatLines.push(`file '${path.join(tmpDir, `slide_${totalSlides - 1}.png`)}'`);
+
+        const concatFilePath = path.join(tmpDir, 'concat.txt');
+        fs.writeFileSync(concatFilePath, concatLines.join('\n'));
+
         // Check for Background audio
         const bgAudioPath = path.join(process.cwd(), 'news-bg.wav');
         const hasBgAudio = fs.existsSync(bgAudioPath);
 
-        // Dynamic search for AI Avators folder and any MP4 file inside it
-        let anchorVideoPath = '';
-        let hasAnchorVideo = false;
-        const possibleDirs = [
-            path.join(process.cwd(), 'public'),
-            path.join(process.cwd(), '..', 'public'),
-            path.join(process.cwd(), 'AI Avators'),
-            path.join(process.cwd(), '..', 'AI Avators')
-        ];
-        
-        for (const dir of possibleDirs) {
-            if (fs.existsSync(dir)) {
-                const files = fs.readdirSync(dir);
-                // Prioritize 'anchor.mp4' if it exists, otherwise take first mp4
-                const mp4File = files.find(f => f === 'anchor.mp4') || files.find(f => f.endsWith('.mp4'));
-                if (mp4File) {
-                    anchorVideoPath = path.join(dir, mp4File);
-                    hasAnchorVideo = true;
-                    console.log(`[Puppeteer] Found AI Anchor video: ${anchorVideoPath}`);
-                    break;
-                }
-            }
-        }
+        // AI Avatar video overlay is disabled as requested by the user
+        const hasAnchorVideo = false;
+        const anchorVideoPath = '';
 
         const ffmpegCmdArgs = ['ffmpeg', '-y'];
         
         let inputIndex = 0;
         
-        let anchorInputIdx = -1;
-        if (hasAnchorVideo) {
-            ffmpegCmdArgs.push('-stream_loop', '-1', '-i', `"${anchorVideoPath}"`);
-            anchorInputIdx = inputIndex++;
-        }
-
         ffmpegCmdArgs.push('-f', 'concat', '-safe', '0', '-i', concatFilePath);
         const slidesInputIdx = inputIndex++;
 
@@ -163,14 +158,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         let filterComplex = '';
         let mapOptions = [];
 
-        // Build Video Filter
-        if (hasAnchorVideo) {
-            filterComplex += `[${anchorInputIdx}:v][${slidesInputIdx}:v]overlay=x=0:y=0:shortest=1[v];`;
-            mapOptions.push('-map', '[v]');
-        } else {
-            // No anchor video, just use slides directly (zoompan removed by user request)
-            mapOptions.push('-map', `${slidesInputIdx}:v`);
-        }
+        // No anchor video overlay — use slides directly
+        mapOptions.push('-map', `${slidesInputIdx}:v`);
 
         // Build Audio Filter
         const audioStreams = [];
@@ -197,7 +186,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         ffmpegCmdArgs.push(
             ...mapOptions,
             '-c:v', 'libx264',
-            '-preset', 'fast'
+            '-preset', 'fast',
+            '-pix_fmt', 'yuv420p'
         );
         
         if (audioStreams.length > 0) {

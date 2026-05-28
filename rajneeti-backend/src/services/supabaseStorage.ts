@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import '../config.js'; // Ensure dotenv config is executed first
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || ''; // Use service role key for backend tasks
@@ -59,7 +60,7 @@ export class SupabaseStorageService {
             threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
             const filesToDelete = files
-                .filter(file => new Date(file.created_at) < threeDaysAgo)
+                .filter(file => file.created_at && new Date(file.created_at) < threeDaysAgo)
                 .map(file => file.name);
 
             if (filesToDelete.length > 0) {

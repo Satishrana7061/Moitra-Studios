@@ -1,9 +1,9 @@
 name: Daily Automated Reels Pipeline
 
 on:
-  schedule:
-    # Runs at 2:00 AM UTC every day (7:30 AM IST)
-    - cron: '0 2 * * *'
+#  schedule:
+#    # Runs at 2:00 AM UTC every day (7:30 AM IST)
+#    - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       news_slug:
@@ -63,6 +63,8 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
           
           # Optional Inputs
           NEWS_SLUG: ${{ github.event.inputs.news_slug || github.event.client_payload.slug }}

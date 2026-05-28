@@ -97,13 +97,20 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Links - Left Side */}
           <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-8 mr-auto z-10 pt-1">
-            {NAV_LINKS.slice(0, 2).map((link) => (
+            {NAV_LINKS.slice(0, 3).map((link) => (
               <button
                 key={link.label}
                 onClick={() => handleNavClick(link.href)}
-                className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group"
+                className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5"
               >
-                {link.label}
+                {link.label === 'Social Campaigns' ? (
+                  <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
+                    {link.label}
+                  </span>
+                ) : (
+                  <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
+                )}
                 <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
               </button>
             ))}
@@ -111,7 +118,7 @@ const Navbar: React.FC = () => {
 
           {/* Desktop Links - Right Side */}
           <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-auto z-10 pt-1">
-            {NAV_LINKS.slice(2).map((link) => (
+            {NAV_LINKS.slice(3).map((link) => (
               <button
                 key={link.label}
                 onClick={() => handleNavClick(link.href)}

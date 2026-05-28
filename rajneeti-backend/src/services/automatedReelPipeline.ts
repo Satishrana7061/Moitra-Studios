@@ -4,6 +4,7 @@ import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
 import { verifyNextPromise, getNextVerifiedPromiseForReel } from "./truthEngine.js";
 import { createClient } from '@supabase/supabase-js';
+import { OPENAI_API_KEY } from "../config.js";
 
 // ── Supabase client for marking reels as posted ─────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
@@ -93,16 +94,105 @@ export async function runAutomatedReelPipeline() {
 
         console.log(`[Pipeline] Generating reel for: "${reelPromise.title}" (${reelPromise.source_manifesto_year})`);
 
-        // ── Step 3: Generate Hindi AI Script ─────────────────────
-        console.log('\n📝 Step 3: Building Hindi voiceover script...');
-        const hindiScript = buildHindiScript(reelPromise);
-        console.log(`[Pipeline] Script length: ${hindiScript.length} characters`);
+        // Calculate the current Reel Number dynamically
+        let reelNumber = 1;
+        if (supabase) {
+            try {
+                const { count, error: countError } = await (supabase as any)
+                    .from('manifesto_promises')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('reel_posted', true);
+                if (!countError && count !== null) {
+                    reelNumber = count + 1;
+                }
+            } catch (countErr) {
+                console.warn('[Pipeline] Failed to fetch reel number. Defaulting to 1.');
+            }
+        }
+        console.log(`[Pipeline] Calculated current Reel Number: #${reelNumber}`);
+
+        // ── Step 3: Generate Casual Hinglish Delhi Teen script and Hindi Slides ─────────
+        console.log('\n📝 Step 3: Building Casual Hinglish Delhi Teen script and Hindi Slides...');
+        
+        let voiceoverText = `Yo guys! PM Promise Audit, Reel number ${reelNumber}! ${reelPromise.source_manifesto_year} manifesto ka ek bada vada tha: ${reelPromise.title}. Real truth check? ${reelPromise.status}! Data source: Internet reports.`;
+        let slide1 = `${reelPromise.title.slice(0, 35)}`;
+        let slide2 = `Verdict: ${reelPromise.status}`;
+        let slide3 = `Source: Internet Evidence`;
+
+        if (OPENAI_API_KEY) {
+            try {
+                console.log('[Pipeline] Querying OpenAI for casual Delhi Teen Hinglish script & short Hindi slides...');
+                const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            { 
+                                role: 'system', 
+                                content: 'You are an 18-year-old local Delhi guy auditing Prime Minister promises from your bedroom. You speak extremely casual, street Hinglish. Output ONLY valid JSON.' 
+                            },
+                            { 
+                                role: 'user', 
+                                content: `We are auditing a Prime Minister promise: "${reelPromise.title}" from the ${reelPromise.source_manifesto_year} manifesto.
+Reality Fact-check status: "${reelPromise.status}"
+Evidence details: "${reelPromise.verdict_summary}"
+
+Generate a short Hinglish script and 3 short Hindi slide points.
+Tone guidelines:
+- Casual, informal Delhi teenager (use words like "bhai", "yaar", "reality check", "chalo dekhte hain", "locha").
+- MUST sound like an 18-year-old local Delhi guy talking by himself, NOT a mature/professional AI anchor.
+- Keep it extremely short (voiceover MUST be under 35-45 words, so it takes exactly 9-10 seconds to read).
+- Clearly mention the manifesto year (${reelPromise.source_manifesto_year}) and the sequential Reel Number: ${reelNumber}.
+- Mention the specific data source/evidence (e.g. "Supreme Court judgment", "Ministry report") for the audit.
+- If the status is 'In Progress' or 'Partially Fulfilled', briefly state how much is left and future plans.
+
+Output STRICT JSON ONLY (no markdown, no extra text):
+{
+    "voiceover": "Casual Delhi Hinglish voiceover script...",
+    "slide1": "Short Hindi title (max 5-6 words)...",
+    "slide2": "Short Hindi status/evidence (max 6-8 words)...",
+    "slide3": "Short Hindi source & progress info (max 6-8 words)..."
+}`
+                            }
+                        ],
+                        response_format: { type: 'json_object' },
+                        max_tokens: 400,
+                        temperature: 0.8,
+                    }),
+                });
+
+                if (res.ok) {
+                    const data: any = await res.json();
+                    const content = data.choices?.[0]?.message?.content?.trim();
+                    if (content) {
+                        const parsed = JSON.parse(content);
+                        voiceoverText = parsed.voiceover || voiceoverText;
+                        slide1 = parsed.slide1 || slide1;
+                        slide2 = parsed.slide2 || slide2;
+                        slide3 = parsed.slide3 || slide3;
+                        console.log(`[Pipeline] Successfully generated Delhi Teen Hinglish Script!`);
+                        console.log(`[Pipeline] Voiceover: "${voiceoverText}"`);
+                        console.log(`[Pipeline] Slide 1: "${slide1}"`);
+                        console.log(`[Pipeline] Slide 2: "${slide2}"`);
+                        console.log(`[Pipeline] Slide 3: "${slide3}"`);
+                    }
+                } else {
+                    console.warn(`[Pipeline] OpenAI API returned status ${res.status}. Using fallback.`);
+                }
+            } catch (err: any) {
+                console.warn(`[Pipeline] OpenAI script generation failed: ${err.message}. Using Hinglish fallback.`);
+            }
+        }
 
         // ── Step 4: Generate Audio via ElevenLabs ────────────────
         console.log('\n🎤 Step 4: Generating ElevenLabs audio...');
         let audioBuffer: Buffer;
         try {
-            audioBuffer = await generateAudio(hindiScript);
+            audioBuffer = await generateAudio(voiceoverText);
             console.log(`[Pipeline] Audio generated: ${audioBuffer.length} bytes`);
         } catch (err: any) {
             console.error(`[Pipeline] ElevenLabs failed: ${err.message}. Continuing without audio.`);
@@ -115,6 +205,11 @@ export async function runAutomatedReelPipeline() {
         // Set env vars for the puppeteer video generator
         process.env.NEWS_TITLE = `PM Promise: ${reelPromise.title}`;
         process.env.NEWS_SUMMARY = reelPromise.verdict_summary;
+        process.env.SLIDE_1 = slide1;
+        process.env.SLIDE_2 = slide2;
+        process.env.SLIDE_3 = slide3;
+        process.env.REEL_NUM = String(reelNumber);
+        process.env.MANIFESTO_YEAR = String(reelPromise.source_manifesto_year);
 
         const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer);
         console.log(`[Pipeline] Video generated: ${videoBuffer.length} bytes`);

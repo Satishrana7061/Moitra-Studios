@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import '../config.js'; // Ensure dotenv config is executed first
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || ''; // Use service role key for backend tasks

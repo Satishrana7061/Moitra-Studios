@@ -85,7 +85,26 @@ export async function runAutomatedReelPipeline() {
 
         // ── Step 2: Get next verified promise for reel ───────────
         console.log('\n🎬 Step 2: Selecting next verified promise for reel...');
-        const reelPromise = await getNextVerifiedPromiseForReel();
+        let reelPromise;
+        const manualSlug = process.env.NEWS_SLUG;
+        if (manualSlug) {
+            console.log(`[Pipeline] Manual override detected for slug: ${manualSlug}`);
+            if (supabase) {
+                const { data, error } = await (supabase as any)
+                    .from('manifesto_promises')
+                    .select('*')
+                    .eq('slug', manualSlug)
+                    .single();
+                if (error || !data) {
+                    throw new Error(`Failed to find promise for manual override slug: ${manualSlug}`);
+                }
+                reelPromise = data;
+            } else {
+                throw new Error(`Supabase client not initialized for manual override slug: ${manualSlug}`);
+            }
+        } else {
+            reelPromise = await getNextVerifiedPromiseForReel();
+        }
 
         if (!reelPromise) {
             console.log('[Pipeline] No verified promises waiting for reel generation. Pipeline complete.');

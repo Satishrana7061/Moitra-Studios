@@ -47,6 +47,7 @@ jobs:
         env:
           # System
           FRONTEND_URL: "https://moitrastudios.com"
+          ENABLE_AUTO_POSTING: "true"
           
           # AI & Audio
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}

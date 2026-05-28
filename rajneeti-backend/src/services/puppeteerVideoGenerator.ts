@@ -81,8 +81,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             }
 
             const framePath = path.join(tmpDir, `slide_${i}.png`);
-            // omitBackground: true ensures the background is transparent
-            await containerHandle.screenshot({ path: framePath, type: 'png', omitBackground: true });
+            // omitBackground: false ensures the background is captured correctly
+            await containerHandle.screenshot({ path: framePath, type: 'png', omitBackground: false });
 
             const stat = fs.statSync(framePath);
             console.log(`[Puppeteer] Saved slide ${i} → ${stat.size} bytes (1080×1920)`);
@@ -186,7 +186,8 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
         ffmpegCmdArgs.push(
             ...mapOptions,
             '-c:v', 'libx264',
-            '-preset', 'fast'
+            '-preset', 'fast',
+            '-pix_fmt', 'yuv420p'
         );
         
         if (audioStreams.length > 0) {

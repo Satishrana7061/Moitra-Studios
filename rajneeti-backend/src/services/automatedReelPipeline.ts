@@ -121,7 +121,7 @@ export async function runAutomatedReelPipeline() {
 
         if (OPENAI_API_KEY) {
             try {
-                console.log('[Pipeline] Querying OpenAI for casual Delhi Teen Hinglish script & short Hindi slides...');
+                console.log('[Pipeline] Querying OpenAI for casual Delhi Teen Hinglish script & fuller Hindi slides...');
                 const res = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -141,32 +141,33 @@ export async function runAutomatedReelPipeline() {
 Reality Fact-check status: "${reelPromise.status}"
 Evidence details: "${reelPromise.verdict_summary}"
 
-Generate a short Hinglish script and 3 short Hindi slide points.
+Generate a Hinglish script and 3 Hindi slide points designed to look visually full and appealing on screen.
 Tone & Content guidelines:
 - Speak in a natural, casual Delhi teen Hinglish tone (use simple words like "bhai", "yaar", "reality check", "chalo dekhte hain").
 - CRITICAL: Do NOT use low-quality street slang like "locha", "laphda", "jhol" or offensive language. Keep it polite, clean, but informal.
-- Keep it extremely short (voiceover MUST be under 30-35 words, so it takes exactly 9-10 seconds to read).
-- Clearly mention the manifesto year (${reelPromise.source_manifesto_year}) and the sequential Reel Number: ${reelNumber}.
-- Mention the specific data source/evidence (e.g. "Supreme Court judgment", "Ministry report", "Official data") for the audit.
-- If the status is 'In Progress' or 'Partially Fulfilled', briefly state what is left and future plans.
+- CRITICAL scripting style: Instead of just saying a static status, structure the script naturally like:
+  "Yo guys! Ye hai promise number ${reelNumber}. BJP ke ${reelPromise.source_manifesto_year} manifesto mein ek bada vaada kiya gaya था ki: '${reelPromise.title}'. Phir hume different authentic report aur data sources se ye pata chala ki..."
+- Make the script longer, detailed and informative to last exactly 28-29 seconds when spoken naturally (voiceover MUST be between 80 to 90 words).
+- Include an update at the end up to the current date "28 May 2026", checking whether it is fulfilled, where it has reached, what is left, or if money/budgets were spent on it.
+- Mention specific authentic data sources (like Supreme Court reports, government portals, official audit data).
 
-Slide formatting rules (to prevent text overlap/truncation):
-- Keep slide1, slide2, and slide3 extremely short (MAX 5-6 words per slide!).
-- slide1 MUST be a short translation of the promise topic in Hindi.
-- slide2 MUST state the status and source in Hindi.
-- slide3 MUST state progress or future plans in Hindi.
+Slide formatting rules (to prevent text overlap but keep the screen looking full and premium):
+- Make the text long enough to fill the layout. Each slide should contain a complete, punchy sentence (around 6-12 words in Hindi) to make the screen look full.
+- slide1: A complete Hindi title/topic describing the promise (6-10 words).
+- slide2: Hindi status audit showing verdict and what data source proved it (6-12 words).
+- slide3: Hindi progress details, spent amount or current status as of 28 May 2026 (6-12 words).
 
 Output STRICT JSON ONLY (no markdown, no extra text):
 {
-    "voiceover": "Casual Delhi Hinglish voiceover script...",
-    "slide1": "Short Hindi title (max 5-6 words)...",
-    "slide2": "Short Hindi status/evidence (max 6-8 words)...",
-    "slide3": "Short Hindi source & progress info (max 6-8 words)..."
+    "voiceover": "Casual Delhi Hinglish voiceover script (80-90 words, 28-29 seconds, ends with 28 May 2026 progress/budgets info)...",
+    "slide1": "Fuller Hindi promise description sentence (6-10 words)...",
+    "slide2": "Fuller Hindi status & source sentence (6-12 words)...",
+    "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)..."
 }`
                             }
                         ],
                         response_format: { type: 'json_object' },
-                        max_tokens: 400,
+                        max_tokens: 600,
                         temperature: 0.8,
                     }),
                 });

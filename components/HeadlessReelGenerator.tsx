@@ -151,11 +151,11 @@ const HeadlessReelGenerator: React.FC = () => {
                                         i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
                                     }`}
                                 >
-                                    <div className="flex flex-col items-start px-4">
-                                        <div className="bg-[#1d4ed8] text-white px-6 py-2 font-bold uppercase tracking-widest mb-10 text-2xl rounded">
+                                    <div className="flex flex-col items-start px-8 py-12 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] mx-4">
+                                        <div className="bg-[#1d4ed8] text-white px-8 py-3 font-bold uppercase tracking-widest mb-12 text-3xl rounded-xl shadow-lg">
                                             {slide.type === 'headline' ? 'Audit Summary' : `Analysis Point ${i}/${slides.length - 1}`}
                                         </div>
-                                        <h2 className="font-serif leading-relaxed text-5xl md:text-6xl font-extrabold text-white text-left tracking-wide uppercase">
+                                        <h2 className="font-serif leading-[1.4] text-6xl md:text-7xl font-extrabold text-white text-left tracking-wide uppercase">
                                             {slide.content}
                                         </h2>
                                     </div>

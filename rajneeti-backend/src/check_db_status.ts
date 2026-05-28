@@ -6,6 +6,12 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
     try {
+        console.log("Resetting National Litigation Policy to let it run in the new 28-29s style...");
+        await supabase
+            .from('manifesto_promises')
+            .update({ reel_posted: false })
+            .eq('slug', 'implement-national-litigation-policy-2014');
+
         console.log("--- Manifesto Promises Stats ---");
         const { data: all, error: err1 } = await supabase
             .from('manifesto_promises')

@@ -501,9 +501,9 @@ app.listen(PORT, async () => {
     
     // Schedule the automated social reel pipeline (every 24 hours) — gated by env var
     if (process.env.ENABLE_AUTO_POSTING === 'true') {
-        const PIPELINE_INTERVAL_MS = 24 * 60 * 60 * 1000;
+        const PIPELINE_INTERVAL_MS = 12 * 60 * 60 * 1000;
         setInterval(runAutomatedReelPipeline, PIPELINE_INTERVAL_MS);
-        console.log('🚀 Auto-posting ENABLED! Pipeline will run every 24 hours.');
+        console.log('🚀 Auto-posting ENABLED! Pipeline will run every 12 hours (2 reels/day).');
     } else {
         console.log('⏸️  Auto-posting is DISABLED. Set ENABLE_AUTO_POSTING=true in .env to enable.');
     }

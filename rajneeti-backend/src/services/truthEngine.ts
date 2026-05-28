@@ -279,6 +279,7 @@ export async function verifyNextPromise(): Promise<VerifiedPromise | null> {
             .eq('published', true)
             .or('verified_by_ai.is.null,verified_by_ai.eq.false')
             .order('source_manifesto_year', { ascending: true })
+            .order('id', { ascending: true })
             .limit(1)
             .single();
 
@@ -379,6 +380,7 @@ export async function getNextVerifiedPromiseForReel(): Promise<VerifiedPromise |
             .or('reel_posted.is.null,reel_posted.eq.false')
             .eq('verification_conflict', false)
             .order('source_manifesto_year', { ascending: true })
+            .order('id', { ascending: true })
             .limit(1)
             .single();
 

@@ -4,6 +4,8 @@ import { ArrowLeft, ExternalLink, Calendar, BookOpen, AlertCircle, PlayCircle, V
 import { supabase } from '../lib/supabase';
 import { ManifestoPromise, PromiseEvidence } from '../types';
 import PromiseStatusBadge from './PromiseStatusBadge';
+import { MonetagBanner } from './MonetagBanner';
+import { PopunderScript } from './PopunderScript';
 
 const PromiseDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -255,6 +257,11 @@ const PromiseDetail: React.FC = () => {
               </div>
             </section>
 
+            {/* Monetag In-Page Push - Content Pages */}
+            <div className="mb-6">
+              <MonetagBanner zoneId="11001039" className="w-full !min-h-[90px]" />
+            </div>
+
             {/* Performance Audit */}
             {(promise.fulfilled_details || promise.unfulfilled_details) && (
               <section className="bg-slate-900/40 backdrop-blur-sm border border-slate-800/80 rounded-3xl p-8 hover:border-slate-700 transition-colors">
@@ -476,6 +483,9 @@ const PromiseDetail: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* OnClick Popunder Script */}
+      <PopunderScript />
     </div>
   );
 };

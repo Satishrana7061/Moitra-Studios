@@ -2,27 +2,28 @@ import React, { useEffect, useRef } from 'react';
 
 interface VignetteAdBannerProps {
   className?: string;
+  zoneId?: string;
 }
 
 /**
  * VignetteAdBanner — Renders a designated container for vignette-style
- * native banner ads (zone 11000701). The global script in index.html
- * handles the actual ad delivery; this component provides the styled
- * container and ad-network identifier for in-page banner placements.
+ * native banner ads. The global script in index.html is removed and handled per-page;
+ * this component provides the styled container and ad-network identifier.
  */
-export const VignetteAdBanner: React.FC<VignetteAdBannerProps> = ({ className = '' }) => {
+export const VignetteAdBanner: React.FC<VignetteAdBannerProps> = ({ 
+  className = '',
+  zoneId = '11000701'
+}) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Inject a secondary zone-scoped script instance into this container
-    // so the ad network can target this specific placement.
     if (!containerRef.current) return;
 
     // Avoid duplicate injection on re-render
-    if (containerRef.current.querySelector('script[data-zone="11000701"]')) return;
+    if (containerRef.current.querySelector(`script[data-zone="${zoneId}"]`)) return;
 
     const script = document.createElement('script');
-    script.dataset.zone = '11000701';
+    script.dataset.zone = zoneId;
     script.src = 'https://n6wxm.com/vignette.min.js';
     script.async = true;
     containerRef.current.appendChild(script);
@@ -33,12 +34,12 @@ export const VignetteAdBanner: React.FC<VignetteAdBannerProps> = ({ className = 
         containerRef.current.removeChild(script);
       }
     };
-  }, []);
+  }, [zoneId]);
 
   return (
     <div
       ref={containerRef}
-      id="vignette-ad-container"
+      id={`vignette-ad-container-${zoneId}`}
       className={`relative w-full min-h-[90px] rounded-xl overflow-hidden border border-white/5 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center ${className}`}
     >
       {/* Subtle branding while ad loads */}

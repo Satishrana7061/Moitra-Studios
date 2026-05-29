@@ -6,6 +6,9 @@ import CountdownTimer from './CountdownTimer';
 import SocialCampaignSidebar from './SocialCampaignSidebar';
 import TopicVoting from './TopicVoting';
 import { useSEO } from '../hooks/useSEO';
+import { MonetagBanner } from './MonetagBanner';
+import { VignetteAdBanner } from './VignetteAdBanner';
+import { PopunderScript } from './PopunderScript';
 
 // Deterministic result generator — same campaign = same result always
 function getSimulatedResult(campaign: SocialCampaign) {
@@ -396,6 +399,9 @@ const SocialCampaignDetail: React.FC = () => {
                             )}
                         </div>
 
+                        {/* Monetag In-Page Push - Content Pages */}
+                        <MonetagBanner zoneId="11001039" className="w-full !min-h-[90px]" />
+
                         {/* Leader Approaches Grid */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             {campaign.approaches?.map((approach) => {
@@ -677,6 +683,9 @@ const SocialCampaignDetail: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Vignette Banner Between Content */}
+                        <VignetteAdBanner zoneId="11000701" className="w-full" />
+
                         {/* GAME CTA SECTION */}
                         <div className="relative rounded-3xl p-10 overflow-hidden group shadow-2xl">
                             <div className="absolute inset-0 bg-gradient-to-br from-gameOrange/30 to-blue-900/30 group-hover:scale-110 transition-transform duration-700" />
@@ -703,6 +712,9 @@ const SocialCampaignDetail: React.FC = () => {
                     </div>
                 </div>
             </div>
+            
+            {/* OnClick Popunder Script */}
+            <PopunderScript />
         </div>
     );
 };

@@ -7,6 +7,8 @@ import { supabase } from '../lib/supabase';
 import { getLeaderAvatar } from '../lib/utils';
 import { AdBanner } from './AdBanner';
 import { MonetagBanner } from './MonetagBanner';
+import { VignetteAdBanner } from './VignetteAdBanner';
+import { PopunderScript } from './PopunderScript';
 import { falService } from '../lib/fal';
 
 const INDIAN_STATES = [
@@ -567,7 +569,7 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </div>
 
                                 {/* Monetag In-Page Push — Between TV Screen and Reel Studio */}
-                                <MonetagBanner zoneId="11007318" className="mt-4 !h-[120px]" />
+                                <MonetagBanner zoneId="11001039" className="mt-4 !h-[120px]" />
 
                                 <button 
                                     onClick={() => setIsStudioMode(true)}
@@ -609,11 +611,15 @@ const RajneetiNetworkTV: React.FC = () => {
                                                 </div>
                                                 </article>
                                                 {idx > 0 && idx % 3 === 0 && (
-                                                    <MonetagBanner zoneId="11007318" className="my-4" />
+                                                     <MonetagBanner zoneId="11001039" className="my-4" />
                                                 )}
                                             </React.Fragment>
                                         );
                                     })}
+                                </div>
+                                {/* Right Sidebar Monetag Ad */}
+                                <div className="p-4 border-t border-white/10 bg-slate-950/40">
+                                    <MonetagBanner zoneId="11074609" className="w-full !min-h-[100px]" />
                                 </div>
                             </div>
                         </div>
@@ -638,8 +644,14 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
                         )}
                         
+                        {/* Vignette Banner Between Content */}
+                        <VignetteAdBanner zoneId="11000701" className="mt-4 w-full" />
+                        
                         {/* Leaderboard Ad integration */}
                         <AdBanner layoutArea="leaderboard" className="mt-8 mb-4 w-full" />
+                        
+                        {/* OnClick Popunder Script */}
+                        <PopunderScript />
                     </div>
                 )}
             </main>

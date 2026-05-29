@@ -6,6 +6,7 @@ import InteractiveParticles from './InteractiveParticles';
 import { X, ArrowRight } from 'lucide-react';
 import { AdBanner } from './AdBanner';
 import { MonetagBanner } from './MonetagBanner';
+import { VignetteAdBanner } from './VignetteAdBanner';
 import { useNavigate } from 'react-router-dom';
 import { useSEO } from '../hooks/useSEO';
 
@@ -480,12 +481,31 @@ const RajneetiMap: React.FC = () => {
                 </div>
             </section>
 
+            {/* Below Game Ads (Vignette & General Push) */}
+            <div className="relative z-10 max-w-4xl mx-auto px-4 py-4 flex flex-col gap-4">
+                <VignetteAdBanner zoneId="11074615" className="w-full" />
+                <MonetagBanner zoneId="11007318" className="w-full !min-h-[90px]" />
+            </div>
+
             {/* SECTION 1: Map & Overlays (Viewport height on mobile/ipad) */}
             <BreakingNewsTicker
                 events={selectedState ? stateNews : allEvents}
                 selectedStateName={selectedState || undefined}
                 loadingStateNews={loadingStateNews}
             />
+            
+            {/* DESKTOP LEFT SPONSOR SIDEBAR */}
+            <div className="hidden md:flex absolute left-0 top-20 h-[calc(100vh-100px)] w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
+                <div className="pb-3 border-b border-white/5 mx-2 pointer-events-auto">
+                    <span className="font-rajdhani font-black text-white/50 tracking-wideset text-[10px] uppercase">
+                        Sponsors
+                    </span>
+                </div>
+                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
+                    <MonetagBanner zoneId="11074608" className="flex-shrink-0 !h-[250px]" />
+                    <MonetagBanner zoneId="11074608" className="flex-1" />
+                </div>
+            </div>
             
             {/* DESKTOP RIGHT SPONSOR SIDEBAR */}
             <div className="hidden md:flex absolute right-0 top-20 h-[calc(100vh-100px)] w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
@@ -495,8 +515,8 @@ const RajneetiMap: React.FC = () => {
                     </span>
                 </div>
                 <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
-                    <MonetagBanner zoneId="11007318" className="flex-shrink-0 !h-[250px]" />
-                    <MonetagBanner zoneId="11007318" className="flex-1" />
+                    <MonetagBanner zoneId="11074609" className="flex-shrink-0 !h-[250px]" />
+                    <MonetagBanner zoneId="11074609" className="flex-1" />
                 </div>
             </div>
         </div>

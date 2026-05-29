@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Megaphone, ArrowRight, CheckCircle2, Vote, Clock, Trophy, History } from 'lucide-react';
 import { dynamicCampaignService, SocialCampaign } from '../services/dynamicCampaignService';
+import { MonetagBanner } from './MonetagBanner';
+import { VignetteAdBanner } from './VignetteAdBanner';
+import { PopunderScript } from './PopunderScript';
 
 const SocialCampaignsList: React.FC = () => {
     const navigate = useNavigate();
@@ -127,6 +130,11 @@ const SocialCampaignsList: React.FC = () => {
                     </section>
                 )}
 
+                {/* Monetag In-Page Push - Content Pages */}
+                <div className="mb-12">
+                    <MonetagBanner zoneId="11001039" className="w-full !min-h-[90px]" />
+                </div>
+
                 {/* ARCHIVE LIST */}
                 <section>
                     <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
@@ -164,6 +172,12 @@ const SocialCampaignsList: React.FC = () => {
                     </div>
                 </section>
             </main>
+            
+            {/* Vignette Banner Between Content */}
+            <VignetteAdBanner zoneId="11000701" className="mx-auto max-w-6xl px-4 mb-10 w-full" />
+            
+            {/* OnClick Popunder Script */}
+            <PopunderScript />
         </div>
     );
 };

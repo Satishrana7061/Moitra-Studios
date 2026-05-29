@@ -4,6 +4,9 @@ import { Search, BookOpen, AlertCircle, TrendingUp, CheckCircle, Clock, XCircle,
 import { supabase } from '../lib/supabase';
 import { ManifestoPromise, PromiseStatus } from '../types';
 import PromiseStatusBadge from './PromiseStatusBadge';
+import { MonetagBanner } from './MonetagBanner';
+import { VignetteAdBanner } from './VignetteAdBanner';
+import { PopunderScript } from './PopunderScript';
 
 const Counter = ({ end, duration = 1000 }: { end: number, duration?: number }) => {
   const [count, setCount] = useState(0);
@@ -235,6 +238,11 @@ const ManifestoHub: React.FC = () => {
           </div>
         </div>
 
+        {/* Monetag In-Page Push - Content Pages */}
+        <div className="mb-10">
+          <MonetagBanner zoneId="11001039" className="w-full !min-h-[90px]" />
+        </div>
+
         {/* Content Area */}
         {loading ? (
           <div className="flex flex-col justify-center items-center py-32 gap-6">
@@ -331,6 +339,12 @@ const ManifestoHub: React.FC = () => {
           </div>
         )}
       </div>
+      
+      {/* Vignette Banner Between Content */}
+      <VignetteAdBanner zoneId="11000701" className="mx-auto max-w-7xl px-6 mt-10 w-full" />
+      
+      {/* OnClick Popunder Script */}
+      <PopunderScript />
     </div>
   );
 };

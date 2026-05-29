@@ -54,38 +54,63 @@ const Navbar: React.FC = () => {
         : 'bg-transparent py-4'
         }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-12">
-          {/* Logo */}
-          <div
-            className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
-            onClick={() => handleNavClick('/indian-politics-game-home')}
-          >
-            {/* Custom Moitra Logo SVG */}
-            <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
-              <div className="absolute inset-0 bg-gameOrange/20 rotate-45 transform transition-transform group-hover:rotate-90 duration-500 border border-gameOrange/30"></div>
-              <svg
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-6 h-6 md:w-8 md:h-8 text-gameOrange relative z-10 drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]"
-              >
-                <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3" />
-                <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
-              </svg>
+      <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-12 relative w-full">
+          
+          {/* Left Group */}
+          <div className="flex items-center flex-1 justify-start min-w-0">
+            {/* Logo */}
+            <div
+              className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
+              onClick={() => handleNavClick('/indian-politics-game-home')}
+            >
+              {/* Custom Moitra Logo SVG */}
+              <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gameOrange/20 rotate-45 transform transition-transform group-hover:rotate-90 duration-500 border border-gameOrange/30"></div>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  className="w-6 h-6 md:w-8 md:h-8 text-gameOrange relative z-10 drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]"
+                >
+                  <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3" />
+                  <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
+                </svg>
+              </div>
+
+              <div className="flex flex-col">
+                <span className="font-cinzel font-bold text-lg md:text-xl tracking-[0.2em] text-white leading-none group-hover:text-lokGold-200 transition-colors">
+                  MOITRA
+                </span>
+                <span className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gameOrange group-hover:text-gameYellow transition-colors pl-0.5">
+                  Studios
+                </span>
+              </div>
             </div>
 
-            <div className="flex flex-col">
-              <span className="font-cinzel font-bold text-lg md:text-xl tracking-[0.2em] text-white leading-none group-hover:text-lokGold-200 transition-colors">
-                MOITRA
-              </span>
-              <span className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gameOrange group-hover:text-gameYellow transition-colors pl-0.5">
-                Studios
-              </span>
+            {/* Desktop Links - Left Side */}
+            <div className="hidden xl:flex items-center space-x-4 2xl:space-x-8 ml-6 2xl:ml-8 z-10 pt-1">
+              {NAV_LINKS.slice(0, 3).map((link) => (
+                <button
+                  key={link.label}
+                  onClick={() => handleNavClick(link.href)}
+                  className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  {link.label === 'Social Campaigns' ? (
+                    <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
+                      {link.label}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
+                  )}
+                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Desktop/iPad Menu Logo */}
-          <div className="hidden sm:flex items-center absolute left-1/2 -translate-x-1/2">
+          {/* Center Group (Absolute on small, relative flow on XL) */}
+          <div className="hidden sm:flex items-center justify-center shrink-0 absolute left-1/2 -translate-x-1/2 xl:relative xl:left-0 xl:translate-x-0 z-20">
             <div className="origin-top animate-hinge-swing group-hover:pause">
               <img
                 src="/SplashTitle.png"
@@ -95,58 +120,41 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Desktop Links - Left Side */}
-          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-8 mr-auto z-10 pt-1">
-            {NAV_LINKS.slice(0, 3).map((link) => (
+          {/* Right Group */}
+          <div className="flex items-center flex-1 justify-end min-w-0">
+            {/* Desktop Links - Right Side */}
+            <div className="hidden xl:flex items-center space-x-4 2xl:space-x-8 z-10 pt-1">
+              {NAV_LINKS.slice(3).map((link) => (
+                <button
+                  key={link.label}
+                  onClick={() => handleNavClick(link.href)}
+                  className="relative text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
+                >
+                  {link.label === 'Social Campaigns' ? (
+                    <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
+                      <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
+                      {link.label}
+                    </span>
+                  ) : (
+                    <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
+                  )}
+                  <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+                </button>
+              ))}
+            </div>
+
+            {/* Mobile/iPad Menu Button */}
+            <div className="xl:hidden flex">
               <button
-                key={link.label}
-                onClick={() => handleNavClick(link.href)}
-                className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5"
+                aria-label="Toggle navigation menu"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="text-slate-400 hover:text-white p-2 transition-colors border border-white/5 rounded-lg bg-white/5"
               >
-                {link.label === 'Social Campaigns' ? (
-                  <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
-                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
-                    {link.label}
-                  </span>
-                ) : (
-                  <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
-                )}
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
+                {isMobileMenuOpen ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" />}
               </button>
-            ))}
+            </div>
           </div>
 
-          {/* Desktop Links - Right Side */}
-          <div className="hidden lg:flex items-center space-x-6 lg:space-x-8 ml-auto z-10 pt-1">
-            {NAV_LINKS.slice(3).map((link) => (
-              <button
-                key={link.label}
-                onClick={() => handleNavClick(link.href)}
-                className="relative text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5"
-              >
-                {link.label === 'Social Campaigns' ? (
-                  <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
-                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse shrink-0 relative top-[-1px]"></span>
-                    {link.label}
-                  </span>
-                ) : (
-                  <span className="text-slate-400 hover:text-white transition-colors">{link.label}</span>
-                )}
-                <span className="absolute bottom-0 left-0 w-0 h-[2px] bg-gameOrange transition-all duration-300 group-hover:w-full" />
-              </button>
-            ))}
-          </div>
-
-          {/* Mobile/iPad Menu Button */}
-          <div className="lg:hidden flex">
-            <button
-              aria-label="Toggle navigation menu"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-slate-400 hover:text-white p-2 transition-colors border border-white/5 rounded-lg bg-white/5"
-            >
-              {isMobileMenuOpen ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" />}
-            </button>
-          </div>
         </div>
       </div>
 

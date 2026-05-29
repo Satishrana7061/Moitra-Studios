@@ -55,10 +55,10 @@ const Navbar: React.FC = () => {
         }`}
     >
       <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-12 relative w-full">
+        <div className="flex items-center justify-between h-12 relative w-full gap-2 lg:gap-4">
           
           {/* Left Group */}
-          <div className="flex items-center flex-1 justify-start min-w-0">
+          <div className="flex items-center justify-start min-w-0">
             {/* Logo */}
             <div
               className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
@@ -88,12 +88,12 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Desktop Links - Left Side */}
-            <div className="hidden xl:flex items-center space-x-4 2xl:space-x-8 ml-6 2xl:ml-8 z-10 pt-1">
+            <div className="hidden xl:flex items-center space-x-3 2xl:space-x-6 ml-4 2xl:ml-8 z-10 pt-1">
               {NAV_LINKS.slice(0, 3).map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}
-                  className="relative text-slate-400 hover:text-white text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
+                  className="relative text-slate-400 hover:text-white text-[9px] md:text-[11px] 2xl:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
                 >
                   {link.label === 'Social Campaigns' ? (
                     <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
@@ -109,26 +109,26 @@ const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Center Group (Absolute on small, relative flow on XL) */}
-          <div className="hidden sm:flex items-center justify-center shrink-0 absolute left-1/2 -translate-x-1/2 xl:relative xl:left-0 xl:translate-x-0 z-20">
+          {/* Center Group (Natural Flow to prevent overlap) */}
+          <div className="hidden sm:flex items-center justify-center shrink-0 z-20">
             <div className="origin-top animate-hinge-swing group-hover:pause">
               <img
                 src="/SplashTitle.png"
                 alt="RAJNEETI"
-                className="h-8 md:h-12 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)] transition-transform hover:scale-110"
+                className="h-8 md:h-10 2xl:h-12 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)] transition-transform hover:scale-110"
               />
             </div>
           </div>
 
           {/* Right Group */}
-          <div className="flex items-center flex-1 justify-end min-w-0">
+          <div className="flex items-center justify-end min-w-0">
             {/* Desktop Links - Right Side */}
-            <div className="hidden xl:flex items-center space-x-4 2xl:space-x-8 z-10 pt-1">
+            <div className="hidden xl:flex items-center space-x-3 2xl:space-x-6 z-10 pt-1">
               {NAV_LINKS.slice(3).map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}
-                  className="relative text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
+                  className="relative text-[9px] md:text-[11px] 2xl:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
                 >
                   {link.label === 'Social Campaigns' ? (
                     <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
@@ -144,7 +144,7 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* Mobile/iPad Menu Button */}
-            <div className="xl:hidden flex">
+            <div className="xl:hidden flex ml-auto">
               <button
                 aria-label="Toggle navigation menu"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

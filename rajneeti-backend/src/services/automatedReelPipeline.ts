@@ -103,7 +103,7 @@ export async function runAutomatedReelPipeline() {
                 throw new Error(`Supabase client not initialized for manual override slug: ${manualSlug}`);
             }
         } else {
-            reelPromise = await getNextVerifiedPromiseForReel();
+            reelPromise = verifiedPromise; // Use the freshly verified promise from Step 1
         }
 
         if (!reelPromise) {
@@ -148,7 +148,7 @@ export async function runAutomatedReelPipeline() {
                         'Authorization': `Bearer ${OPENAI_API_KEY}`,
                     },
                     body: JSON.stringify({
-                        model: 'gpt-4o-mini',
+                        model: 'gpt-5.4',
                         messages: [
                             { 
                                 role: 'system', 

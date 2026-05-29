@@ -124,7 +124,7 @@ async function callOpenAI(prompt: string): Promise<AIVerdict | null> {
                 'Authorization': `Bearer ${OPENAI_API_KEY}`,
             },
             body: JSON.stringify({
-                model: 'gpt-4.1-mini',
+                model: 'gpt-5.4',
                 messages: [
                     { role: 'system', content: 'You are a strict, impartial Indian political fact-checker. Output ONLY valid JSON.' },
                     { role: 'user', content: prompt }
@@ -272,12 +272,12 @@ export async function verifyNextPromise(): Promise<VerifiedPromise | null> {
     console.log('═══════════════════════════════════════');
 
     try {
-        // 1. Pick one unverified promise
+        // 1. Pick the next unposted promise to ensure fresh research
         const { data: promise, error } = await (supabase as any)
             .from('manifesto_promises')
             .select('*')
             .eq('published', true)
-            .or('verified_by_ai.is.null,verified_by_ai.eq.false')
+            .or('reel_posted.is.null,reel_posted.eq.false')
             .order('source_manifesto_year', { ascending: true })
             .order('id', { ascending: true })
             .limit(1)

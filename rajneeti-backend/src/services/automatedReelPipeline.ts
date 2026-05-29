@@ -229,10 +229,10 @@ But still:
 - stay mature and trustworthy.
 
 Structure to follow:
-Line 1: Hook
+Line 1: Hook MUST explicitly state the sequence of the promise being tracked (e.g., "Aaj hum track kar rahe hain manifesto ka promise number ${reelNumber}...").
 Line 2: What was promised
 Line 3: What actually happened / where things stand
-Line 4: What the record or sources indicate
+Line 4: Name the EXACT verified sources (e.g., "According to The Hindu...", "Official government data shows...", "Independent platforms report...")
 Line 5: Simple conclusion
 Line 6: CTA for next reel or follow
 
@@ -260,6 +260,7 @@ Output STRICT JSON ONLY (no markdown, no extra text):
                              { 
                                  role: 'user', 
                                  content: `INPUT DATA:
+- Promise Sequence Number: ${reelNumber}
 - Promise title: "${reelPromise.title}"
 - Year: ${reelPromise.source_manifesto_year}
 - Latest verified status: "${reelPromise.status}"
@@ -267,7 +268,7 @@ Output STRICT JSON ONLY (no markdown, no extra text):
 - Source list / details: "${reelPromise.fulfilled_details || ''} ${reelPromise.unfulfilled_details || ''}"
 
 Write the script of 24 to 32 seconds (max 30 seconds, Voiceover must be under 30 seconds when spoken naturally, which is around 75 to 85 words).
-Make sure to only mention facts from the verified data, highlighting legit sources. Output ONLY the JSON with fields: voiceover, slide1, slide2, slide3.`
+Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, slide1, slide2, slide3.`
                             }
                         ],
                         response_format: { type: 'json_object' },

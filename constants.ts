@@ -4,8 +4,8 @@ import { Game } from './types';
 export const NAV_LINKS = [
   { label: 'Home', href: '/indian-politics-game-home', page: 'home' },
   { label: 'Rajneeti TV Network', href: '/rajneeti-tv-network', page: 'tv' },
-  { label: 'Social Campaigns', href: '/social-campaign', page: 'campaigns' },
   { label: 'PM Promises', href: '/prime-ministers-promises', page: 'promises' },
+  { label: 'Social Campaigns', href: '/social-campaign', page: 'campaigns' },
 ];
 
 export const GAMES_DATA: Game[] = [

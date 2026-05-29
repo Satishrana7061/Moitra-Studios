@@ -57,43 +57,43 @@ const Navbar: React.FC = () => {
       <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-12 relative w-full gap-2 lg:gap-4">
           
-          {/* Left Group */}
-          <div className="flex items-center justify-start min-w-0">
-            {/* Logo */}
-            <div
-              className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group"
-              onClick={() => handleNavClick('/indian-politics-game-home')}
-            >
-              {/* Custom Moitra Logo SVG */}
-              <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
-                <div className="absolute inset-0 bg-gameOrange/20 rotate-45 transform transition-transform group-hover:rotate-90 duration-500 border border-gameOrange/30"></div>
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                  className="w-6 h-6 md:w-8 md:h-8 text-gameOrange relative z-10 drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]"
-                >
-                  <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3" />
-                  <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
-                </svg>
-              </div>
-
-              <div className="flex flex-col">
-                <span className="font-cinzel font-bold text-lg md:text-xl tracking-[0.2em] text-white leading-none group-hover:text-lokGold-200 transition-colors">
-                  MOITRA
-                </span>
-                <span className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gameOrange group-hover:text-gameYellow transition-colors pl-0.5">
-                  Studios
-                </span>
-              </div>
+          {/* Logo on the left */}
+          <div
+            className="flex-shrink-0 flex items-center gap-2 md:gap-3 cursor-pointer group z-30"
+            onClick={() => handleNavClick('/indian-politics-game-home')}
+          >
+            {/* Custom Moitra Logo SVG */}
+            <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gameOrange/20 rotate-45 transform transition-transform group-hover:rotate-90 duration-500 border border-gameOrange/30"></div>
+              <svg
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="w-6 h-6 md:w-8 md:h-8 text-gameOrange relative z-10 drop-shadow-[0_0_5px_rgba(255,107,0,0.5)]"
+              >
+                <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.3" />
+                <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
+              </svg>
             </div>
 
-            {/* Desktop Links - Left Side */}
-            <div className="hidden xl:flex items-center space-x-3 2xl:space-x-6 ml-4 2xl:ml-8 z-10 pt-1">
+            <div className="flex flex-col">
+              <span className="font-cinzel font-bold text-lg md:text-xl tracking-[0.2em] text-white leading-none group-hover:text-lokGold-200 transition-colors">
+                MOITRA
+              </span>
+              <span className="text-[0.5rem] md:text-[0.6rem] uppercase tracking-[0.4em] text-gameOrange group-hover:text-gameYellow transition-colors pl-0.5">
+                Studios
+              </span>
+            </div>
+          </div>
+
+          {/* Desktop Navigation Layout - Center aligned grid */}
+          <div className="hidden xl:grid grid-cols-3 absolute inset-0 items-center pointer-events-none">
+            {/* Left side links - centered in left half */}
+            <div className="flex justify-center items-center gap-12 pointer-events-auto pr-24">
               {NAV_LINKS.slice(0, 2).map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}
-                  className="relative text-slate-400 hover:text-white text-[9px] md:text-[11px] 2xl:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
+                  className="relative text-slate-400 hover:text-white text-[11px] 2xl:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
                 >
                   {link.label === 'Social Campaigns' ? (
                     <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
@@ -107,28 +107,25 @@ const Navbar: React.FC = () => {
                 </button>
               ))}
             </div>
-          </div>
 
-          {/* Center Group (Natural Flow to prevent overlap) */}
-          <div className="hidden sm:flex items-center justify-center shrink-0 z-20">
-            <div className="origin-top animate-hinge-swing group-hover:pause">
-              <img
-                src="/SplashTitle.png"
-                alt="RAJNEETI"
-                className="h-8 md:h-10 2xl:h-12 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)] transition-transform hover:scale-110"
-              />
+            {/* Central Rajneeti Logo */}
+            <div className="flex justify-center items-center pointer-events-auto">
+              <div className="origin-top animate-hinge-swing group-hover:pause">
+                <img
+                  src="/SplashTitle.png"
+                  alt="RAJNEETI"
+                  className="h-8 md:h-10 2xl:h-12 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)] transition-transform hover:scale-110"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Right Group */}
-          <div className="flex items-center justify-end min-w-0">
-            {/* Desktop Links - Right Side */}
-            <div className="hidden xl:flex items-center space-x-3 2xl:space-x-6 z-10 pt-1">
+            {/* Right side links - centered in right half */}
+            <div className="flex justify-center items-center gap-12 pointer-events-auto pl-24">
               {NAV_LINKS.slice(2).map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}
-                  className="relative text-[9px] md:text-[11px] 2xl:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
+                  className="relative text-[11px] 2xl:text-xs font-bold uppercase tracking-widest transition-colors duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap"
                 >
                   {link.label === 'Social Campaigns' ? (
                     <span className="flex items-center gap-1.5 text-slate-400 hover:text-white transition-colors">
@@ -142,17 +139,28 @@ const Navbar: React.FC = () => {
                 </button>
               ))}
             </div>
+          </div>
 
-            {/* Mobile/iPad Menu Button */}
-            <div className="xl:hidden flex ml-auto">
-              <button
-                aria-label="Toggle navigation menu"
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-slate-400 hover:text-white p-2 transition-colors border border-white/5 rounded-lg bg-white/5"
-              >
-                {isMobileMenuOpen ? <X className="h-5 w-5 md:h-6 md:w-6" /> : <Menu className="h-5 w-5 md:h-6 md:w-6" />}
-              </button>
+          {/* Mobile/Tablet Central Title (Hidden on xl) */}
+          <div className="xl:hidden flex items-center justify-center shrink-0 absolute left-1/2 -translate-x-1/2">
+            <div className="origin-top animate-hinge-swing group-hover:pause">
+              <img
+                src="/SplashTitle.png"
+                alt="RAJNEETI"
+                className="h-7 md:h-9 w-auto drop-shadow-[0_0_10px_rgba(255,107,0,0.3)]"
+              />
             </div>
+          </div>
+
+          {/* Mobile Menu Toggle Button */}
+          <div className="xl:hidden flex items-center z-30 ml-auto">
+            <button
+              aria-label="Toggle navigation menu"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-slate-400 hover:text-white p-2 transition-colors border border-white/5 rounded-lg bg-white/5"
+            >
+              {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
           </div>
 
         </div>

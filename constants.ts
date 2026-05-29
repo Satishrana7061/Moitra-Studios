@@ -6,8 +6,6 @@ export const NAV_LINKS = [
   { label: 'Rajneeti TV Network', href: '/rajneeti-tv-network', page: 'tv' },
   { label: 'Social Campaigns', href: '/social-campaign', page: 'campaigns' },
   { label: 'PM Promises', href: '/prime-ministers-promises', page: 'promises' },
-  { label: 'Privacy Policy', href: '/privacy-policy', page: 'privacy' },
-  { label: 'Contact Us', href: '/contact-us', page: 'contact' },
 ];
 
 export const GAMES_DATA: Game[] = [

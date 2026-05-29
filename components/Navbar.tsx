@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
 
             {/* Desktop Links - Left Side */}
             <div className="hidden xl:flex items-center space-x-3 2xl:space-x-6 ml-4 2xl:ml-8 z-10 pt-1">
-              {NAV_LINKS.slice(0, 3).map((link) => (
+              {NAV_LINKS.slice(0, 2).map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}
@@ -124,7 +124,7 @@ const Navbar: React.FC = () => {
           <div className="flex items-center justify-end min-w-0">
             {/* Desktop Links - Right Side */}
             <div className="hidden xl:flex items-center space-x-3 2xl:space-x-6 z-10 pt-1">
-              {NAV_LINKS.slice(3).map((link) => (
+              {NAV_LINKS.slice(2).map((link) => (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}

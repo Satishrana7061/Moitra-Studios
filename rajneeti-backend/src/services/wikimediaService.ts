@@ -45,8 +45,13 @@ async function searchWikimediaFile(query: string): Promise<string | null> {
         if (!res.ok) return null;
         const data: any = await res.json();
         const results = data.query?.search || [];
-        if (results.length > 0) {
-            return results[0].title; // e.g. "File:Official Photograph of Prime Minister Narendra Modi Portrait.png"
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
+        const matched = results.find((r: any) => {
+            const titleLower = r.title.toLowerCase();
+            return allowedExtensions.some(ext => titleLower.endsWith(ext));
+        });
+        if (matched) {
+            return matched.title;
         }
     } catch (err: any) {
         console.error(`[WikimediaService] Error searching Wikimedia:`, err.message);

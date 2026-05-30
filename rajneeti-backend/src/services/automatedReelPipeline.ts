@@ -272,7 +272,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                             }
                         ],
                         response_format: { type: 'json_object' },
-                        max_tokens: 600,
+                        max_completion_tokens: 600,
                         temperature: 0.8,
                     }),
                 });

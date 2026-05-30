@@ -494,31 +494,8 @@ const RajneetiMap: React.FC = () => {
                 loadingStateNews={loadingStateNews}
             />
             
-            {/* DESKTOP LEFT SPONSOR SIDEBAR */}
-            <div className="hidden md:flex absolute left-0 top-20 h-[calc(100vh-100px)] w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
-                <div className="pb-3 border-b border-white/5 mx-2 pointer-events-auto">
-                    <span className="font-rajdhani font-black text-white/50 tracking-wideset text-[10px] uppercase">
-                        Sponsors
-                    </span>
-                </div>
-                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2" style={{ overscrollBehavior: 'contain' }}>
-                    <MonetagBanner zoneId="11074608" className="flex-shrink-0 !h-[250px]" />
-                    <MonetagBanner zoneId="11074608" className="flex-1" />
-                </div>
-            </div>
-            
-            {/* DESKTOP RIGHT SPONSOR SIDEBAR */}
-            <div className="hidden md:flex absolute right-0 top-20 h-[calc(100vh-100px)] w-[280px] lg:w-[320px] z-40 flex-col pointer-events-none p-4 pb-24 gap-4">
-                <div className="pb-3 border-b border-white/5 mx-2 pointer-events-auto">
-                    <span className="font-rajdhani font-black text-white/50 tracking-wideset text-[10px] uppercase">
-                        Premium Sponsors
-                    </span>
-                </div>
-                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2" style={{ overscrollBehavior: 'contain' }}>
-                    <MonetagBanner zoneId="11074609" className="flex-shrink-0 !h-[250px]" />
-                    <MonetagBanner zoneId="11074609" className="flex-1" />
-                </div>
-            </div>
+            {/* Ad sidebars removed — BreakingNewsTicker already renders the left news panel */}
+            {/* Sponsor ads are placed in the below-game section instead */}
         </div>
     );
 };

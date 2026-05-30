@@ -6,7 +6,7 @@ import { getBaseApprovalRating } from "../../lib/approvalRatings.js";
 async function callAIModel(prompt: string): Promise<string> {
   // Use Gemini if available
   if (GEMINI_API_KEY && GEMINI_API_KEY !== "PLACEHOLDER_API_KEY") {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
     
     const res = await fetch(url, {
       method: "POST",
@@ -44,13 +44,13 @@ async function callAIModel(prompt: string): Promise<string> {
       "Authorization": `Bearer ${OPENAI_API_KEY}`,
     },
     body: JSON.stringify({
-      model: "gpt-4o-mini", // Corrected model name
+      model: "gpt-5.4",
       messages: [
         { role: "system", content: "You are a helpful assistant that outputs strict JSON only." },
         { role: "user", content: prompt }
       ],
       response_format: { type: "json_object" },
-      max_tokens: 1000,
+      max_completion_tokens: 1000,
       temperature: 0.3,
     }),
   });

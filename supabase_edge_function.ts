@@ -610,7 +610,7 @@ async function callGPT(prompt: string, temperature = 0.5): Promise<string | null
           { role: "user", content: prompt },
         ],
         temperature,
-        max_tokens: 3000,
+        max_completion_tokens: 3000,
       }),
     });
 

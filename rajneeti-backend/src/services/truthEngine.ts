@@ -116,7 +116,7 @@ async function callOpenAI(prompt: string): Promise<AIVerdict | null> {
     }
 
     try {
-        console.log('[TruthEngine] Querying OpenAI (GPT-4.1-mini)...');
+        console.log('[TruthEngine] Querying OpenAI (GPT-5.4)...');
         const res = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -130,7 +130,7 @@ async function callOpenAI(prompt: string): Promise<AIVerdict | null> {
                     { role: 'user', content: prompt }
                 ],
                 response_format: { type: 'json_object' },
-                max_tokens: 800,
+                max_completion_tokens: 800,
                 temperature: 0.2,
             }),
         });
@@ -162,8 +162,8 @@ async function callGemini(prompt: string): Promise<AIVerdict | null> {
     }
 
     try {
-        console.log('[TruthEngine] Querying Google Gemini (gemini-1.5-flash)...');
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+        console.log('[TruthEngine] Querying Google Gemini (gemini-2.5-flash)...');
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
         const res = await fetch(url, {
             method: 'POST',

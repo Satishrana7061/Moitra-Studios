@@ -3,6 +3,7 @@ import { generateHeadlessVideo } from "./puppeteerVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
 import { verifyNextPromise, getNextVerifiedPromiseForReel } from "./truthEngine.js";
+import { findOrImportWikimediaImage } from "./wikimediaService.js";
 import { createClient } from '@supabase/supabase-js';
 import { OPENAI_API_KEY } from "../config.js";
 
@@ -68,15 +69,12 @@ function buildInstagramHashtags(promise: {
     status: string;
 }, reelNumber: number): string {
     // Always-include base tags
-    const tags = ['#IndianPolitics', '#FactCheckIndia', '#godimedia', '#MoitraStudios'];
+    const tags = ['#IndianPolitics', '#FactCheckIndia', '#ModiKiGuarantee', '#godimedia', '#MoitraStudios'];
 
-    // If reel mentions Modi
-    const titleLower = promise.title.toLowerCase();
-    if (titleLower.includes('modi') || titleLower.includes('narendra')) {
-        tags.push('#NarendraModi');
-    }
+    // Always add Modi since these are PM Promise reels
+    tags.push('#NarendraModi');
 
-    // If about elections/manifesto/promises
+    // If about elections/manifesto/promises — alternate
     if (reelNumber % 2 === 0) {
         tags.push('#ElectionPromises');
     } else {
@@ -102,16 +100,10 @@ function buildYouTubeHashtags(promise: {
     source_manifesto_year: number;
     status: string;
 }, reelNumber: number): { descriptionTags: string; metaTags: string[] } {
-    const baseTags = ['#Shorts', '#IndianPolitics'];
-    const metaTags = ['shorts', 'IndianPolitics', 'FactCheckIndia', 'godimedia', 'MoitraStudios'];
+    const baseTags = ['#Shorts', '#IndianPolitics', '#ModiKiGuarantee'];
+    const metaTags = ['shorts', 'IndianPolitics', 'FactCheckIndia', 'ModiKiGuarantee', 'NarendraModi', 'godimedia', 'MoitraStudios'];
 
-    const titleLower = promise.title.toLowerCase();
-    if (titleLower.includes('modi') || titleLower.includes('narendra')) {
-        baseTags.push('#NarendraModi', '#FactCheckIndia');
-        metaTags.push('NarendraModi');
-    } else {
-        baseTags.push('#FactCheckIndia');
-    }
+    baseTags.push('#NarendraModi', '#FactCheckIndia');
 
     // Alternate broad tags
     if (reelNumber % 2 === 0) {
@@ -134,27 +126,36 @@ function buildYouTubeHashtags(promise: {
 }
 
 /**
- * Builds the YouTube title in the specified format:
- * "Promise No. X | Leader Year Manifesto | Topic | Verdict: Status"
+ * Builds the YouTube title in the "Modi Ki Guarantee" format:
+ * "Modi Ki Guarantee: Promise No. X on Topic | Fulfilled or Not?"
  */
 function buildYouTubeTitle(promise: {
     title: string;
     source_manifesto_year: number;
     status: string;
 }, reelNumber: number): string {
-    // Extract a short topic from the title (first 40 chars)
-    const topic = promise.title.length > 40
-        ? promise.title.slice(0, 40).trim()
+    // Extract a short topic from the title (first 35 chars)
+    const topic = promise.title.length > 35
+        ? promise.title.slice(0, 35).trim()
         : promise.title;
 
-    const title = `Promise No. ${reelNumber} | Narendra Modi ${promise.source_manifesto_year} Manifesto | ${topic} | Verdict: ${promise.status}`;
+    // Map status to a catchy question/verdict for the title
+    const verdictMap: Record<string, string> = {
+        'Fulfilled': 'Fulfilled ✅',
+        'Partially Fulfilled': 'Fulfilled or Not?',
+        'In Progress': 'Still Pending?',
+        'Not Fulfilled': 'Broken Promise?',
+    };
+    const verdictText = verdictMap[promise.status] || `Verdict: ${promise.status}`;
+
+    const title = `Modi Ki Guarantee: Promise No. ${reelNumber} on ${topic} | ${verdictText}`;
 
     // YouTube title max is 100 chars
     return title.slice(0, 100);
 }
 
 /**
- * Builds the YouTube description in bilingual format.
+ * Builds the YouTube description with "Modi Ki Guarantee" branding.
  */
 function buildYouTubeDescription(promise: {
     title: string;
@@ -164,17 +165,19 @@ function buildYouTubeDescription(promise: {
     verdict_summary: string;
 }, reelNumber: number): string {
     const ytHashtags = buildYouTubeHashtags(promise, reelNumber);
+    const partyDoc = promise.source_manifesto_year >= 2024 ? 'BJP Sankalp Patra' : 'BJP Manifesto';
 
     return [
-        `Promise No. ${reelNumber} from Narendra Modi's ${promise.source_manifesto_year} manifesto: "${promise.title}".`,
+        `In this PM Promises reel, we examine one Modi Ki Guarantee from the ${promise.source_manifesto_year} ${partyDoc}.`,
         ``,
+        `Promise No. ${reelNumber}: "${promise.title}"`,
         `Is reel mein hum dekhte hain ki is vaade par kitna actual kaam hua.`,
         `Verdict: ${promise.status}`,
         ``,
         promise.verdict_summary,
         ``,
         `—`,
-        `📺 MOITRA STUDIOS`,
+        `📺 MOITRA STUDIOS | Rajneeti`,
         `Non-Partisan Political Accountability Tracker`,
         `🌐 https://moitrastudios.com/prime-ministers-promises`,
         ``,
@@ -183,7 +186,7 @@ function buildYouTubeDescription(promise: {
 }
 
 /**
- * Builds the Instagram caption in bilingual format with hashtags.
+ * Builds the Instagram caption with "Modi Ki Guarantee" branding.
  */
 function buildInstagramCaption(promise: {
     title: string;
@@ -193,9 +196,11 @@ function buildInstagramCaption(promise: {
     verdict_summary: string;
 }, reelNumber: number): string {
     const igHashtags = buildInstagramHashtags(promise, reelNumber);
+    const partyDoc = promise.source_manifesto_year >= 2024 ? 'BJP Sankalp Patra' : 'BJP Manifesto';
 
     return [
-        `Promise No. ${reelNumber} | Narendra Modi ${promise.source_manifesto_year} Manifesto`,
+        `🔥 Modi Ki Guarantee: Promise No. ${reelNumber}`,
+        `From the ${promise.source_manifesto_year} ${partyDoc}`,
         ``,
         `${promise.title}`,
         ``,
@@ -292,11 +297,11 @@ export async function runAutomatedReelPipeline() {
         // ── Step 3: Generate young-explainer Hinglish script ─────────
         console.log('\n📝 Step 3: Building young-explainer Hinglish script with TTS normalization...');
         
-        // Fallback script using the new format
-        let voiceoverText = `Aaj ki is video mein hum baat karenge Narendra Modi ke ${yearSpokenHi} manifesto ke Promise number ${reelNumber} ki. Vaada tha: ${reelPromise.title}. Lekin sawaal yeh hai, kya yeh vaada sach mein poora hua? Hamare analysis ke mutaabik, verdict hai: ${reelPromise.status}. Sach aur nishpaksh analysis ke liye Moitra Studios ko follow karein.`;
-        let slide1 = `${reelPromise.title.slice(0, 35)}`;
-        let slide2 = `Verdict: ${reelPromise.status}`;
-        let slide3 = `Source: Verified Evidence`;
+        // Fallback script using the "Modi Ki Guarantee" format
+        let voiceoverText = `Aaj ki is video mein hum baat karenge Modi Ki Guarantee No ${reelNumber} ki. Vaada tha: ${reelPromise.title}. Lekin sawaal yeh hai, kya yeh vaada sach mein poora hua, ya sirf aadha? Ground analysis ke mutaabik, verdict hai: ${reelPromise.status}. Aise hi aur Modi Ki Guarantee audits ke liye Moitra Studios ko follow karein.`;
+        let slide1 = `Modi Ki Guarantee #${reelNumber}`;
+        let slide2 = `${reelPromise.title.slice(0, 35)}`;
+        let slide3 = `Verdict: ${reelPromise.status}`;
 
         if (OPENAI_API_KEY) {
             try {
@@ -348,25 +353,27 @@ This is because the text will be sent to a Hindi TTS engine that cannot pronounc
 - Promise numbers should be spoken naturally: "Promise number ${reelNumber}"
 
 MANDATORY SCRIPT FORMAT:
-Follow this exact opening/closing pattern:
+Follow this exact opening/closing pattern. The phrase "Modi Ki Guarantee No [N] ki" MUST appear in the opening hook.
 
-Opening line format: "Aaj ki is video mein hum baat karenge [Leader Name] ke [year in Hindi words] manifesto ke Promise number [N] ki, jahan [what was promised]."
+Opening line format: "Aaj ki is video mein hum baat karenge Modi Ki Guarantee No [N] ki. Vaada tha: [what was promised]."
 Second line format: "Lekin sawaal yeh hai — kya yeh vaada sach mein poora hua, ya sirf aadha?"
-Then: Explain what happened with specific facts and sources.
+Then: Explain what happened using concrete figures, budget allocations, dates, percentages, or statistics from the verified facts/evidence. Explicitly name the official source, department, or media outlet that reported the data.
 Then: Give the verdict clearly.
-Closing: "Aise hi aur promise audits ke liye Moitra Studios ko follow karein."
+Closing: "Aise hi aur Modi Ki Guarantee audits ke liye Moitra Studios ko follow karein."
+
+IMPORTANT:
+- The phrase "Modi Ki Guarantee" must appear at least twice in the voiceover — once in the opening hook ("Modi Ki Guarantee No [N] ki") and once in the closing CTA.
+- The voiceover script MUST include hard data, numbers, statistics, or named sources. Do not make it generic. Tell the audience exact facts (e.g. "NHAI ke 2025 data ke mutabik", "75 percent kaam poora ho chuka hai", "10 thousand crore spend kiye gaye").
 
 What you must do:
 1. Understand the promise and latest verified status.
 2. Write a reel script of 24 to 32 seconds (maximum 30 seconds).
 3. Focus on one promise only.
-4. Explain what was promised, what happened, and what the current status seems to be.
-5. Use only the verified facts provided in the input (mention only legit resources/sources).
+4. Explain what was promised, what happened, and what the current status is with concrete data/sources.
+5. Use only the verified facts provided in the input.
 6. If the facts are mixed or incomplete, say so honestly.
 7. Keep the language balanced and credible.
 8. Make the script feel native to Shorts/Reels, not like an article or essay.
-
-Mandatory writing rules:
 - Start with a hook in the first line.
 - The first 2 seconds must make the viewer curious.
 - Use short spoken lines.
@@ -508,11 +515,32 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             audioBuffer = Buffer.alloc(0);
         }
 
+        // ── Step 4.5: Find or import Wikimedia image for topic ───
+        console.log('\n🖼️ Step 4.5: Finding or importing topic image from Wikimedia...');
+        let topicImageUrl: string | undefined = undefined;
+        try {
+            const tags = [reelPromise.category, 'India', 'BJP', 'Narendra Modi'].filter(Boolean);
+            const mediaAsset = await findOrImportWikimediaImage(
+                reelPromise.category || 'Politics',
+                tags,
+                'modi',
+                reelPromise.source_manifesto_year
+            );
+            if (mediaAsset) {
+                topicImageUrl = mediaAsset.publicUrl;
+                console.log(`[Pipeline] Topic image URL retrieved: ${topicImageUrl}`);
+            } else {
+                console.log(`[Pipeline] No topic image found or imported. Continuing without image.`);
+            }
+        } catch (err: any) {
+            console.warn(`[Pipeline] Failed to find or import image: ${err.message}. Continuing without image.`);
+        }
+
         // ── Step 5: Generate Video via Puppeteer ─────────────────
         console.log('\n🎥 Step 5: Capturing headless video...');
 
         // Set env vars for the puppeteer video generator
-        process.env.NEWS_TITLE = `PM Promise: ${reelPromise.title}`;
+        process.env.NEWS_TITLE = `Modi Ki Guarantee: ${reelPromise.title}`;
         process.env.NEWS_SUMMARY = reelPromise.verdict_summary;
         process.env.SLIDE_1 = slide1;
         process.env.SLIDE_2 = slide2;
@@ -520,7 +548,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         process.env.REEL_NUM = String(reelNumber);
         process.env.MANIFESTO_YEAR = String(reelPromise.source_manifesto_year);
 
-        const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer);
+        const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer, topicImageUrl);
         console.log(`[Pipeline] Video generated: ${videoBuffer.length} bytes`);
 
         // ── Step 6: Upload to Supabase Storage ───────────────────

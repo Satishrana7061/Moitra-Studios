@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer): Promise<Buffer> {
+export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer, imageUrl?: string): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
     const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
     const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news.');
@@ -14,8 +14,9 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
     const slide3 = encodeURIComponent(process.env.SLIDE_3 || '');
     const reelNum = encodeURIComponent(process.env.REEL_NUM || '1');
     const year = encodeURIComponent(process.env.MANIFESTO_YEAR || '2014');
+    const imageParam = imageUrl ? `&image=${encodeURIComponent(imageUrl)}` : '';
 
-    const targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}&slide1=${slide1}&slide2=${slide2}&slide3=${slide3}&reelNum=${reelNum}&year=${year}`;
+    const targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}&slide1=${slide1}&slide2=${slide2}&slide3=${slide3}&reelNum=${reelNum}&year=${year}${imageParam}`;
 
     // Create a temp directory for our frames
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));

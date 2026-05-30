@@ -50,12 +50,12 @@ const App: React.FC = () => {
   return (
     <div className={`w-screen bg-lokBlue-950 text-white font-sans flex flex-col ${isMapPage ? 'h-[100dvh] overflow-hidden' : 'min-h-screen'}`}>
       <ScrollToTop mainRef={mainRef} />
-      <div className={`${isMapPage ? 'absolute top-0' : 'relative'} w-full z-50`}>
+      <div className="fixed top-0 left-0 right-0 w-full z-50">
         <Navbar />
       </div>
       <main
         ref={mainRef}
-        className={isMapPage ? "flex-1 w-full relative overflow-y-auto overflow-x-hidden" : "w-full flex-1 flex flex-col"}
+        className={isMapPage ? "flex-1 w-full relative overflow-y-auto overflow-x-hidden" : "w-full flex-1 flex flex-col pt-20 md:pt-24"}
       >
         <Suspense fallback={<PageLoader />}>
           <Routes>

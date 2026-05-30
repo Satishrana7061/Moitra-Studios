@@ -34,6 +34,7 @@ const HeadlessReelGenerator: React.FC = () => {
     // Reel details
     const reelNumber = searchParams.get('reelNum') || '1';
     const manifestoYear = searchParams.get('year') || '2014';
+    const imageUrl = searchParams.get('image');
 
     useEffect(() => {
         const fetchNews = async () => {
@@ -130,17 +131,20 @@ const HeadlessReelGenerator: React.FC = () => {
                     {/* Premium Radial Vignette Backdrop overlay */}
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,41,59,0.3)_0%,rgba(0,0,0,1)_100%)] pointer-events-none z-0" />
                     
-                    {/* Header Section (Exactly matching screenshot 2 layout) */}
+                    {/* Header Section — Modi Ki Guarantee branding */}
                     <div className="flex flex-col gap-4 mt-8 relative z-10">
                         <div className="flex items-center gap-3 self-start bg-red-600 text-white font-black px-8 py-3 text-3xl uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.4)] rounded">
                             <Radio size={32} className="animate-pulse" /> LIVE
                         </div>
-                        <div className="text-white/80 font-bold uppercase tracking-widest text-2xl bg-white/5 px-6 py-3 rounded w-fit backdrop-blur-md border border-white/10">
-                            REEL #{reelNumber} | {manifestoYear} BJP MANIFESTO
+                        <div className="text-amber-400 font-black uppercase tracking-[0.15em] text-3xl bg-gradient-to-r from-amber-900/40 to-orange-900/30 px-8 py-4 rounded-xl w-fit backdrop-blur-md border border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.2)]">
+                            🔥 MODI KI GUARANTEE
+                        </div>
+                        <div className="text-white/70 font-bold uppercase tracking-widest text-2xl bg-white/5 px-6 py-3 rounded w-fit backdrop-blur-md border border-white/10">
+                            PROMISE #{reelNumber} | {manifestoYear} MANIFESTO
                         </div>
                     </div>
 
-                    {/* Middle Section: Centered Punchy Content (Directly on background, font-serif, uppercase) */}
+                    {/* Middle Section: News Story Slides */}
                     <div className="flex-1 relative flex items-center justify-center my-16 z-10">
                         <div className="w-full relative">
                             {slides.map((slide, i) => (
@@ -152,9 +156,20 @@ const HeadlessReelGenerator: React.FC = () => {
                                     }`}
                                 >
                                     <div className="flex flex-col items-start px-8 py-12 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] mx-4">
-                                        <div className="bg-[#1d4ed8] text-white px-8 py-3 font-bold uppercase tracking-widest mb-12 text-3xl rounded-xl shadow-lg">
-                                            {slide.type === 'headline' ? 'Audit Summary' : `Analysis Point ${i}/${slides.length - 1}`}
+                                        <div className={`text-white px-8 py-3 font-bold uppercase tracking-widest mb-12 text-3xl rounded-xl shadow-lg ${
+                                            slide.type === 'headline' ? 'bg-gradient-to-r from-amber-600 to-orange-600' : 'bg-[#1d4ed8]'
+                                        }`}>
+                                            {slide.type === 'headline' ? 'Modi Ki Guarantee' : `Analysis Point ${i}/${slides.length - 1}`}
                                         </div>
+                                        {imageUrl && slide.type === 'headline' && (
+                                            <div className="w-full h-[550px] mb-10 overflow-hidden rounded-2xl border border-white/10 relative">
+                                                <img 
+                                                    src={imageUrl} 
+                                                    alt="Topic Visual" 
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        )}
                                         <h2 className="font-serif leading-[1.4] text-6xl md:text-7xl font-extrabold text-white text-left tracking-wide uppercase">
                                             {slide.content}
                                         </h2>
@@ -167,11 +182,11 @@ const HeadlessReelGenerator: React.FC = () => {
                     {/* Footer Section */}
                     <div className="relative z-20 mt-auto bg-white/5 p-10 rounded-3xl border border-white/10 shadow-2xl">
                         <div className="w-full h-3 bg-white/10 mb-8 rounded-full overflow-hidden relative">
-                            <div className="h-full bg-red-600 w-full" />
+                            <div className="h-full bg-gradient-to-r from-amber-500 to-red-600 w-full" />
                         </div>
                         <div className="flex items-center gap-8">
-                            <div className="bg-red-600 text-white text-3xl font-black px-8 py-3 uppercase tracking-widest shadow-lg rounded">
-                                RN Update
+                            <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white text-3xl font-black px-8 py-3 uppercase tracking-widest shadow-lg rounded">
+                                Modi Ki Guarantee
                             </div>
                             <h3 className="text-white font-bold font-sans text-4xl leading-tight line-clamp-2 flex-1">
                                 {newsItem.blog_title}

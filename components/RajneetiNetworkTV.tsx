@@ -730,66 +730,12 @@ const RajneetiNetworkTV: React.FC = () => {
                                     </span>
                                 </div>
                             ) : (
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <button 
-                                            onClick={async () => {
-                                                setIsGeneratingAi(true);
-                                                try {
-                                                    const url = await falService.generateTeenAnchor();
-                                                    setAiAnchorImage(url);
-                                                    localStorage.setItem('rajneeti_ai_anchor', url);
-                                                } catch (e) {
-                                                    console.error(e);
-                                                    alert("Failed to generate anchor. Make sure VITE_FAL_KEY is set.");
-                                                } finally {
-                                                    setIsGeneratingAi(false);
-                                                }
-                                            }}
-                                            disabled={isGeneratingAi}
-                                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-full font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all disabled:opacity-50"
-                                        >
-                                            {isGeneratingAi ? 'Generating...' : 'Refresh AI Avatar'}
-                                        </button>
-
-                                        {aiAnchorImage && (
-                                            <button 
-                                                onClick={async () => {
-                                                    setIsGeneratingAi(true);
-                                                    try {
-                                                        // Ensure we use a absolute URL for Fal.ai if it's a local path
-                                                        const finalImageUrl = aiAnchorImage.startsWith('/') 
-                                                            ? `${window.location.origin}${import.meta.env.BASE_URL || ''}${aiAnchorImage.slice(1)}` 
-                                                            : aiAnchorImage;
-                                                        
-                                                        const url = await falService.generateTalkingReel(finalImageUrl, activeNews.blog_content);
-                                                        setTalkingReelUrl(url);
-                                                        window.open(url, '_blank');
-                                                    } catch (e) {
-                                                        console.error(e);
-                                                        alert("Failed to generate talking reel.");
-                                                    } finally {
-                                                        setIsGeneratingAi(false);
-                                                    }
-                                                }}
-                                                disabled={isGeneratingAi}
-                                                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-full font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all disabled:opacity-50 animate-pulse"
-                                            >
-                                                {isGeneratingAi ? 'Syncing...' : 'Make Video Reel'}
-                                            </button>
-                                        )}
-
-                                        <button 
-                                            onClick={triggerCloudPublish}
-                                            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-full font-black uppercase tracking-widest text-[9px] md:text-sm transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
-                                        >
-                                            <Video className="w-4 h-4" /> Publish to Shorts
-                                        </button>
-                                    </div>
-                                    {aiAnchorImage && aiAnchorImage.includes('teen-anchor') && (
-                                        <span className="text-[8px] text-blue-400 font-bold uppercase tracking-tighter text-center">Using High-Quality Teen Anchor Image</span>
-                                    )}
-                                </div>
+                                <button 
+                                    onClick={triggerCloudPublish}
+                                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-2.5 rounded-full font-black uppercase tracking-widest text-[10px] md:text-xs transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:scale-105"
+                                >
+                                    <Video className="w-4 h-4" /> Publish Reel
+                                </button>
                             )}
                             
                             <button 
@@ -858,32 +804,16 @@ const RajneetiNetworkTV: React.FC = () => {
                         )}
 
                         <div className="flex flex-col h-full bg-black">
-                            {/* Top Section: Anchor Video or AI Static/Video */}
-                            <div className="h-[55%] relative overflow-hidden border-b-4 border-red-600 shadow-2xl bg-slate-900">
-                                {aiAnchorImage ? (
-                                    <img 
-                                        src={aiAnchorImage} 
-                                        className="absolute inset-0 w-full h-full object-cover object-top"
-                                        alt="AI Anchor"
-                                    />
-                                ) : (
-                                    <video 
-                                        ref={videoRef}
-                                        src="/anchor.mp4" 
-                                        autoPlay 
-                                        loop 
-                                        muted 
-                                        playsInline 
-                                        className="absolute inset-0 w-full h-full object-cover object-top pointer-events-none"
-                                    />
-                                )}
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                                
-                                <div className="absolute top-8 left-6 flex flex-col gap-2 z-20">
+                            {/* Top Header — Modi Ki Guarantee branding */}
+                            <div className="relative p-6 md:p-8 bg-gradient-to-b from-slate-900 to-black z-10">
+                                <div className="flex flex-col gap-2">
                                     <div className="flex items-center gap-2 self-start bg-red-600 text-white font-black px-4 py-1.5 text-xs md:text-sm uppercase tracking-widest shadow-[0_0_15px_rgba(220,38,38,0.8)]">
                                         <Radio size={14} className="animate-pulse" /> LIVE
                                     </div>
-                                    <div className="text-white/80 font-bold uppercase tracking-widest text-[9px] md:text-[10px] bg-black/60 px-3 py-1 rounded w-fit backdrop-blur-md border border-white/10">
+                                    <div className="text-amber-400 font-black uppercase tracking-[0.12em] text-sm md:text-base bg-gradient-to-r from-amber-900/40 to-orange-900/30 px-4 py-2 rounded-lg w-fit backdrop-blur-md border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+                                        🔥 Modi Ki Guarantee
+                                    </div>
+                                    <div className="text-white/70 font-bold uppercase tracking-widest text-[9px] md:text-[10px] bg-black/60 px-3 py-1 rounded w-fit backdrop-blur-md border border-white/10">
                                         {activeNews.date} | {activeNews.state}
                                     </div>
                                 </div>
@@ -917,13 +847,13 @@ const RajneetiNetworkTV: React.FC = () => {
                                 <div className="relative z-20 mt-auto bg-white/5 p-4 md:p-6 rounded-2xl border border-white/10 shadow-2xl">
                                     <div className="w-full h-1 bg-white/10 mb-4 rounded-full overflow-hidden relative">
                                         <div 
-                                            className="h-full bg-red-600 transition-all duration-300 ease-linear"
+                                            className="h-full bg-gradient-to-r from-amber-500 to-red-600 transition-all duration-300 ease-linear"
                                             style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
                                         />
                                     </div>
                                     <div className="flex items-center gap-4">
-                                        <div className="bg-red-600 text-white text-[10px] md:text-xs font-black px-3 py-1 uppercase tracking-widest shadow-lg rounded whitespace-nowrap">
-                                            RN Update
+                                        <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white text-[10px] md:text-xs font-black px-3 py-1 uppercase tracking-widest shadow-lg rounded whitespace-nowrap">
+                                            Modi Ki Guarantee
                                         </div>
                                         <h3 className="text-white font-bold font-sans text-xs md:text-sm leading-tight line-clamp-2 flex-1">
                                             {activeNews.blog_title}

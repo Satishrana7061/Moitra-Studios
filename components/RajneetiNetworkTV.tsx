@@ -582,13 +582,13 @@ const RajneetiNetworkTV: React.FC = () => {
                                 </button>
                             </div>
 
-                            <div className="lg:col-span-4 bg-slate-900/60 border border-white/20 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[500px]">
+                            <div className="lg:col-span-4 bg-slate-900/60 border border-white/20 rounded-xl overflow-hidden shadow-2xl flex flex-col h-[70vh] lg:max-h-[calc(100vh-200px)] lg:h-auto lg:min-h-[500px]">
                                 <div className="p-3 bg-red-600 border-b border-red-500/50 flex items-center justify-between shadow-[0_0_15px_rgba(220,38,38,0.4)] z-10">
                                     <span className="font-black text-white tracking-widest text-xs lg:text-sm uppercase flex items-center gap-2">
                                         <Newspaper size={16} /> Latest Briefings
                                     </span>
                                 </div>
-                                <div ref={sidebarScrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scroll-smooth pr-2 pb-10 custom-scrollbar">
+                                <div ref={sidebarScrollRef} className="flex-1 overflow-y-auto p-4 flex flex-col gap-6 scroll-smooth pr-2 pb-10 custom-scrollbar" style={{ overscrollBehavior: 'contain' }}>
                                     {newsData.map((news, idx) => {
                                         const isActive = idx === activeIndex;
                                         return (

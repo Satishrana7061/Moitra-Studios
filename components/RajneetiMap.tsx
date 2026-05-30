@@ -311,7 +311,7 @@ const RajneetiMap: React.FC = () => {
     const stopBubbling = (e: React.MouseEvent) => e.stopPropagation();
 
     return (
-        <div className={`relative w-full min-h-[100dvh] bg-slate-950 select-none flex flex-col ${selectedState ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-hidden'}`}>
+        <div className={`relative w-full min-h-[100dvh] bg-slate-950 select-none flex flex-col ${selectedState ? 'overflow-y-auto lg:overflow-hidden' : 'overflow-x-hidden'}`}>
             {/* Interactive Particle System — behind map, uses screen blend */}
             <InteractiveParticles />
 
@@ -501,7 +501,7 @@ const RajneetiMap: React.FC = () => {
                         Sponsors
                     </span>
                 </div>
-                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
+                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2" style={{ overscrollBehavior: 'contain' }}>
                     <MonetagBanner zoneId="11074608" className="flex-shrink-0 !h-[250px]" />
                     <MonetagBanner zoneId="11074608" className="flex-1" />
                 </div>
@@ -514,7 +514,7 @@ const RajneetiMap: React.FC = () => {
                         Premium Sponsors
                     </span>
                 </div>
-                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2">
+                <div className="pointer-events-auto flex-1 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2" style={{ overscrollBehavior: 'contain' }}>
                     <MonetagBanner zoneId="11074609" className="flex-shrink-0 !h-[250px]" />
                     <MonetagBanner zoneId="11074609" className="flex-1" />
                 </div>

@@ -11,27 +11,25 @@ interface MonetagBannerProps {
  */
 export const MonetagBanner: React.FC<MonetagBannerProps> = ({ zoneId, className = '' }) => {
   const adRef = useRef<HTMLDivElement>(null);
+  const injectedRef = useRef(false);
 
   useEffect(() => {
-    if (!adRef.current) return;
+    if (!adRef.current || injectedRef.current) return;
 
-    // Avoid duplicate script injection
-    if (adRef.current.querySelector(`script[data-zone="${zoneId}"]`)) return;
+    // Mark as injected to prevent duplicate scripts on re-render
+    injectedRef.current = true;
 
+    // Method 1: Direct script tag with data-zone attribute
     const script = document.createElement('script');
-    script.dataset.zone = zoneId;
-    // In-Page Push specific source as provided by user
-    script.src = 'https://nap5k.com/tag.min.js';
     script.async = true;
+    script.dataset.zone = zoneId;
+    script.src = 'https://nap5k.com/tag.min.js';
     
-    // Using the user's specific execution pattern for In-Page Push
-    const inlineScript = document.createElement('script');
-    inlineScript.innerHTML = `(function(s){s.dataset.zone='${zoneId}',s.src='https://nap5k.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))`;
-
-    adRef.current.appendChild(inlineScript);
+    adRef.current.appendChild(script);
 
     return () => {
-      // Cleanup on unmount if needed
+      // Cleanup on unmount
+      injectedRef.current = false;
     };
   }, [zoneId]);
 

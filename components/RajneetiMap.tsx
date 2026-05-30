@@ -496,6 +496,20 @@ const RajneetiMap: React.FC = () => {
             
             {/* Ad sidebars removed — BreakingNewsTicker already renders the left news panel */}
             {/* Sponsor ads are placed in the below-game section instead */}
+
+            {/* ── RIGHT SIDE AD SIDEBAR — Desktop/Tablet Only ─────────── */}
+            <div className="hidden md:flex absolute right-0 top-20 h-[calc(100vh-100px)] w-[260px] lg:w-[300px] z-30 flex-col pointer-events-none">
+                <div className="pointer-events-auto flex flex-col gap-4 p-3 pt-7">
+                    <div className="flex items-center justify-center gap-2 mb-1">
+                        <div className="h-[1px] flex-1 bg-gradient-to-r from-transparent to-white/10" />
+                        <span className="text-[8px] uppercase tracking-[0.35em] text-white/25 font-bold">Sponsored</span>
+                        <div className="h-[1px] flex-1 bg-gradient-to-l from-transparent to-white/10" />
+                    </div>
+                    <MonetagBanner zoneId="11007318" className="w-full !min-h-[250px] !bg-transparent !border-white/[0.03]" />
+                    <MonetagBanner zoneId="11074609" className="w-full !min-h-[250px] !bg-transparent !border-white/[0.03]" />
+                    <VignetteAdBanner zoneId="11074615" className="w-full !bg-transparent !border-white/[0.03]" />
+                </div>
+            </div>
         </div>
     );
 };

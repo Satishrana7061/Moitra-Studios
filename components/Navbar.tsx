@@ -134,7 +134,7 @@ const Navbar: React.FC = () => {
         />
 
         <div className="relative max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-12 md:h-14 relative w-full gap-2 lg:gap-4">
+          <div className="flex items-center h-12 md:h-14 w-full">
 
             {/* ─── Logo (Left) ─── */}
             <div
@@ -165,11 +165,11 @@ const Navbar: React.FC = () => {
               </div>
             </div>
 
-            {/* ─── Desktop Navigation (xl+) ─── */}
-            <div className="hidden xl:grid grid-cols-3 absolute inset-0 items-center pointer-events-none">
+            {/* ─── Desktop Navigation (xl+) — Flex layout after logo ─── */}
+            <div className="hidden xl:flex flex-1 items-center justify-center gap-0 ml-8">
 
               {/* Left navigation links */}
-              <div className="flex justify-center items-center gap-8 2xl:gap-12 pointer-events-auto pr-16 2xl:pr-24">
+              <div className="flex items-center gap-6 2xl:gap-10">
                 {NAV_LINKS.slice(0, 2).map((link) => {
                   const active = getIsActive(link.href);
                   return (
@@ -181,15 +181,14 @@ const Navbar: React.FC = () => {
                       <span className={`transition-all duration-300 ${active ? 'text-white' : 'text-slate-400 group-hover:text-white group-hover:tracking-[0.2em]'}`}>
                         {link.label}
                       </span>
-                      {/* Center-expanding underline */}
                       <span className={`absolute bottom-0 left-0 right-0 h-[2px] rounded-full navbar-link-underline ${active ? 'bg-gameOrange shadow-[0_0_8px_rgba(255,107,0,0.5)]' : 'bg-gameOrange/70'}`} />
                     </button>
                   );
                 })}
               </div>
 
-              {/* Center Rajneeti Logo */}
-              <div className="flex justify-center items-center pointer-events-auto">
+              {/* Center Rajneeti Logo — generous spacing */}
+              <div className="mx-10 2xl:mx-16 flex-shrink-0">
                 <div
                   className="navbar-float cursor-pointer"
                   onClick={() => handleNavClick('/indian-politics-game-home')}
@@ -203,7 +202,7 @@ const Navbar: React.FC = () => {
               </div>
 
               {/* Right navigation links */}
-              <div className="flex justify-center items-center gap-8 2xl:gap-12 pointer-events-auto pl-16 2xl:pl-24">
+              <div className="flex items-center gap-6 2xl:gap-10">
                 {NAV_LINKS.slice(2).map((link) => {
                   const active = getIsActive(link.href);
                   return (
@@ -233,7 +232,7 @@ const Navbar: React.FC = () => {
             </div>
 
             {/* ─── Mobile/Tablet Center Title ─── */}
-            <div className="xl:hidden flex items-center justify-center shrink-0 absolute left-1/2 -translate-x-1/2">
+            <div className="xl:hidden flex-1 flex items-center justify-center">
               <div
                 className="navbar-float cursor-pointer"
                 onClick={() => handleNavClick('/indian-politics-game-home')}

@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import '../../rajneeti-backend/src/config.js'; // Ensures dotenv is loaded
+import '../config.js'; // Ensures dotenv is loaded
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';

@@ -1,6 +1,9 @@
 /**
  * ElevenLabs Text-to-Speech Service
- * Handles Hindi audio generation for news reels using the Monika voice.
+ * Handles Hindi/Hinglish audio generation for news reels.
+ * 
+ * Uses eleven_multilingual_v2 for proper Hindi pronunciation.
+ * Text should be pre-normalized (years → Hindi words) before calling this.
  */
 
 export async function generateAudio(text: string): Promise<Buffer> {
@@ -21,11 +24,12 @@ export async function generateAudio(text: string): Promise<Buffer> {
             },
             body: JSON.stringify({
                 text: text,
-                model_id: 'eleven_flash_v2_5',
+                // Use multilingual v2 for proper Hindi/Hinglish pronunciation
+                model_id: 'eleven_multilingual_v2',
                 voice_settings: {
-                    stability: 0.5,
+                    stability: 0.55,
                     similarity_boost: 0.75,
-                    style: 0.2, // A bit of style for news anchoring
+                    style: 0.15, // Subtle style for natural delivery
                     use_speaker_boost: true
                 }
             })
@@ -37,6 +41,7 @@ export async function generateAudio(text: string): Promise<Buffer> {
         }
 
         const arrayBuffer = await response.arrayBuffer();
+        console.log(`[ElevenLabs] Audio generated successfully (${arrayBuffer.byteLength} bytes) using eleven_multilingual_v2`);
         return Buffer.from(arrayBuffer);
     } catch (e) {
         console.error("ElevenLabs Error:", e);

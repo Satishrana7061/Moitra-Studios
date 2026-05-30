@@ -14,43 +14,199 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
+// ── Hindi numeral normalization map for TTS ─────────────────────
+const HINDI_NUMERAL_MAP: Record<string, string> = {
+    '2014': 'do hazaar chaudah',
+    '2019': 'do hazaar unnees',
+    '2024': 'do hazaar chaubis',
+    '2025': 'do hazaar pachees',
+    '2026': 'do hazaar chhabbees',
+    '1': 'ek',
+    '2': 'do',
+    '3': 'teen',
+    '4': 'chaar',
+    '5': 'paanch',
+    '6': 'chheh',
+    '7': 'saat',
+    '8': 'aath',
+    '9': 'nau',
+    '10': 'das',
+    '100': 'sau',
+};
+
 /**
- * Builds a professional Hindi script for a manifesto promise reel.
+ * Normalizes bare numerals in text to Hindi spoken words for TTS.
+ * Converts years (2014, 2019, 2024) and common numbers to their
+ * Hindi spoken equivalents so ElevenLabs pronounces them correctly.
  */
-function buildHindiScript(promise: {
+function normalizeNumeralsForTTS(text: string): string {
+    let normalized = text;
+
+    // Replace years first (longer patterns before shorter ones)
+    const yearKeys = Object.keys(HINDI_NUMERAL_MAP)
+        .filter(k => k.length === 4)
+        .sort((a, b) => b.length - a.length);
+
+    for (const year of yearKeys) {
+        // Use word boundary regex to only replace standalone numbers
+        const regex = new RegExp(`\\b${year}\\b`, 'g');
+        normalized = normalized.replace(regex, HINDI_NUMERAL_MAP[year]);
+    }
+
+    return normalized;
+}
+
+/**
+ * Builds hashtags for Instagram based on content.
+ * Always includes: #IndianPolitics #FactCheckIndia #godimedia #MoitraStudios
+ * Conditional: #NarendraModi (if Modi), #elections/#ElectionPromises (if manifesto)
+ * Plus one broad: #news or #IndiaNews
+ */
+function buildInstagramHashtags(promise: {
+    title: string;
+    source_manifesto_year: number;
+    status: string;
+}, reelNumber: number): string {
+    // Always-include base tags
+    const tags = ['#IndianPolitics', '#FactCheckIndia', '#godimedia', '#MoitraStudios'];
+
+    // If reel mentions Modi
+    const titleLower = promise.title.toLowerCase();
+    if (titleLower.includes('modi') || titleLower.includes('narendra')) {
+        tags.push('#NarendraModi');
+    }
+
+    // If about elections/manifesto/promises
+    if (reelNumber % 2 === 0) {
+        tags.push('#ElectionPromises');
+    } else {
+        tags.push('#elections');
+    }
+
+    // Alternate broad news tags
+    if (reelNumber % 3 === 0) {
+        tags.push('#IndiaNews');
+    } else {
+        tags.push('#news');
+    }
+
+    return tags.join(' ');
+}
+
+/**
+ * Builds hashtags for YouTube Shorts.
+ * Always starts with #Shorts, then political + broad tags.
+ */
+function buildYouTubeHashtags(promise: {
+    title: string;
+    source_manifesto_year: number;
+    status: string;
+}, reelNumber: number): { descriptionTags: string; metaTags: string[] } {
+    const baseTags = ['#Shorts', '#IndianPolitics'];
+    const metaTags = ['shorts', 'IndianPolitics', 'FactCheckIndia', 'godimedia', 'MoitraStudios'];
+
+    const titleLower = promise.title.toLowerCase();
+    if (titleLower.includes('modi') || titleLower.includes('narendra')) {
+        baseTags.push('#NarendraModi', '#FactCheckIndia');
+        metaTags.push('NarendraModi');
+    } else {
+        baseTags.push('#FactCheckIndia');
+    }
+
+    // Alternate broad tags
+    if (reelNumber % 2 === 0) {
+        baseTags.push('#news', '#godimedia');
+        metaTags.push('news');
+    } else {
+        baseTags.push('#IndiaNews', '#godimedia');
+        metaTags.push('IndiaNews', 'elections');
+    }
+
+    // Add promise-specific tags
+    if (promise.source_manifesto_year) {
+        metaTags.push(`manifesto${promise.source_manifesto_year}`);
+    }
+
+    return {
+        descriptionTags: baseTags.join(' '),
+        metaTags: [...new Set(metaTags)],
+    };
+}
+
+/**
+ * Builds the YouTube title in the specified format:
+ * "Promise No. X | Leader Year Manifesto | Topic | Verdict: Status"
+ */
+function buildYouTubeTitle(promise: {
+    title: string;
+    source_manifesto_year: number;
+    status: string;
+}, reelNumber: number): string {
+    // Extract a short topic from the title (first 40 chars)
+    const topic = promise.title.length > 40
+        ? promise.title.slice(0, 40).trim()
+        : promise.title;
+
+    const title = `Promise No. ${reelNumber} | Narendra Modi ${promise.source_manifesto_year} Manifesto | ${topic} | Verdict: ${promise.status}`;
+
+    // YouTube title max is 100 chars
+    return title.slice(0, 100);
+}
+
+/**
+ * Builds the YouTube description in bilingual format.
+ */
+function buildYouTubeDescription(promise: {
     title: string;
     description: string;
     source_manifesto_year: number;
     status: string;
     verdict_summary: string;
-    fulfilled_details?: string;
-    unfulfilled_details?: string;
-}): string {
-    let script = `प्रधानमंत्री नरेंद्र मोदी का बड़ा वादा: ${promise.title}। `;
-    script += `यह वादा ${promise.source_manifesto_year} के चुनावी घोषणापत्र में किया गया था। `;
-    script += `मूल वादा था कि: ${promise.description}। `;
-    script += `हमारा निष्पक्ष विश्लेषण: `;
+}, reelNumber: number): string {
+    const ytHashtags = buildYouTubeHashtags(promise, reelNumber);
 
-    if (promise.status === 'Fulfilled') {
-        script += `यह वादा पूर्ण रूप से पूरा हो चुका है। `;
-        if (promise.fulfilled_details) script += `${promise.fulfilled_details} `;
-    } else if (promise.status === 'Partially Fulfilled') {
-        script += `यह वादा आंशिक रूप से ही पूरा हो सका है। `;
-        if (promise.fulfilled_details) script += `${promise.fulfilled_details} `;
-        if (promise.unfulfilled_details) script += `हालांकि, ${promise.unfulfilled_details} `;
-    } else if (promise.status === 'In Progress') {
-        script += `इस वादे पर कार्य अभी प्रगति पर है। `;
-        if (promise.fulfilled_details) script += `${promise.fulfilled_details} `;
-        if (promise.unfulfilled_details) script += `लेकिन ${promise.unfulfilled_details} `;
-    } else if (promise.status === 'Not Fulfilled') {
-        script += `यह वादा अधूरा रह गया है। `;
-        if (promise.unfulfilled_details) script += `${promise.unfulfilled_details} `;
-    } else {
-        script += `${promise.verdict_summary} `;
-    }
+    return [
+        `Promise No. ${reelNumber} from Narendra Modi's ${promise.source_manifesto_year} manifesto: "${promise.title}".`,
+        ``,
+        `Is reel mein hum dekhte hain ki is vaade par kitna actual kaam hua.`,
+        `Verdict: ${promise.status}`,
+        ``,
+        promise.verdict_summary,
+        ``,
+        `—`,
+        `📺 MOITRA STUDIOS`,
+        `Non-Partisan Political Accountability Tracker`,
+        `🌐 https://moitrastudios.com/prime-ministers-promises`,
+        ``,
+        ytHashtags.descriptionTags,
+    ].join('\n');
+}
 
-    script += `सच्चे और निष्पक्ष विश्लेषण के लिए Moitra Studios को फॉलो करें।`;
-    return script.replace(/\s+/g, ' ').trim();
+/**
+ * Builds the Instagram caption in bilingual format with hashtags.
+ */
+function buildInstagramCaption(promise: {
+    title: string;
+    description: string;
+    source_manifesto_year: number;
+    status: string;
+    verdict_summary: string;
+}, reelNumber: number): string {
+    const igHashtags = buildInstagramHashtags(promise, reelNumber);
+
+    return [
+        `Promise No. ${reelNumber} | Narendra Modi ${promise.source_manifesto_year} Manifesto`,
+        ``,
+        `${promise.title}`,
+        ``,
+        `Is reel mein hum dekhte hain ki is vaade par kitna actual kaam hua.`,
+        `Verdict: ${promise.status}`,
+        ``,
+        `📺 Moitra Studios | Rajneeti`,
+        `🌐 moitrastudios.com`,
+        ``,
+        igHashtags,
+    ].join('\n');
 }
 
 /**
@@ -130,17 +286,21 @@ export async function runAutomatedReelPipeline() {
         }
         console.log(`[Pipeline] Calculated current Reel Number: #${reelNumber}`);
 
-        // ── Step 3: Generate Casual Hinglish Delhi Teen script and Hindi Slides ─────────
-        console.log('\n📝 Step 3: Building Casual Hinglish Delhi Teen script and Hindi Slides...');
+        // Pre-compute spoken year for TTS normalization
+        const yearSpokenHi = HINDI_NUMERAL_MAP[String(reelPromise.source_manifesto_year)] || String(reelPromise.source_manifesto_year);
+
+        // ── Step 3: Generate young-explainer Hinglish script ─────────
+        console.log('\n📝 Step 3: Building young-explainer Hinglish script with TTS normalization...');
         
-        let voiceoverText = `Yo guys! PM Promise Audit, Reel number ${reelNumber}! ${reelPromise.source_manifesto_year} manifesto ka ek bada vada tha: ${reelPromise.title}. Real truth check? ${reelPromise.status}! Data source: Internet reports.`;
+        // Fallback script using the new format
+        let voiceoverText = `Aaj ki is video mein hum baat karenge Narendra Modi ke ${yearSpokenHi} manifesto ke Promise number ${reelNumber} ki. Vaada tha: ${reelPromise.title}. Lekin sawaal yeh hai, kya yeh vaada sach mein poora hua? Hamare analysis ke mutaabik, verdict hai: ${reelPromise.status}. Sach aur nishpaksh analysis ke liye Moitra Studios ko follow karein.`;
         let slide1 = `${reelPromise.title.slice(0, 35)}`;
         let slide2 = `Verdict: ${reelPromise.status}`;
-        let slide3 = `Source: Internet Evidence`;
+        let slide3 = `Source: Verified Evidence`;
 
         if (OPENAI_API_KEY) {
             try {
-                console.log('[Pipeline] Querying OpenAI for casual Delhi Teen Hinglish script & fuller Hindi slides...');
+                console.log('[Pipeline] Querying OpenAI for young-explainer Hinglish script...');
                 const res = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
@@ -152,7 +312,7 @@ export async function runAutomatedReelPipeline() {
                         messages: [
                             { 
                                 role: 'system', 
-                                content: `You are writing a short-form political explainer reel script for the brand "Rajneeti".
+                                content: `You are writing a short-form political explainer reel script for the brand "Rajneeti" by Moitra Studios.
 
 Your job:
 Write a highly natural, professional, fact-based Hindi/Hinglish reel script for YouTube Shorts and Facebook Reels about one specific political promise and its current status.
@@ -176,6 +336,26 @@ Voice style:
 Audience:
 Hindi-speaking Indian viewers, especially youth and middle-class audiences who want simple and trustworthy updates about political promises.
 
+CRITICAL TTS RULES FOR NUMBERS:
+All years and large numbers MUST be written as Hindi spoken words, NOT as digits.
+This is because the text will be sent to a Hindi TTS engine that cannot pronounce bare numerals correctly.
+- "2014" must be written as "do hazaar chaudah"
+- "2019" must be written as "do hazaar unnees"  
+- "2024" must be written as "do hazaar chaubis"
+- "2025" must be written as "do hazaar pachees"
+- "2026" must be written as "do hazaar chhabbees"
+- Never write bare years like "2014", "2019" etc. in the voiceover field.
+- Promise numbers should be spoken naturally: "Promise number ${reelNumber}"
+
+MANDATORY SCRIPT FORMAT:
+Follow this exact opening/closing pattern:
+
+Opening line format: "Aaj ki is video mein hum baat karenge [Leader Name] ke [year in Hindi words] manifesto ke Promise number [N] ki, jahan [what was promised]."
+Second line format: "Lekin sawaal yeh hai — kya yeh vaada sach mein poora hua, ya sirf aadha?"
+Then: Explain what happened with specific facts and sources.
+Then: Give the verdict clearly.
+Closing: "Aise hi aur promise audits ke liye Moitra Studios ko follow karein."
+
 What you must do:
 1. Understand the promise and latest verified status.
 2. Write a reel script of 24 to 32 seconds (maximum 30 seconds).
@@ -198,6 +378,7 @@ Mandatory writing rules:
 - Mention or hint at the source credibility naturally.
 - End with a short follow/next-part CTA.
 - Keep the full script concise and editable for voiceover.
+- ALL YEARS MUST BE IN HINDI WORDS, NOT DIGITS.
 
 Tone constraints:
 - Do NOT sound like a news channel anchor.
@@ -206,13 +387,14 @@ Tone constraints:
 - Do NOT use heavy ideological or partisan wording.
 - Do NOT exaggerate.
 - Do NOT use dramatic emotional manipulation.
-- Do NOT use repeated filler words like “bilkul”, “dosto” in every line, “aaiye jaante hain”, “authentic sources”, “transparent analysis”, “non-partisan accountability”.
+- Do NOT use repeated filler words like "bilkul", "dosto" in every line, "aaiye jaante hain", "authentic sources", "transparent analysis", "non-partisan accountability".
 - Do NOT over-explain the research process.
-- Do NOT say “we will use authentic sources” again and again.
+- Do NOT say "we will use authentic sources" again and again.
 - Do NOT use textbook Hindi.
 - Do NOT use cringe Gen Z slang.
 - Do NOT use too many English corporate words.
 - Do NOT write anything that feels copied from AI marketing language.
+- Do NOT say "yo guys" or "backword".
 
 Humanization rules:
 Make it feel like a real teenager wrote it by:
@@ -229,19 +411,18 @@ But still:
 - stay mature and trustworthy.
 
 Structure to follow:
-Line 1: Hook MUST explicitly state the sequence of the promise being tracked (e.g., "Aaj hum track kar rahe hain manifesto ka promise number ${reelNumber}...").
-Line 2: What was promised
-Line 3: What actually happened / where things stand
-Line 4: Name the EXACT verified sources (e.g., "According to The Hindu...", "Official government data shows...", "Independent platforms report...")
-Line 5: Simple conclusion
-Line 6: CTA for next reel or follow
+Line 1: Hook — opening line using the format above with the promise number.
+Line 2: Challenge question — "Lekin sawaal yeh hai..."
+Line 3-4: What actually happened / evidence with named sources.
+Line 5: Simple verdict conclusion.
+Line 6: CTA — follow Moitra Studios.
 
 If the status is unclear:
 Use phrases like:
-- “picture thodi mixed hai”
-- “record dekhkar lagta hai…”
-- “official level par claim alag hai, lekin ground update mixed dikhta hai”
-- “available records ke basis par…”
+- "picture thodi mixed hai"
+- "record dekhkar lagta hai…"
+- "official level par claim alag hai, lekin ground update mixed dikhta hai"
+- "available records ke basis par…"
 
 If the promise seems completed:
 Say it in a calm and specific way, not celebratory.
@@ -251,7 +432,8 @@ Say it in a neutral and evidence-based way, not angry or sarcastic.
 
 Output STRICT JSON ONLY (no markdown, no extra text):
 {
-    "voiceover": "Final Hinglish voiceover script (around 75-85 words, maximum 30 seconds, following all the rules)...",
+    "voiceover": "Final Hinglish voiceover script (around 75-85 words, maximum 30 seconds, ALL YEARS IN HINDI WORDS not digits)...",
+    "year_spoken_hi": "The year written in Hindi spoken words (e.g. do hazaar chaudah)",
     "slide1": "Fuller Hindi promise description sentence (6-10 words)...",
     "slide2": "Fuller Hindi status & source sentence (6-12 words)...",
     "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)..."
@@ -263,12 +445,16 @@ Output STRICT JSON ONLY (no markdown, no extra text):
 - Promise Sequence Number: ${reelNumber}
 - Promise title: "${reelPromise.title}"
 - Year: ${reelPromise.source_manifesto_year}
+- Year in Hindi: "${yearSpokenHi}"
+- Leader: Narendra Modi
 - Latest verified status: "${reelPromise.status}"
 - Verified facts / Evidence details: "${reelPromise.verdict_summary}"
 - Source list / details: "${reelPromise.fulfilled_details || ''} ${reelPromise.unfulfilled_details || ''}"
 
+IMPORTANT: Write ALL years as Hindi spoken words (${reelPromise.source_manifesto_year} = "${yearSpokenHi}"). Do NOT use any bare numerals for years in the voiceover.
+
 Write the script of 24 to 32 seconds (max 30 seconds, Voiceover must be under 30 seconds when spoken naturally, which is around 75 to 85 words).
-Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, slide1, slide2, slide3.`
+Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3.`
                             }
                         ],
                         response_format: { type: 'json_object' },
@@ -286,7 +472,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                         slide1 = parsed.slide1 || slide1;
                         slide2 = parsed.slide2 || slide2;
                         slide3 = parsed.slide3 || slide3;
-                        console.log(`[Pipeline] Successfully generated Delhi Teen Hinglish Script!`);
+                        console.log(`[Pipeline] Successfully generated young-explainer script!`);
                         console.log(`[Pipeline] Voiceover: "${voiceoverText}"`);
                         console.log(`[Pipeline] Slide 1: "${slide1}"`);
                         console.log(`[Pipeline] Slide 2: "${slide2}"`);
@@ -296,8 +482,19 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                     console.warn(`[Pipeline] OpenAI API returned status ${res.status}. Using fallback.`);
                 }
             } catch (err: any) {
-                console.warn(`[Pipeline] OpenAI script generation failed: ${err.message}. Using Hinglish fallback.`);
+                console.warn(`[Pipeline] OpenAI script generation failed: ${err.message}. Using fallback.`);
             }
+        }
+
+        // ── Step 3.5: Normalize numerals in voiceover for TTS ────
+        console.log('\n🔤 Step 3.5: Normalizing numerals for TTS...');
+        const originalVoiceover = voiceoverText;
+        voiceoverText = normalizeNumeralsForTTS(voiceoverText);
+        if (originalVoiceover !== voiceoverText) {
+            console.log(`[Pipeline] TTS normalization applied. Numerals converted to Hindi words.`);
+            console.log(`[Pipeline] Final TTS text: "${voiceoverText}"`);
+        } else {
+            console.log(`[Pipeline] No bare numerals found — TTS text is clean.`);
         }
 
         // ── Step 4: Generate Audio via ElevenLabs ────────────────
@@ -339,36 +536,30 @@ Make sure to only mention facts from the verified data, explicitly naming the le
 
         // ── Step 7: Publish to Social Media ──────────────────────
         console.log('\n📱 Step 7: Publishing to social platforms...');
-        const caption = `PM Promise Audit: ${reelPromise.title}\n\n` +
-            `Verdict: ${reelPromise.status}\n` +
-            `${reelPromise.verdict_summary}\n\n` +
-            `#Rajneeti #PMPromises #IndiaNews #Politics #Accountability #Trending`;
+
+        // Build platform-specific captions, titles, descriptions, and tags
+        const igCaption = buildInstagramCaption(reelPromise, reelNumber);
+        const ytTitle = buildYouTubeTitle(reelPromise, reelNumber);
+        const ytDescription = buildYouTubeDescription(reelPromise, reelNumber);
+        const ytHashtags = buildYouTubeHashtags(reelPromise, reelNumber);
+
+        // Facebook uses the same caption as Instagram
+        const fbCaption = igCaption;
+
+        console.log(`[Pipeline] YT Title: "${ytTitle}"`);
+        console.log(`[Pipeline] IG Hashtags: "${buildInstagramHashtags(reelPromise, reelNumber)}"`);
+        console.log(`[Pipeline] YT Tags: [${ytHashtags.metaTags.join(', ')}]`);
 
         // Instagram
-        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, caption);
+        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
         if (!igSuccess) console.warn('[Pipeline] Instagram upload failed, but continuing...');
 
         // Facebook
-        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, caption);
+        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, fbCaption);
         if (!fbSuccess) console.warn('[Pipeline] Facebook upload failed, but continuing...');
 
         // YouTube
-        const ytTitle = `PM Promise: ${reelPromise.title} | ${reelPromise.status}`.slice(0, 100);
-        const ytDescription = `${reelPromise.title}\n\n` +
-            `Promise: "${reelPromise.description}"\n\n` +
-            `Verdict: ${reelPromise.status}\n` +
-            `${reelPromise.verdict_summary}\n\n` +
-            `—\n📺 MOITRA STUDIOS\nNon-Partisan Political Accountability Tracker\n🌐 https://moitrastudios.com/prime-ministers-promises\n\n` +
-            `#Shorts #PMPromises #Rajneeti #IndiaNews #Politics`;
-
-        const dynamicTags = [
-            reelPromise.category?.toLowerCase().replace(/\s+/g, ''),
-            `manifesto${reelPromise.source_manifesto_year}`,
-            'accountability',
-            'factcheck',
-        ].filter(Boolean) as string[];
-
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, dynamicTags);
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytHashtags.metaTags);
         if (!ytSuccess) console.warn('[Pipeline] YouTube upload failed.');
 
         // ── Step 8: Mark promise as posted in Supabase ───────────
@@ -393,6 +584,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         console.log('\n=== AUTOMATED REEL PIPELINE COMPLETED SUCCESSFULLY ===');
         console.log(`   Promise: "${reelPromise.title}"`);
         console.log(`   Status: ${reelPromise.status}`);
+        console.log(`   Reel #: ${reelNumber}`);
         console.log(`   Platforms: IG=${igSuccess} FB=${fbSuccess} YT=${ytSuccess}`);
 
     } catch (err: any) {

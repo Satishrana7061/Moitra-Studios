@@ -258,8 +258,8 @@ export class SocialUploadService {
                 requestBody: {
                     snippet: {
                         title: title,
-                        description: description + "\n\n#shorts #news",
-                        tags: [...new Set(['shorts', 'news', 'india', 'rajneeti', ...tags])]
+                        description: description,
+                        tags: [...new Set(tags)]
                     },
                     status: {
                         privacyStatus: 'public', 

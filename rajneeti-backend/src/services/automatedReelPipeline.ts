@@ -298,7 +298,7 @@ export async function runAutomatedReelPipeline() {
         console.log('\n📝 Step 3: Building young-explainer Hinglish script with TTS normalization...');
         
         // Fallback script using the "Modi Ki Guarantee" format
-        let voiceoverText = `Aaj ki is video mein hum baat karenge Modi Ki Guarantee No ${reelNumber} ki. Vaada tha: ${reelPromise.title}. Lekin sawaal yeh hai, kya yeh vaada sach mein poora hua, ya sirf aadha? Ground analysis ke mutaabik, verdict hai: ${reelPromise.status}. Aise hi aur Modi Ki Guarantee audits ke liye Moitra Studios ko follow karein.`;
+        let voiceoverText = `Aaj ki is video mein hum baat karenge Modi Ki Guarantee No ${reelNumber} ki. Vaada tha: ${reelPromise.title}. Lekin sawaal yeh hai, kya yeh vaada sach mein poora hua, ya sirf aadha? Ground analysis ke mutaabik, verdict hai: ${reelPromise.status}. Aise hi aur Modi Ki Guarantee audits ke liye Rajneeti TV Network ko follow karein.`;
         let slide1 = `Modi Ki Guarantee #${reelNumber}`;
         let slide2 = `${reelPromise.title.slice(0, 35)}`;
         let slide3 = `Verdict: ${reelPromise.status}`;
@@ -359,7 +359,7 @@ Opening line format: "Aaj ki is video mein hum baat karenge Modi Ki Guarantee No
 Second line format: "Lekin sawaal yeh hai — kya yeh vaada sach mein poora hua, ya sirf aadha?"
 Then: Explain what happened using concrete figures, budget allocations, dates, percentages, or statistics from the verified facts/evidence. Explicitly name the official source, department, or media outlet that reported the data.
 Then: Give the verdict clearly.
-Closing: "Aise hi aur Modi Ki Guarantee audits ke liye Moitra Studios ko follow karein."
+Closing: "Aise hi aur Modi Ki Guarantee audits ke liye Rajneeti TV Network ko follow karein."
 
 IMPORTANT:
 - The phrase "Modi Ki Guarantee" must appear at least twice in the voiceover — once in the opening hook ("Modi Ki Guarantee No [N] ki") and once in the closing CTA.
@@ -422,7 +422,7 @@ Line 1: Hook — opening line using the format above with the promise number.
 Line 2: Challenge question — "Lekin sawaal yeh hai..."
 Line 3-4: What actually happened / evidence with named sources.
 Line 5: Simple verdict conclusion.
-Line 6: CTA — follow Moitra Studios.
+Line 6: CTA — follow Rajneeti TV Network.
 
 If the status is unclear:
 Use phrases like:
@@ -515,25 +515,61 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             audioBuffer = Buffer.alloc(0);
         }
 
-        // ── Step 4.5: Find or import Wikimedia image for topic ───
-        console.log('\n🖼️ Step 4.5: Finding or importing topic image from Wikimedia...');
-        let topicImageUrl: string | undefined = undefined;
+        // ── Step 4.5: Find or import Wikimedia images for slides ───
+        console.log('\n🖼️ Step 4.5: Finding or importing topic images from Wikimedia...');
+        const topicImageUrls: string[] = [];
         try {
             const tags = [reelPromise.category, 'India', 'BJP', 'Narendra Modi'].filter(Boolean);
-            const mediaAsset = await findOrImportWikimediaImage(
+            
+            // Image 1: Main Category / Topic
+            console.log(`[Pipeline] Fetching Image 1 for category: "${reelPromise.category}"`);
+            const asset1 = await findOrImportWikimediaImage(
                 reelPromise.category || 'Politics',
                 tags,
                 'modi',
                 reelPromise.source_manifesto_year
             );
-            if (mediaAsset) {
-                topicImageUrl = mediaAsset.publicUrl;
-                console.log(`[Pipeline] Topic image URL retrieved: ${topicImageUrl}`);
-            } else {
-                console.log(`[Pipeline] No topic image found or imported. Continuing without image.`);
+            if (asset1) {
+                topicImageUrls.push(asset1.publicUrl);
             }
+
+            // Image 2: Search keyword from promise title (first 3-4 words)
+            const cleanTitle = (reelPromise.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
+            const titleKeywords = cleanTitle.split(' ').filter((w: string) => w.length > 3).slice(0, 3).join(' ');
+            if (titleKeywords) {
+                console.log(`[Pipeline] Fetching Image 2 for keywords: "${titleKeywords}"`);
+                const asset2 = await findOrImportWikimediaImage(
+                    titleKeywords,
+                    [reelPromise.category, 'India'],
+                    undefined,
+                    reelPromise.source_manifesto_year
+                );
+                if (asset2) {
+                    topicImageUrls.push(asset2.publicUrl);
+                } else if (asset1) {
+                    topicImageUrls.push(asset1.publicUrl); // Fallback
+                }
+            } else if (asset1) {
+                topicImageUrls.push(asset1.publicUrl);
+            }
+
+            // Image 3: Government or Politics general symbol
+            console.log(`[Pipeline] Fetching Image 3 for general symbol: "Parliament of India"`);
+            const asset3 = await findOrImportWikimediaImage(
+                'Parliament of India',
+                ['Government', 'India', 'Delhi'],
+                undefined,
+                reelPromise.source_manifesto_year
+            );
+            if (asset3) {
+                topicImageUrls.push(asset3.publicUrl);
+            } else if (asset1) {
+                topicImageUrls.push(asset1.publicUrl);
+            }
+            
+            console.log(`[Pipeline] Topic image URLs retrieved: [${topicImageUrls.join(', ')}]`);
         } catch (err: any) {
-            console.warn(`[Pipeline] Failed to find or import image: ${err.message}. Continuing without image.`);
+            console.warn(`[Pipeline] Failed to find or import images: ${err.message}. Continuing with whatever images succeeded.`);
         }
 
         // ── Step 5: Generate Video via Puppeteer ─────────────────
@@ -548,7 +584,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         process.env.REEL_NUM = String(reelNumber);
         process.env.MANIFESTO_YEAR = String(reelPromise.source_manifesto_year);
 
-        const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer, topicImageUrl);
+        const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer, topicImageUrls);
         console.log(`[Pipeline] Video generated: ${videoBuffer.length} bytes`);
 
         // ── Step 6: Upload to Supabase Storage ───────────────────

@@ -34,7 +34,14 @@ const HeadlessReelGenerator: React.FC = () => {
     // Reel details
     const reelNumber = searchParams.get('reelNum') || '1';
     const manifestoYear = searchParams.get('year') || '2014';
-    const imageUrl = searchParams.get('image');
+    
+    const imagesParam = searchParams.get('images');
+    const singleImage = searchParams.get('image');
+    const imageUrls = React.useMemo(() => {
+        if (imagesParam) return imagesParam.split(',');
+        if (singleImage) return [singleImage];
+        return [];
+    }, [imagesParam, singleImage]);
 
     useEffect(() => {
         const fetchNews = async () => {
@@ -161,10 +168,10 @@ const HeadlessReelGenerator: React.FC = () => {
                                         }`}>
                                             {slide.type === 'headline' ? 'Modi Ki Guarantee' : `Analysis Point ${i}/${slides.length - 1}`}
                                         </div>
-                                        {imageUrl && slide.type === 'headline' && (
+                                        {imageUrls[i] && (
                                             <div className="w-full h-[550px] mb-10 overflow-hidden rounded-2xl border border-white/10 relative">
                                                 <img 
-                                                    src={imageUrl} 
+                                                    src={imageUrls[i]} 
                                                     alt="Topic Visual" 
                                                     className="w-full h-full object-cover"
                                                 />

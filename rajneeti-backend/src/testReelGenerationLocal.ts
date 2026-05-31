@@ -40,7 +40,7 @@ function buildHindiScript(promise: {
         script += `${promise.verdict_summary} `;
     }
 
-    script += `सच्चे और निष्पक्ष विश्लेषण के लिए Moitra Studios को फॉलो करें।`;
+    script += `सच्चे और निष्पक्ष विश्लेषण के लिए Rajneeti TV Network को फॉलो करें।`;
     return script.replace(/\s+/g, ' ').trim();
 }
 

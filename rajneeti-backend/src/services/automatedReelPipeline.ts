@@ -3,7 +3,7 @@ import { generateHeadlessVideo } from "./puppeteerVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
 import { verifyNextPromise, getNextVerifiedPromiseForReel } from "./truthEngine.js";
-import { findOrImportWikimediaImage } from "./wikimediaService.js";
+import { findOrImportWikimediaImage, generateImagenAsset } from "./wikimediaService.js";
 import { createClient } from '@supabase/supabase-js';
 import { OPENAI_API_KEY } from "../config.js";
 
@@ -302,6 +302,9 @@ export async function runAutomatedReelPipeline() {
         let slide1 = `Modi Ki Guarantee #${reelNumber}`;
         let slide2 = `${reelPromise.title.slice(0, 35)}`;
         let slide3 = `Verdict: ${reelPromise.status}`;
+        let slide1Prompt = `A professional photorealistic style image representing Narendra Modi BJP government's promise context for category: ${reelPromise.category}, high quality, clear details`;
+        let slide2Prompt = `A professional photorealistic style image representing public project development or infrastructure progress in India, high quality`;
+        let slide3Prompt = `A professional graphic representation of an official audit checkmark or political review outcome, clean background`;
 
         if (OPENAI_API_KEY) {
             try {
@@ -446,7 +449,10 @@ Output STRICT JSON ONLY (no markdown, no extra text):
     "year_spoken_hi": "The year written in Hindi spoken words (e.g. do hazaar chaudah)",
     "slide1": "Fuller Hindi promise description sentence (6-10 words)...",
     "slide2": "Fuller Hindi status & source sentence (6-12 words)...",
-    "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)..."
+    "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)...",
+    "slide1_prompt": "An English descriptive prompt for an image generator representing the topic (e.g. 'A professional photograph of an Indian solar farm under clear sky'). Do not include text, signs, labels, or speech bubbles in the image.",
+    "slide2_prompt": "An English descriptive prompt to illustrate the evidence/action of Slide 2. Do not include text.",
+    "slide3_prompt": "An English descriptive prompt to illustrate the final verdict/verdict context of Slide 3. Do not include text."
 }` 
                              },
                              { 
@@ -464,7 +470,7 @@ Output STRICT JSON ONLY (no markdown, no extra text):
 IMPORTANT: Write ALL years as Hindi spoken words (${reelPromise.source_manifesto_year} = "${yearSpokenHi}"). Do NOT use any bare numerals for years in the voiceover.
 
 Write the script of 24 to 32 seconds (max 30 seconds, Voiceover must be under 30 seconds when spoken naturally, which is around 75 to 85 words).
-Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3.`
+Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3, slide1_prompt, slide2_prompt, slide3_prompt.`
                             }
                         ],
                         response_format: { type: 'json_object' },
@@ -482,11 +488,17 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                         slide1 = parsed.slide1 || slide1;
                         slide2 = parsed.slide2 || slide2;
                         slide3 = parsed.slide3 || slide3;
+                        slide1Prompt = parsed.slide1_prompt || slide1Prompt;
+                        slide2Prompt = parsed.slide2_prompt || slide2Prompt;
+                        slide3Prompt = parsed.slide3_prompt || slide3Prompt;
                         console.log(`[Pipeline] Successfully generated young-explainer script!`);
                         console.log(`[Pipeline] Voiceover: "${voiceoverText}"`);
                         console.log(`[Pipeline] Slide 1: "${slide1}"`);
                         console.log(`[Pipeline] Slide 2: "${slide2}"`);
                         console.log(`[Pipeline] Slide 3: "${slide3}"`);
+                        console.log(`[Pipeline] Slide 1 Prompt: "${slide1Prompt}"`);
+                        console.log(`[Pipeline] Slide 2 Prompt: "${slide2Prompt}"`);
+                        console.log(`[Pipeline] Slide 3 Prompt: "${slide3Prompt}"`);
                     }
                 } else {
                     console.warn(`[Pipeline] OpenAI API returned status ${res.status}. Using fallback.`);
@@ -518,62 +530,98 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             audioBuffer = Buffer.alloc(0);
         }
 
-        // ── Step 4.5: Find or import Wikimedia images for slides ───
-        console.log('\n🖼️ Step 4.5: Finding or importing topic images from Wikimedia...');
+        // ── Step 4.5: Find or generate topic images for slides ───
+        console.log('\n🖼️ Step 4.5: Finding or generating topic images (Imagen 3 / Wikimedia)...');
         const topicImageUrls: string[] = [];
+        const tags = [reelPromise.category, 'India', 'BJP', 'Narendra Modi'].filter(Boolean);
+
+        // Slide 1 Image
         try {
-            const tags = [reelPromise.category, 'India', 'BJP', 'Narendra Modi'].filter(Boolean);
-            
-            // Image 1: Main Category / Topic
-            console.log(`[Pipeline] Fetching Image 1 for category: "${reelPromise.category}"`);
-            const asset1 = await findOrImportWikimediaImage(
-                reelPromise.category || 'Politics',
-                tags,
+            console.log(`[Pipeline] Generating Image 1 via Imagen 3...`);
+            let img1 = await generateImagenAsset(
+                slide1Prompt,
+                `${reelPromise.slug}_slide1`,
+                [reelPromise.category || 'Politics'],
                 'modi',
                 reelPromise.source_manifesto_year
             );
-            if (asset1) {
-                topicImageUrls.push(asset1.publicUrl);
-            }
-
-            // Image 2: Search keyword from promise title (first 3-4 words)
-            const cleanTitle = (reelPromise.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
-            const titleKeywords = cleanTitle.split(' ').filter((w: string) => w.length > 3).slice(0, 3).join(' ');
-            if (titleKeywords) {
-                console.log(`[Pipeline] Fetching Image 2 for keywords: "${titleKeywords}"`);
-                const asset2 = await findOrImportWikimediaImage(
-                    titleKeywords,
-                    [reelPromise.category, 'India'],
-                    undefined,
+            if (!img1) {
+                console.log(`[Pipeline] Imagen 1 failed or skipped. Falling back to Wikimedia Commons...`);
+                img1 = await findOrImportWikimediaImage(
+                    reelPromise.category || 'Politics',
+                    tags,
+                    'modi',
                     reelPromise.source_manifesto_year
                 );
-                if (asset2) {
-                    topicImageUrls.push(asset2.publicUrl);
-                } else if (asset1) {
-                    topicImageUrls.push(asset1.publicUrl); // Fallback
-                }
-            } else if (asset1) {
-                topicImageUrls.push(asset1.publicUrl);
             }
+            if (img1) topicImageUrls.push(img1.publicUrl);
+        } catch (err: any) {
+            console.warn(`[Pipeline] Slide 1 image process failed: ${err.message}`);
+        }
 
-            // Image 3: Government or Politics general symbol
-            console.log(`[Pipeline] Fetching Image 3 for general symbol: "Parliament of India"`);
-            const asset3 = await findOrImportWikimediaImage(
-                'Parliament of India',
-                ['Government', 'India', 'Delhi'],
+        // Slide 2 Image
+        try {
+            console.log(`[Pipeline] Generating Image 2 via Imagen 3...`);
+            let img2 = await generateImagenAsset(
+                slide2Prompt,
+                `${reelPromise.slug}_slide2`,
+                [reelPromise.category || 'Politics'],
                 undefined,
                 reelPromise.source_manifesto_year
             );
-            if (asset3) {
-                topicImageUrls.push(asset3.publicUrl);
-            } else if (asset1) {
-                topicImageUrls.push(asset1.publicUrl);
+            if (!img2) {
+                console.log(`[Pipeline] Imagen 2 failed or skipped. Falling back to Wikimedia Commons...`);
+                const cleanTitle = (reelPromise.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
+                const titleKeywords = cleanTitle.split(' ').filter((w: string) => w.length > 3).slice(0, 3).join(' ');
+                if (titleKeywords) {
+                    img2 = await findOrImportWikimediaImage(
+                        titleKeywords,
+                        [reelPromise.category, 'India'],
+                        undefined,
+                        reelPromise.source_manifesto_year
+                    );
+                }
             }
-            
-            console.log(`[Pipeline] Topic image URLs retrieved: [${topicImageUrls.join(', ')}]`);
+            if (img2) {
+                topicImageUrls.push(img2.publicUrl);
+            } else if (topicImageUrls[0]) {
+                topicImageUrls.push(topicImageUrls[0]); // fallback
+            }
         } catch (err: any) {
-            console.warn(`[Pipeline] Failed to find or import images: ${err.message}. Continuing with whatever images succeeded.`);
+            console.warn(`[Pipeline] Slide 2 image process failed: ${err.message}`);
+            if (topicImageUrls[0]) topicImageUrls.push(topicImageUrls[0]);
         }
+
+        // Slide 3 Image
+        try {
+            console.log(`[Pipeline] Generating Image 3 via Imagen 3...`);
+            let img3 = await generateImagenAsset(
+                slide3Prompt,
+                `${reelPromise.slug}_slide3`,
+                [reelPromise.category || 'Politics'],
+                undefined,
+                reelPromise.source_manifesto_year
+            );
+            if (!img3) {
+                console.log(`[Pipeline] Imagen 3 failed or skipped. Falling back to Wikimedia Commons...`);
+                img3 = await findOrImportWikimediaImage(
+                    'Parliament of India',
+                    ['Government', 'India', 'Delhi'],
+                    undefined,
+                    reelPromise.source_manifesto_year
+                );
+            }
+            if (img3) {
+                topicImageUrls.push(img3.publicUrl);
+            } else if (topicImageUrls[0]) {
+                topicImageUrls.push(topicImageUrls[0]); // fallback
+            }
+        } catch (err: any) {
+            console.warn(`[Pipeline] Slide 3 image process failed: ${err.message}`);
+            if (topicImageUrls[0]) topicImageUrls.push(topicImageUrls[0]);
+        }
+
+        console.log(`[Pipeline] Final slide images for rendering: [${topicImageUrls.join(', ')}]`);
 
         // ── Step 5: Generate Video via Puppeteer ─────────────────
         console.log('\n🎥 Step 5: Capturing headless video...');

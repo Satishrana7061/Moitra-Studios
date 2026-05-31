@@ -353,17 +353,19 @@ This is because the text will be sent to a Hindi TTS engine that cannot pronounc
 - Promise numbers should be spoken naturally: "Promise number ${reelNumber}"
 
 MANDATORY SCRIPT FORMAT:
-Follow this exact opening/closing pattern. The phrase "Modi Ki Guarantee No [N] ki" MUST appear in the opening hook.
+For every reel generated, write a UNIQUE, customized, and highly engaging starting hook. Do NOT use the exact same opening boilerplate sentence every time. Make it open like a dynamic political explainer video.
 
-Opening line format: "Aaj ki is video mein hum baat karenge Modi Ki Guarantee No [N] ki. Vaada tha: [what was promised]."
+Opening Hook requirements:
+- Introduce the topic dynamically in the first 2 seconds to grab attention.
+- The phrase "Modi Ki Guarantee No [N] ki" (or similar wording like "Modi Ki Guarantee Number [N]") MUST be spoken naturally in the opening line, but it should be woven into a creative hook about the specific promise.
 Second line format: "Lekin sawaal yeh hai — kya yeh vaada sach mein poora hua, ya sirf aadha?"
 Then: Explain what happened using concrete figures, budget allocations, dates, percentages, or statistics from the verified facts/evidence. Explicitly name the official source, department, or media outlet that reported the data.
 Then: Give the verdict clearly.
 Closing: "Aise hi aur Modi Ki Guarantee audits ke liye Rajneeti TV Network ko follow karein."
 
 IMPORTANT:
-- The phrase "Modi Ki Guarantee" must appear at least twice in the voiceover — once in the opening hook ("Modi Ki Guarantee No [N] ki") and once in the closing CTA.
-- The voiceover script MUST include hard data, numbers, statistics, or named sources. Do not make it generic. Tell the audience exact facts (e.g. "NHAI ke 2025 data ke mutabik", "75 percent kaam poora ho chuka hai", "10 thousand crore spend kiye gaye").
+- The phrase "Modi Ki Guarantee" must appear at least twice in the voiceover — once in the opening hook and once in the closing CTA.
+- The voiceover script MUST include hard data, numbers, statistics, or named sources. Do not make it generic. Tell the audience exact facts.
 
 What you must do:
 1. Understand the promise and latest verified status.
@@ -374,6 +376,7 @@ What you must do:
 6. If the facts are mixed or incomplete, say so honestly.
 7. Keep the language balanced and credible.
 8. Make the script feel native to Shorts/Reels, not like an article or essay.
+9. ALL YEARS AND NUMBERS MUST BE IN HINDI WORDS, NOT DIGITS.
 - Start with a hook in the first line.
 - The first 2 seconds must make the viewer curious.
 - Use short spoken lines.

@@ -5,7 +5,7 @@ import { SupabaseStorageService } from "./supabaseStorage.js";
 import { verifyNextPromise, getNextVerifiedPromiseForReel } from "./truthEngine.js";
 import { findOrImportWikimediaImage, generateImagenAsset } from "./wikimediaService.js";
 import { createClient } from '@supabase/supabase-js';
-import { OPENAI_API_KEY } from "../config.js";
+import { OPENAI_API_KEY, GEMINI_API_KEY } from "../config.js";
 
 // ── Supabase client for marking reels as posted ─────────────────
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
@@ -305,22 +305,10 @@ export async function runAutomatedReelPipeline() {
         let slide1Prompt = `A professional photorealistic style image representing Narendra Modi BJP government's promise context for category: ${reelPromise.category}, high quality, clear details`;
         let slide2Prompt = `A professional photorealistic style image representing public project development or infrastructure progress in India, high quality`;
         let slide3Prompt = `A professional graphic representation of an official audit checkmark or political review outcome, clean background`;
+        let scriptGenerated = false;
+        const activeGeminiKey = process.env.GEMINI_API_KEY || GEMINI_API_KEY;
 
-        if (OPENAI_API_KEY) {
-            try {
-                console.log('[Pipeline] Querying OpenAI for young-explainer Hinglish script...');
-                const res = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-5.4',
-                        messages: [
-                            { 
-                                role: 'system', 
-                                content: `You are writing a short-form political explainer reel script for the brand "Rajneeti" by Moitra Studios.
+        const systemInstructionText = `You are writing a short-form political explainer reel script for the brand "Rajneeti" by Moitra Studios.
 
 Your job:
 Write a highly natural, professional, fact-based Hindi/Hinglish reel script for YouTube Shorts and Facebook Reels about one specific political promise and its current status.
@@ -443,7 +431,7 @@ Say it in a calm and specific way, not celebratory.
 If the promise seems unfulfilled or partial:
 Say it in a neutral and evidence-based way, not angry or sarcastic.
 
-Output STRICT JSON ONLY (no markdown, no extra text):
+Output STRICT JSON ONLY:
 {
     "voiceover": "Final Hinglish voiceover script (around 75-85 words, maximum 30 seconds, ALL YEARS IN HINDI WORDS not digits)...",
     "year_spoken_hi": "The year written in Hindi spoken words (e.g. do hazaar chaudah)",
@@ -453,11 +441,9 @@ Output STRICT JSON ONLY (no markdown, no extra text):
     "slide1_prompt": "An English descriptive prompt for an image generator representing the topic (e.g. 'A professional photograph of an Indian solar farm under clear sky'). Do not include text, signs, labels, or speech bubbles in the image.",
     "slide2_prompt": "An English descriptive prompt to illustrate the evidence/action of Slide 2. Do not include text.",
     "slide3_prompt": "An English descriptive prompt to illustrate the final verdict/verdict context of Slide 3. Do not include text."
-}` 
-                             },
-                             { 
-                                 role: 'user', 
-                                 content: `INPUT DATA:
+}`;
+
+        const userPromptText = `INPUT DATA:
 - Promise Sequence Number: ${reelNumber}
 - Promise title: "${reelPromise.title}"
 - Year: ${reelPromise.source_manifesto_year}
@@ -470,7 +456,85 @@ Output STRICT JSON ONLY (no markdown, no extra text):
 IMPORTANT: Write ALL years as Hindi spoken words (${reelPromise.source_manifesto_year} = "${yearSpokenHi}"). Do NOT use any bare numerals for years in the voiceover.
 
 Write the script of 24 to 32 seconds (max 30 seconds, Voiceover must be under 30 seconds when spoken naturally, which is around 75 to 85 words).
-Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3, slide1_prompt, slide2_prompt, slide3_prompt.`
+Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3, slide1_prompt, slide2_prompt, slide3_prompt.`;
+
+        // ── Method A: Try Google Gemini API ──
+        if (activeGeminiKey && activeGeminiKey !== 'PLACEHOLDER_API_KEY') {
+            try {
+                console.log('[Pipeline] Querying Google Gemini (gemini-2.5-flash) for young-explainer script...');
+                const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeGeminiKey}`;
+                const geminiRes = await fetch(geminiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: 'user',
+                                parts: [
+                                    {
+                                        text: `${systemInstructionText}\n\n${userPromptText}`
+                                    }
+                                ]
+                            }
+                        ],
+                        generationConfig: {
+                            responseMimeType: 'application/json'
+                        }
+                    })
+                });
+
+                if (geminiRes.ok) {
+                    const resJson: any = await geminiRes.json();
+                    const rawText = resJson.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                    if (rawText) {
+                        const parsed = JSON.parse(rawText);
+                        voiceoverText = parsed.voiceover || voiceoverText;
+                        slide1 = parsed.slide1 || slide1;
+                        slide2 = parsed.slide2 || slide2;
+                        slide3 = parsed.slide3 || slide3;
+                        slide1Prompt = parsed.slide1_prompt || slide1Prompt;
+                        slide2Prompt = parsed.slide2_prompt || slide2Prompt;
+                        slide3Prompt = parsed.slide3_prompt || slide3Prompt;
+                        console.log(`[Pipeline] Successfully generated young-explainer script via Gemini!`);
+                        console.log(`[Pipeline] Voiceover: "${voiceoverText}"`);
+                        console.log(`[Pipeline] Slide 1: "${slide1}"`);
+                        console.log(`[Pipeline] Slide 2: "${slide2}"`);
+                        console.log(`[Pipeline] Slide 3: "${slide3}"`);
+                        console.log(`[Pipeline] Slide 1 Prompt: "${slide1Prompt}"`);
+                        console.log(`[Pipeline] Slide 2 Prompt: "${slide2Prompt}"`);
+                        console.log(`[Pipeline] Slide 3 Prompt: "${slide3Prompt}"`);
+                        scriptGenerated = true;
+                    }
+                } else {
+                    console.warn(`[Pipeline] Gemini API returned status ${geminiRes.status}. Trying OpenAI fallback.`);
+                }
+            } catch (err: any) {
+                console.warn(`[Pipeline] Gemini script generation failed: ${err.message}. Trying OpenAI fallback.`);
+            }
+        }
+
+        // ── Method B: Fallback to OpenAI API ──
+        if (!scriptGenerated && OPENAI_API_KEY) {
+            try {
+                console.log('[Pipeline] Querying OpenAI for young-explainer Hinglish script...');
+                const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4o-mini',
+                        messages: [
+                            { 
+                                role: 'system', 
+                                content: systemInstructionText
+                            },
+                            { 
+                                role: 'user', 
+                                content: userPromptText
                             }
                         ],
                         response_format: { type: 'json_object' },
@@ -491,22 +555,16 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                         slide1Prompt = parsed.slide1_prompt || slide1Prompt;
                         slide2Prompt = parsed.slide2_prompt || slide2Prompt;
                         slide3Prompt = parsed.slide3_prompt || slide3Prompt;
-                        console.log(`[Pipeline] Successfully generated young-explainer script!`);
-                        console.log(`[Pipeline] Voiceover: "${voiceoverText}"`);
-                        console.log(`[Pipeline] Slide 1: "${slide1}"`);
-                        console.log(`[Pipeline] Slide 2: "${slide2}"`);
-                        console.log(`[Pipeline] Slide 3: "${slide3}"`);
-                        console.log(`[Pipeline] Slide 1 Prompt: "${slide1Prompt}"`);
-                        console.log(`[Pipeline] Slide 2 Prompt: "${slide2Prompt}"`);
-                        console.log(`[Pipeline] Slide 3 Prompt: "${slide3Prompt}"`);
+                        console.log(`[Pipeline] Successfully generated young-explainer script via OpenAI!`);
                     }
                 } else {
-                    console.warn(`[Pipeline] OpenAI API returned status ${res.status}. Using fallback.`);
+                    console.warn(`[Pipeline] OpenAI API returned status ${res.status}. Using hardcoded fallback.`);
                 }
             } catch (err: any) {
-                console.warn(`[Pipeline] OpenAI script generation failed: ${err.message}. Using fallback.`);
+                console.warn(`[Pipeline] OpenAI script generation failed: ${err.message}. Using hardcoded fallback.`);
             }
         }
+
 
         // ── Step 3.5: Normalize numerals in voiceover for TTS ────
         console.log('\n🔤 Step 3.5: Normalizing numerals for TTS...');

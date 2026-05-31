@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { findOrImportWikimediaImage } from './services/wikimediaService.js';
 import './config.js'; // Ensures dotenv is loaded
-import { OPENAI_API_KEY } from './config.js';
+import { OPENAI_API_KEY, GEMINI_API_KEY } from './config.js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
@@ -11,33 +11,14 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-async function getSearchQueriesFromOpenAI(promise: {
+async function getSearchQueriesFromAI(promise: {
     title: string;
     description: string;
     category: string;
 }): Promise<{ query1: string; query2: string; query3: string } | null> {
-    if (!OPENAI_API_KEY) {
-        // Fallback queries if OpenAI key is missing
-        return {
-            query1: promise.category || 'India Politics',
-            query2: promise.title.split(' ').slice(0, 3).join(' '),
-            query3: 'Parliament of India'
-        };
-    }
+    const activeGeminiKey = process.env.GEMINI_API_KEY || GEMINI_API_KEY;
 
-    try {
-        const res = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-4o-mini', // lightweight, fast model for generating simple queries
-                messages: [
-                    {
-                        role: 'system',
-                        content: `You are a search query expert for Wikimedia Commons. 
+    const systemPromptText = `You are a search query expert for Wikimedia Commons. 
 Your goal is to generate 3 short, specific search queries in English that will help find high-quality, real photographic images on Wikimedia Commons representing a political promise in India.
 Wikimedia Commons search matches files by title or description. Keep queries very simple, using 2-4 keywords. Do not use punctuation, special symbols, or verbs like "finding", "searching".
 
@@ -51,36 +32,89 @@ Output ONLY raw JSON format:
     "query1": "...",
     "query2": "...",
     "query3": "..."
-}`
-                    },
-                    {
-                        role: 'user',
-                        content: `Promise Title: "${promise.title}"
+}`;
+
+    const userPromptText = `Promise Title: "${promise.title}"
 Promise Description: "${promise.description}"
-Category: "${promise.category}"`
+Category: "${promise.category}"`;
+
+    // Try Gemini API first
+    if (activeGeminiKey && activeGeminiKey !== 'PLACEHOLDER_API_KEY') {
+        try {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${activeGeminiKey}`;
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [
+                        {
+                            role: 'user',
+                            parts: [
+                                {
+                                    text: `${systemPromptText}\n\n${userPromptText}`
+                                }
+                            ]
+                        }
+                    ],
+                    generationConfig: {
+                        responseMimeType: 'application/json'
                     }
-                ],
-                response_format: { type: 'json_object' },
-                max_completion_tokens: 150,
-                temperature: 0.5
-            })
-        });
+                })
+            });
 
-        if (!res.ok) {
-            console.warn(`[OpenAI] Failed to get queries. HTTP status ${res.status}. Using fallbacks.`);
-            return null;
+            if (res.ok) {
+                const data: any = await res.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                if (text) {
+                    return JSON.parse(text);
+                }
+            }
+        } catch (err: any) {
+            console.warn(`[Gemini] Error generating queries: ${err.message}. Trying OpenAI...`);
         }
-
-        const data: any = await res.json();
-        const content = data.choices?.[0]?.message?.content?.trim();
-        if (content) {
-            return JSON.parse(content);
-        }
-    } catch (err: any) {
-        console.warn(`[OpenAI] Error generating queries: ${err.message}. Using fallbacks.`);
     }
 
-    return null;
+    // Try OpenAI fallback
+    if (OPENAI_API_KEY) {
+        try {
+            const res = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: systemPromptText },
+                        { role: 'user', content: userPromptText }
+                    ],
+                    response_format: { type: 'json_object' },
+                    max_completion_tokens: 150,
+                    temperature: 0.5
+                })
+            });
+
+            if (res.ok) {
+                const data: any = await res.json();
+                const content = data.choices?.[0]?.message?.content?.trim();
+                if (content) {
+                    return JSON.parse(content);
+                }
+            }
+        } catch (err: any) {
+            console.warn(`[OpenAI] Error generating queries: ${err.message}. Using default fallbacks.`);
+        }
+    }
+
+    // Default Fallbacks
+    return {
+        query1: promise.category || 'India Politics',
+        query2: promise.title.split(' ').slice(0, 3).join(' '),
+        query3: 'Parliament of India'
+    };
 }
 
 async function seedPromiseImages() {
@@ -133,8 +167,8 @@ async function seedPromiseImages() {
         }
 
         // Get AI generated search queries
-        console.log(`[Seed] Asking OpenAI for Wikimedia search queries...`);
-        const queries = await getSearchQueriesFromOpenAI(p);
+        console.log(`[Seed] Asking AI for Wikimedia search queries...`);
+        const queries = await getSearchQueriesFromAI(p);
         
         const q1 = queries?.query1 || p.category || 'India';
         const q2 = queries?.query2 || p.title.split(' ').slice(0, 3).join(' ');

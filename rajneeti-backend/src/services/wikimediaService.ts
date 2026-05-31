@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import '../config.js'; // Ensures dotenv is loaded
+import fs from 'fs';
+import path from 'path';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_KEY || '';
@@ -169,6 +171,22 @@ export async function findOrImportWikimediaImage(
     } catch (err: any) {
         console.error(`[WikimediaService] Image download failed: ${err.message}`);
         return null;
+    }
+
+    // Save locally to 'downloaded-images' directory in the workspace
+    try {
+        const localDir = path.resolve(process.cwd(), 'downloaded-images');
+        if (!fs.existsSync(localDir)) {
+            fs.mkdirSync(localDir, { recursive: true });
+        }
+        const fileExt = fileInfo.url.split('.').pop()?.toLowerCase() || 'jpg';
+        const cleanTitle = fileTitle.replace(/^File:/i, '');
+        const fileSlug = customSlug || cleanTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+        const localPath = path.join(localDir, `${fileSlug}.${fileExt}`);
+        fs.writeFileSync(localPath, fileBuffer);
+        console.log(`[WikimediaService] Saved image locally to: ${localPath}`);
+    } catch (localErr: any) {
+        console.warn(`[WikimediaService] Failed to save locally (non-fatal): ${localErr.message}`);
     }
 
     // ── STEP 4: Upload to Supabase Storage ──

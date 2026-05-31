@@ -162,15 +162,15 @@ const HeadlessReelGenerator: React.FC = () => {
                                         i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
                                     }`}
                                 >
-                                    <div className="flex flex-col items-start p-8 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] mx-4 w-[950px] min-h-[900px] justify-between">
+                                    <div className="flex flex-col items-start p-8 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] mx-4 w-[950px] h-[850px] justify-between">
                                         <div className="w-full flex flex-col items-start">
-                                            <div className={`text-white px-8 py-3 font-bold uppercase tracking-widest mb-8 text-3xl rounded-xl shadow-lg ${
+                                            <div className={`text-white px-8 py-3 font-bold uppercase tracking-widest mb-6 text-3xl rounded-xl shadow-lg ${
                                                 slide.type === 'headline' ? 'bg-gradient-to-r from-amber-600 to-orange-600' : 'bg-[#1d4ed8]'
                                             }`}>
                                                 {slide.type === 'headline' ? 'Modi Ki Guarantee' : `Analysis Point ${i}/${slides.length - 1}`}
                                             </div>
                                             {imageUrls[i] && (
-                                                <div className="w-full h-[520px] mb-8 overflow-hidden rounded-2xl border border-white/10 relative">
+                                                <div className="w-full h-[420px] mb-6 overflow-hidden rounded-2xl border border-white/10 relative">
                                                     <img 
                                                         src={imageUrls[i]} 
                                                         alt="Topic Visual" 
@@ -179,7 +179,7 @@ const HeadlessReelGenerator: React.FC = () => {
                                                 </div>
                                             )}
                                         </div>
-                                        <h2 className="font-serif leading-[1.3] text-5xl md:text-6xl font-extrabold text-white text-left tracking-wide uppercase mt-auto w-full">
+                                        <h2 className="font-serif leading-[1.3] text-4xl md:text-5xl font-extrabold text-white text-left tracking-wide uppercase mt-auto w-full line-clamp-3">
                                             {slide.content}
                                         </h2>
                                     </div>

@@ -1,5 +1,9 @@
 async function testGeminiImageModel() {
     const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+        console.error("GEMINI_API_KEY is not defined in environment");
+        return;
+    }
     console.log("Testing gemini-3.1-flash-image with key:", apiKey.slice(0, 10) + "...");
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image:generateContent?key=${apiKey}`;
     try {

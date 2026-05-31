@@ -531,27 +531,49 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         }
 
         // ── Step 4.5: Find or generate topic images for slides ───
-        console.log('\n🖼️ Step 4.5: Finding or generating topic images (Imagen 3 / Wikimedia)...');
+        console.log('\n🖼️ Step 4.5: Finding or generating topic images (Imagen / Wikimedia)...');
         const topicImageUrls: string[] = [];
         const tags = [reelPromise.category, 'India', 'BJP', 'Narendra Modi'].filter(Boolean);
 
         // Slide 1 Image
         try {
-            console.log(`[Pipeline] Generating Image 1 via Imagen 3...`);
-            let img1 = await generateImagenAsset(
-                slide1Prompt,
-                `${reelPromise.slug}_slide1`,
-                [reelPromise.category || 'Politics'],
-                'modi',
-                reelPromise.source_manifesto_year
-            );
+            const slide1Slug = `${reelPromise.slug}_slide1`;
+            console.log(`[Pipeline] Checking local cache for Slide 1 (${slide1Slug})...`);
+            let img1 = null;
+            if (supabase) {
+                const { data } = await (supabase as any)
+                    .from('media_assets')
+                    .select('*')
+                    .eq('slug', slide1Slug)
+                    .limit(1);
+                if (data && data.length > 0) {
+                    console.log(`[Pipeline] Found cached/pre-seeded Slide 1 image: ${data[0].path}`);
+                    img1 = {
+                        path: data[0].path,
+                        publicUrl: supabase.storage.from('reel-assets').getPublicUrl(data[0].path).data.publicUrl
+                    };
+                }
+            }
+
+            if (!img1) {
+                console.log(`[Pipeline] Generating Image 1 via Imagen 4.0...`);
+                img1 = await generateImagenAsset(
+                    slide1Prompt,
+                    slide1Slug,
+                    [reelPromise.category || 'Politics'],
+                    'modi',
+                    reelPromise.source_manifesto_year
+                );
+            }
+
             if (!img1) {
                 console.log(`[Pipeline] Imagen 1 failed or skipped. Falling back to Wikimedia Commons...`);
                 img1 = await findOrImportWikimediaImage(
                     reelPromise.category || 'Politics',
                     tags,
                     'modi',
-                    reelPromise.source_manifesto_year
+                    reelPromise.source_manifesto_year,
+                    slide1Slug
                 );
             }
             if (img1) topicImageUrls.push(img1.publicUrl);
@@ -561,14 +583,35 @@ Make sure to only mention facts from the verified data, explicitly naming the le
 
         // Slide 2 Image
         try {
-            console.log(`[Pipeline] Generating Image 2 via Imagen 3...`);
-            let img2 = await generateImagenAsset(
-                slide2Prompt,
-                `${reelPromise.slug}_slide2`,
-                [reelPromise.category || 'Politics'],
-                undefined,
-                reelPromise.source_manifesto_year
-            );
+            const slide2Slug = `${reelPromise.slug}_slide2`;
+            console.log(`[Pipeline] Checking local cache for Slide 2 (${slide2Slug})...`);
+            let img2 = null;
+            if (supabase) {
+                const { data } = await (supabase as any)
+                    .from('media_assets')
+                    .select('*')
+                    .eq('slug', slide2Slug)
+                    .limit(1);
+                if (data && data.length > 0) {
+                    console.log(`[Pipeline] Found cached/pre-seeded Slide 2 image: ${data[0].path}`);
+                    img2 = {
+                        path: data[0].path,
+                        publicUrl: supabase.storage.from('reel-assets').getPublicUrl(data[0].path).data.publicUrl
+                    };
+                }
+            }
+
+            if (!img2) {
+                console.log(`[Pipeline] Generating Image 2 via Imagen 4.0...`);
+                img2 = await generateImagenAsset(
+                    slide2Prompt,
+                    slide2Slug,
+                    [reelPromise.category || 'Politics'],
+                    undefined,
+                    reelPromise.source_manifesto_year
+                );
+            }
+
             if (!img2) {
                 console.log(`[Pipeline] Imagen 2 failed or skipped. Falling back to Wikimedia Commons...`);
                 const cleanTitle = (reelPromise.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
@@ -578,10 +621,12 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                         titleKeywords,
                         [reelPromise.category, 'India'],
                         undefined,
-                        reelPromise.source_manifesto_year
+                        reelPromise.source_manifesto_year,
+                        slide2Slug
                     );
                 }
             }
+
             if (img2) {
                 topicImageUrls.push(img2.publicUrl);
             } else if (topicImageUrls[0]) {
@@ -594,23 +639,46 @@ Make sure to only mention facts from the verified data, explicitly naming the le
 
         // Slide 3 Image
         try {
-            console.log(`[Pipeline] Generating Image 3 via Imagen 3...`);
-            let img3 = await generateImagenAsset(
-                slide3Prompt,
-                `${reelPromise.slug}_slide3`,
-                [reelPromise.category || 'Politics'],
-                undefined,
-                reelPromise.source_manifesto_year
-            );
+            const slide3Slug = `${reelPromise.slug}_slide3`;
+            console.log(`[Pipeline] Checking local cache for Slide 3 (${slide3Slug})...`);
+            let img3 = null;
+            if (supabase) {
+                const { data } = await (supabase as any)
+                    .from('media_assets')
+                    .select('*')
+                    .eq('slug', slide3Slug)
+                    .limit(1);
+                if (data && data.length > 0) {
+                    console.log(`[Pipeline] Found cached/pre-seeded Slide 3 image: ${data[0].path}`);
+                    img3 = {
+                        path: data[0].path,
+                        publicUrl: supabase.storage.from('reel-assets').getPublicUrl(data[0].path).data.publicUrl
+                    };
+                }
+            }
+
+            if (!img3) {
+                console.log(`[Pipeline] Generating Image 3 via Imagen 4.0...`);
+                img3 = await generateImagenAsset(
+                    slide3Prompt,
+                    slide3Slug,
+                    [reelPromise.category || 'Politics'],
+                    undefined,
+                    reelPromise.source_manifesto_year
+                );
+            }
+
             if (!img3) {
                 console.log(`[Pipeline] Imagen 3 failed or skipped. Falling back to Wikimedia Commons...`);
                 img3 = await findOrImportWikimediaImage(
                     'Parliament of India',
                     ['Government', 'India', 'Delhi'],
                     undefined,
-                    reelPromise.source_manifesto_year
+                    reelPromise.source_manifesto_year,
+                    slide3Slug
                 );
             }
+
             if (img3) {
                 topicImageUrls.push(img3.publicUrl);
             } else if (topicImageUrls[0]) {
@@ -622,6 +690,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         }
 
         console.log(`[Pipeline] Final slide images for rendering: [${topicImageUrls.join(', ')}]`);
+
 
         // ── Step 5: Generate Video via Puppeteer ─────────────────
         console.log('\n🎥 Step 5: Capturing headless video...');

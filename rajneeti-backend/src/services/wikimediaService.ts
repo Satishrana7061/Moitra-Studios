@@ -96,7 +96,8 @@ export async function findOrImportWikimediaImage(
     topic: string,
     tags: string[],
     leader?: string,
-    yearContext?: number
+    yearContext?: number,
+    customSlug?: string
 ): Promise<{ path: string; publicUrl: string } | null> {
     if (!supabase) {
         console.error("[WikimediaService] Supabase is not initialized.");
@@ -106,14 +107,17 @@ export async function findOrImportWikimediaImage(
     await ensureBucketExists();
 
     // ── STEP 1: Search local library first (Reuse-first logic) ──
-    console.log(`[WikimediaService] Searching local media_assets for topic: "${topic}"...`);
+    const searchTarget = customSlug ? `slug: "${customSlug}"` : `topic: "${topic}"`;
+    console.log(`[WikimediaService] Searching local media_assets for ${searchTarget}...`);
     try {
         // Query database to see if we already have this asset
-        const { data: existingAssets, error: dbError } = await (supabase as any)
-            .from('media_assets')
-            .select('*')
-            .eq('topic', topic)
-            .limit(1);
+        let query = (supabase as any).from('media_assets').select('*');
+        if (customSlug) {
+            query = query.eq('slug', customSlug);
+        } else {
+            query = query.eq('topic', topic);
+        }
+        const { data: existingAssets, error: dbError } = await query.limit(1);
 
         if (!dbError && existingAssets && existingAssets.length > 0) {
             const asset = existingAssets[0];
@@ -170,7 +174,7 @@ export async function findOrImportWikimediaImage(
     // ── STEP 4: Upload to Supabase Storage ──
     const fileExt = fileInfo.url.split('.').pop()?.toLowerCase() || 'jpg';
     const cleanTitle = fileTitle.replace(/^File:/i, '');
-    const slug = cleanTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
+    const slug = customSlug || cleanTitle.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
     
     let filePath = '';
     if (leader) {

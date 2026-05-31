@@ -7,7 +7,8 @@
         "dev": "tsx watch src/server.ts",
         "start": "tsx src/server.ts",
         "build": "tsc",
-        "seed-assets": "tsx src/seed_media_assets.ts"
+        "seed-assets": "tsx src/seed_media_assets.ts",
+        "seed-promise-images": "tsx src/seed_promise_images.ts"
     },
     "dependencies": {
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

@@ -614,18 +614,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             }
 
             if (!img1) {
-                console.log(`[Pipeline] Generating Image 1 via Imagen 4.0...`);
-                img1 = await generateImagenAsset(
-                    slide1Prompt,
-                    slide1Slug,
-                    [reelPromise.category || 'Politics'],
-                    'modi',
-                    reelPromise.source_manifesto_year
-                );
-            }
-
-            if (!img1) {
-                console.log(`[Pipeline] Imagen 1 failed or skipped. Falling back to Wikimedia Commons...`);
+                console.log(`[Pipeline] Skipping Imagen 4.0. Importing from Wikimedia Commons...`);
                 img1 = await findOrImportWikimediaImage(
                     reelPromise.category || 'Politics',
                     tags,
@@ -660,18 +649,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             }
 
             if (!img2) {
-                console.log(`[Pipeline] Generating Image 2 via Imagen 4.0...`);
-                img2 = await generateImagenAsset(
-                    slide2Prompt,
-                    slide2Slug,
-                    [reelPromise.category || 'Politics'],
-                    undefined,
-                    reelPromise.source_manifesto_year
-                );
-            }
-
-            if (!img2) {
-                console.log(`[Pipeline] Imagen 2 failed or skipped. Falling back to Wikimedia Commons...`);
+                console.log(`[Pipeline] Skipping Imagen 4.0. Importing from Wikimedia Commons...`);
                 const cleanTitle = (reelPromise.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
                 const titleKeywords = cleanTitle.split(' ').filter((w: string) => w.length > 3).slice(0, 3).join(' ');
                 if (titleKeywords) {
@@ -716,18 +694,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             }
 
             if (!img3) {
-                console.log(`[Pipeline] Generating Image 3 via Imagen 4.0...`);
-                img3 = await generateImagenAsset(
-                    slide3Prompt,
-                    slide3Slug,
-                    [reelPromise.category || 'Politics'],
-                    undefined,
-                    reelPromise.source_manifesto_year
-                );
-            }
-
-            if (!img3) {
-                console.log(`[Pipeline] Imagen 3 failed or skipped. Falling back to Wikimedia Commons...`);
+                console.log(`[Pipeline] Skipping Imagen 4.0. Importing from Wikimedia Commons...`);
                 img3 = await findOrImportWikimediaImage(
                     'Parliament of India',
                     ['Government', 'India', 'Delhi'],

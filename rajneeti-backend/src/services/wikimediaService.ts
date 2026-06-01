@@ -140,17 +140,26 @@ export async function findOrImportWikimediaImage(
     console.log(`[WikimediaService] Querying Wikimedia Commons for topic: "${topic}"...`);
     let fileTitle = await searchWikimediaFile(topic);
     
-    // Fallback search with tag keywords if primary query failed
-    if (!fileTitle && tags.length > 0) {
-        for (const tag of tags.slice(0, 2)) {
-            console.log(`[WikimediaService] Fallback search using tag: "${tag}"...`);
-            fileTitle = await searchWikimediaFile(tag);
-            if (fileTitle) break;
+    if (!fileTitle) {
+        console.log(`[WikimediaService] Query returned no results. Using curated high-quality political/development fallback...`);
+        if (customSlug && customSlug.endsWith('_slide3')) {
+            fileTitle = "File:Sansad Bhavan.jpg"; // Parliament of India
+        } else if (customSlug && customSlug.endsWith('_slide2')) {
+            const topicLower = topic.toLowerCase();
+            if (topicLower.includes('rail') || topicLower.includes('road') || topicLower.includes('port') || topicLower.includes('highway') || topicLower.includes('infra') || topicLower.includes('computer') || topicLower.includes('network') || topicLower.includes('digital') || topicLower.includes('technology')) {
+                fileTitle = "File:Metro Delhi.jpg";
+            } else if (topicLower.includes('rural') || topicLower.includes('farm') || topicLower.includes('agriculture') || topicLower.includes('poor') || topicLower.includes('child') || topicLower.includes('women') || topicLower.includes('health')) {
+                fileTitle = "File:Indian farmers working in a paddy field.jpg";
+            } else {
+                fileTitle = "File:Solar panels at Charanka Solar Park India.jpg";
+            }
+        } else {
+            fileTitle = "File:Narendra Modi (2018-03-08).jpg"; // Slide 1 (or general): Narendra Modi
         }
     }
 
     if (!fileTitle) {
-        console.log(`[WikimediaService] No images found on Wikimedia for query/tags.`);
+        console.log(`[WikimediaService] No image could be resolved.`);
         return null;
     }
 

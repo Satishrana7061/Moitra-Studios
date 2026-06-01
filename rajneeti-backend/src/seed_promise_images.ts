@@ -124,11 +124,14 @@ async function seedPromiseImages() {
         process.exit(1);
     }
 
-    // Step 1: Fetch all promises
-    console.log('[Seed] Fetching promises from database...');
+    // Step 1: Fetch verified, unposted promises (batch of 20 at a time)
+    console.log('[Seed] Fetching verified, unposted promises from database...');
     const { data: promises, error } = await (supabase as any)
         .from('manifesto_promises')
-        .select('*');
+        .select('*')
+        .eq('verified_by_ai', true)
+        .or('reel_posted.is.null,reel_posted.eq.false')
+        .limit(20);
 
     if (error || !promises) {
         console.error('[Seed] Failed to fetch promises:', error?.message);

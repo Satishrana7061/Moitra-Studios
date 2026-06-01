@@ -37,7 +37,7 @@ async function searchWikimediaFile(query: string): Promise<string | null> {
     const params = new URLSearchParams({
         action: "query",
         list: "search",
-        srsearch: `${query} namespace:6`, // Search specifically in File/Media namespace
+        srsearch: query, // Search clean query
         srnamespace: "6",
         format: "json"
     });
@@ -142,20 +142,21 @@ export async function findOrImportWikimediaImage(
     
     if (!fileTitle) {
         console.log(`[WikimediaService] Query returned no results. Using curated high-quality political/development fallback...`);
+        let fallbackQuery = "Narendra Modi";
         if (customSlug && customSlug.endsWith('_slide3')) {
-            fileTitle = "File:Sansad Bhavan.jpg"; // Parliament of India
+            fallbackQuery = "Parliament of India New Delhi";
         } else if (customSlug && customSlug.endsWith('_slide2')) {
             const topicLower = topic.toLowerCase();
             if (topicLower.includes('rail') || topicLower.includes('road') || topicLower.includes('port') || topicLower.includes('highway') || topicLower.includes('infra') || topicLower.includes('computer') || topicLower.includes('network') || topicLower.includes('digital') || topicLower.includes('technology')) {
-                fileTitle = "File:Metro Delhi.jpg";
+                fallbackQuery = "Delhi Metro Welcome Station";
             } else if (topicLower.includes('rural') || topicLower.includes('farm') || topicLower.includes('agriculture') || topicLower.includes('poor') || topicLower.includes('child') || topicLower.includes('women') || topicLower.includes('health')) {
-                fileTitle = "File:Indian farmers working in a paddy field.jpg";
+                fallbackQuery = "Indian farmers paddy field";
             } else {
-                fileTitle = "File:Solar panels at Charanka Solar Park India.jpg";
+                fallbackQuery = "Solar panels Charanka Solar Park India";
             }
-        } else {
-            fileTitle = "File:Narendra Modi (2018-03-08).jpg"; // Slide 1 (or general): Narendra Modi
         }
+        console.log(`[WikimediaService] Searching for fallback query: "${fallbackQuery}"...`);
+        fileTitle = await searchWikimediaFile(fallbackQuery);
     }
 
     if (!fileTitle) {

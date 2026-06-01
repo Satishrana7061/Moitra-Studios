@@ -153,16 +153,16 @@ const HeadlessReelGenerator: React.FC = () => {
 
                     {/* Middle Section: News Story Slides */}
                     <div className="flex-1 relative flex items-center justify-center my-16 z-10">
-                        <div className="w-full relative">
+                        <div className="w-[950px] h-[850px] relative">
                             {slides.map((slide, i) => (
                                 <div 
                                     key={i} 
-                                    className={`absolute w-full left-0 transition-all duration-700 ease-out transform ${
+                                    className={`absolute inset-0 transition-all duration-700 ease-out transform ${
                                         i === slideIndex ? 'translate-y-0 opacity-100 scale-100' : 
                                         i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
                                     }`}
                                 >
-                                    <div className="flex flex-col items-start p-8 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] mx-4 w-[950px] h-[850px] justify-between">
+                                    <div className="flex flex-col items-start p-8 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full h-full justify-between">
                                         <div className="w-full flex flex-col items-start">
                                             <div className={`text-white px-8 py-3 font-bold uppercase tracking-widest mb-6 text-3xl rounded-xl shadow-lg ${
                                                 slide.type === 'headline' ? 'bg-gradient-to-r from-amber-600 to-orange-600' : 'bg-[#1d4ed8]'

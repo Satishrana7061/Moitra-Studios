@@ -4,7 +4,13 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: Buffer, imageUrls?: string[]): Promise<Buffer> {
+export async function generateHeadlessVideo(
+    campaignSlug: string, 
+    audioBuffer: Buffer, 
+    imageUrls?: string[],
+    reporterDuration?: number,
+    modiDuration?: number
+): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
     const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
     const encodedSummary = encodeURIComponent(process.env.NEWS_SUMMARY || 'Latest political news.');
@@ -16,7 +22,10 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
     const year = encodeURIComponent(process.env.MANIFESTO_YEAR || '2014');
     const imagesParam = imageUrls && imageUrls.length > 0 ? `&images=${encodeURIComponent(imageUrls.join(','))}` : '';
 
-    const targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}&slide1=${slide1}&slide2=${slide2}&slide3=${slide3}&reelNum=${reelNum}&year=${year}${imagesParam}`;
+    let targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}&slide1=${slide1}&slide2=${slide2}&slide3=${slide3}&reelNum=${reelNum}&year=${year}${imagesParam}`;
+    if (reporterDuration !== undefined && modiDuration !== undefined) {
+        targetUrl += `&format=conversational&reporter_duration=${reporterDuration}&modi_duration=${modiDuration}`;
+    }
 
     // Create a temp directory for our frames
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'reel-'));
@@ -113,15 +122,28 @@ export async function generateHeadlessVideo(campaignSlug: string, audioBuffer: B
             }
         }
 
-        const slideDuration = audioDuration / totalSlides;
-        console.log(`[Puppeteer] Calculated slide duration: ${slideDuration}s per slide (total: ${audioDuration}s)`);
+        let isConversational = reporterDuration !== undefined && modiDuration !== undefined;
+        let slideDuration = audioDuration / totalSlides;
+        
+        console.log(`[Puppeteer] Concat durations configuration: isConversational=${isConversational}, reporterDuration=${reporterDuration}, modiDuration=${modiDuration}`);
 
         // Build a concat file for ffmpeg
         const concatLines: string[] = [];
         for (let i = 0; i < totalSlides; i++) {
             const framePath = path.join(tmpDir, `slide_${i}.png`);
             concatLines.push(`file '${framePath}'`);
-            concatLines.push(`duration ${slideDuration}`);
+            
+            let duration = slideDuration;
+            if (isConversational) {
+                if (i === 0) {
+                    duration = reporterDuration!;
+                } else if (i === 1) {
+                    duration = modiDuration!;
+                } else if (i === 2) {
+                    duration = 5.0; // Summary slide stays on screen for 5.0 seconds
+                }
+            }
+            concatLines.push(`duration ${duration}`);
         }
         // Repeat last frame (ffmpeg concat demuxer requirement)
         concatLines.push(`file '${path.join(tmpDir, `slide_${totalSlides - 1}.png`)}'`);

@@ -211,7 +211,7 @@ const Navbar: React.FC = () => {
                       onClick={() => handleNavClick(link.href)}
                       className={`relative text-[11px] 2xl:text-xs font-bold uppercase tracking-[0.15em] transition-all duration-300 py-2 group flex items-center gap-1.5 whitespace-nowrap navbar-link-hover ${active ? 'navbar-link-active' : ''}`}
                     >
-                      {link.label === 'Social Campaigns' ? (
+                      {link.label === 'PM Interview' ? (
                         <span className={`flex items-center gap-1.5 transition-all duration-300 ${active ? 'text-white' : 'text-slate-400 group-hover:text-white group-hover:tracking-[0.2em]'}`}>
                           <span className="relative flex h-2 w-2 shrink-0">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -299,7 +299,7 @@ const Navbar: React.FC = () => {
                         animation: `navbar-menu-stagger 0.4s cubic-bezier(0.32, 0.72, 0, 1) ${idx * 0.08}s both`,
                       }}
                     >
-                      {link.label === 'Social Campaigns' && (
+                      {link.label === 'PM Interview' && (
                         <span className="relative flex h-2.5 w-2.5 shrink-0">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
                           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500" />

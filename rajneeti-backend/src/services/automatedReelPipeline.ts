@@ -228,12 +228,14 @@ export async function runAutomatedReelPipeline() {
     // ── GATE: Check if auto-posting is enabled ──────────────────
     if (process.env.ENABLE_AUTO_POSTING !== 'true') {
         console.log('\n⏸️  [Pipeline] Auto-posting is DISABLED. Set ENABLE_AUTO_POSTING=true in .env to enable.');
-        console.log('   [Pipeline] You can still manually trigger reels from the frontend Creator Studio.');
         return;
     }
 
-    console.log('\n=== STARTING AUTOMATED REEL PIPELINE ===');
+    const { runConversationalReelPipeline } = await import('./conversationPipeline.js');
+    return runConversationalReelPipeline();
+}
 
+export async function runLegacyAutomatedReelPipeline() {
     try {
         // ── Step 1: Verify one promise (daily fact-check) ────────
         console.log('\n📋 Step 1: Running Truth Engine verification...');

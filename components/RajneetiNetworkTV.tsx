@@ -58,7 +58,7 @@ const RajneetiNetworkTV: React.FC = () => {
     const [selectedFilter, setSelectedFilter] = useState(initialFilterState);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [isStudioDropdownOpen, setIsStudioDropdownOpen] = useState(false);
-    const [liveCampaign, setLiveCampaign] = useState<SocialCampaign | null>(null);
+    const [latestInterview, setLatestInterview] = useState<{ id: string; title: string; question: string } | null>(null);
     const [isStudioMode, setIsStudioMode] = useState(false);
     const [aiAnchorImage, setAiAnchorImage] = useState<string | null>(localStorage.getItem('rajneeti_ai_anchor') || '/AI-Anchors/teen-anchor.jpg');
     const [talkingReelUrl, setTalkingReelUrl] = useState<string | null>(null);
@@ -339,19 +339,25 @@ const RajneetiNetworkTV: React.FC = () => {
             }
         };
 
-        const fetchLiveCampaign = async () => {
+        const fetchLatestInterview = async () => {
             try {
-                const experience = await dynamicCampaignService.getActiveExperience();
-                if (experience.type === 'campaign' && experience.data) {
-                    setLiveCampaign(experience.data as SocialCampaign);
+                if (supabase) {
+                    const { data, error } = await supabase
+                        .from('pm_interviews')
+                        .select('id, title, question')
+                        .order('news_date', { ascending: false })
+                        .limit(1);
+                    if (!error && data && data.length > 0) {
+                        setLatestInterview(data[0]);
+                    }
                 }
             } catch (e) {
-                // Silently ignore — this is a bonus UI element
+                console.error("Failed to fetch latest PM interview for banner:", e);
             }
         };
 
         fetchDailyNews();
-        fetchLiveCampaign();
+        fetchLatestInterview();
     }, [selectedFilter]);
 
     // Auto-scroll to the selected news item on initial load AND when activeIndex changes
@@ -624,22 +630,25 @@ const RajneetiNetworkTV: React.FC = () => {
                             </div>
                         </div>
 
-                        {liveCampaign && (
+                        {latestInterview && (
                             <div className="relative rounded-2xl overflow-hidden border border-gameOrange/20 bg-gradient-to-r from-slate-900 to-black p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-3 h-3 bg-red-500 rounded-full animate-ping" />
+                                    <div className="w-3 h-3 bg-red-500 rounded-full animate-ping shrink-0" />
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="text-white font-black font-rajdhani text-xl uppercase leading-tight mb-2">
-                                            {liveCampaign.title}
+                                        <h4 className="text-gameOrange font-bold text-[10px] tracking-widest uppercase mb-1">
+                                            LIVE PM BRIEFING
+                                        </h4>
+                                        <h3 className="text-white font-black font-rajdhani text-xl uppercase leading-tight mb-2 line-clamp-1">
+                                            {latestInterview.title}
                                         </h3>
-                                        <p className="text-slate-400 text-sm line-clamp-1">{liveCampaign.subtitle}</p>
+                                        <p className="text-slate-400 text-sm line-clamp-1 normal-case">{latestInterview.question}</p>
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => navigate(`/social-campaign/${liveCampaign.id}`)}
+                                    onClick={() => navigate(`/pm-interview`)}
                                     className="shrink-0 flex items-center gap-2 bg-gameOrange text-white px-6 py-3 rounded-full font-black uppercase tracking-widest text-xs hover:bg-orange-500 transition-all shadow-xl hover:scale-105"
                                 >
-                                    Cast Your Vote <ArrowRight size={14} />
+                                    Read Full Interview <ArrowRight size={14} />
                                 </button>
                             </div>
                         )}

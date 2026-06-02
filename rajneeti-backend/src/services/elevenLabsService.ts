@@ -6,13 +6,13 @@
  * Text should be pre-normalized (years → Hindi words) before calling this.
  */
 
-export async function generateAudio(text: string): Promise<Buffer> {
+export async function generateAudio(text: string, voiceId?: string): Promise<Buffer> {
     const apiKey = process.env.ELEVENLABS_API_KEY;
-    const voiceId = process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs'; // User defined voice
+    const finalVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs'; // User defined voice
 
     if (!apiKey) throw new Error("ELEVENLABS_API_KEY is not set.");
 
-    const url = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
+    const url = `https://api.elevenlabs.io/v1/text-to-speech/${finalVoiceId}`;
     
     try {
         const response = await fetch(url, {

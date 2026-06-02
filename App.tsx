@@ -9,8 +9,7 @@ import RajneetiMap from './components/RajneetiMap';
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const ContactSection = lazy(() => import('./components/ContactSection'));
 const RajneetiNetworkTV = lazy(() => import('./components/RajneetiNetworkTV'));
-const SocialCampaignsList = lazy(() => import('./components/SocialCampaignsList'));
-const SocialCampaignDetail = lazy(() => import('./components/SocialCampaignDetail'));
+const PMInterview = lazy(() => import('./components/PMInterview'));
 const HeadlessReelGenerator = lazy(() => import('./components/HeadlessReelGenerator'));
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
 const ManifestoHub = lazy(() => import('./components/ManifestoHub'));
@@ -65,8 +64,8 @@ const App: React.FC = () => {
             <Route path="/contact-us" element={<ContactSection />} />
             <Route path="/rajneeti-tv-network" element={<RajneetiNetworkTV />} />
             <Route path="/rajneeti-tv-network/:slug" element={<RajneetiNetworkTV />} />
-            <Route path="/social-campaign" element={<SocialCampaignsList />} />
-            <Route path="/social-campaign/:id" element={<SocialCampaignDetail />} />
+            <Route path="/pm-interview" element={<PMInterview />} />
+            <Route path="/pm-interview/:slug" element={<PMInterview />} />
             <Route path="/headless-reel/:id" element={<HeadlessReelGenerator />} />
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/prime-ministers-promises" element={<ManifestoHub />} />

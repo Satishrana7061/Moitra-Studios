@@ -243,12 +243,9 @@ export async function generateKineticReel(
 
         const filterLines: string[] = [];
 
-        // Base: dark gradient background
-        filterLines.push('[0:v]');
-
         // --- Top section: LIVE badge ---
         filterLines.push(
-            `drawtext=fontfile='${ef}':text='  LIVE  ':fontcolor=white:fontsize=36:` +
+            `[0:v]drawtext=fontfile='${ef}':text='  LIVE  ':fontcolor=white:fontsize=36:` +
             `x=70:y=100:box=1:boxcolor=red@0.85:boxborderw=14`
         );
 
@@ -550,11 +547,10 @@ export async function generateSubtitleReel(
         const ef = escapeFilterPath(ENGLISH_FONT);
 
         const filterLines: string[] = [];
-        filterLines.push('[0:v]');
 
         // --- LIVE badge (always visible) ---
         filterLines.push(
-            `drawtext=fontfile='${ef}':text='  LIVE  ':fontcolor=white:fontsize=34:` +
+            `[0:v]drawtext=fontfile='${ef}':text='  LIVE  ':fontcolor=white:fontsize=34:` +
             `x=60:y=80:box=1:boxcolor=red@0.85:boxborderw=12`
         );
 

@@ -1,9 +1,8 @@
 import { generateAudio } from "./elevenLabsService.js";
-import { generateHeadlessVideo } from "./puppeteerVideoGenerator.js";
+import { generateKineticReel } from "./ffmpegVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
 import { verifyNextPromise, getNextVerifiedPromiseForReel } from "./truthEngine.js";
-import { findOrImportWikimediaImage, generateImagenAsset } from "./wikimediaService.js";
 import { createClient } from '@supabase/supabase-js';
 import { OPENAI_API_KEY, GEMINI_API_KEY } from "../config.js";
 
@@ -215,27 +214,50 @@ function buildInstagramCaption(promise: {
 }
 
 /**
- * The master pipeline that orchestrates the entire automated reel process.
+ * The master pipeline that orchestrates both automated reel pipelines.
  * 
  * Flow:
  * 1. Check if auto-posting is enabled
- * 2. Verify one unverified promise (dual-model fact-check)
- * 3. Pick a verified promise for reel generation
- * 4. Generate Hindi audio → capture video → upload to all platforms
- * 5. Mark promise as posted in Supabase
+ * 2. Run PM Promises reel pipeline (kinetic typography)
+ * 3. Run PM Interview reel pipeline (conversational)
  */
 export async function runAutomatedReelPipeline() {
-    // ── GATE: Check if auto-posting is enabled ──────────────────
     if (process.env.ENABLE_AUTO_POSTING !== 'true') {
-        console.log('\n⏸️  [Pipeline] Auto-posting is DISABLED. Set ENABLE_AUTO_POSTING=true in .env to enable.');
+        console.log('[Pipeline] Auto-posting is disabled. Set ENABLE_AUTO_POSTING=true to enable.');
         return;
     }
 
-    const { runConversationalReelPipeline } = await import('./conversationPipeline.js');
-    return runConversationalReelPipeline();
+    // Run PM Promises reel first
+    console.log('\n=== PHASE 1: PM PROMISES REEL ===');
+    try {
+        await runPromisesReelPipeline();
+    } catch (err: any) {
+        console.error('[Pipeline] PM Promises pipeline failed:', err.message);
+    }
+
+    // Then run PM Interview reel
+    console.log('\n=== PHASE 2: PM INTERVIEW REEL ===');
+    try {
+        const { runConversationalReelPipeline } = await import('./conversationPipeline.js');
+        await runConversationalReelPipeline();
+    } catch (err: any) {
+        console.error('[Pipeline] PM Interview pipeline failed:', err.message);
+    }
 }
 
-export async function runLegacyAutomatedReelPipeline() {
+/**
+ * PM Promises pipeline: generates a kinetic typography reel for one verified promise.
+ * 
+ * Flow:
+ * 1. Verify one unverified promise (dual-model fact-check)
+ * 2. Pick a verified promise for reel generation
+ * 3. Generate Hinglish script via AI (Gemini / OpenAI)
+ * 4. Generate Hindi audio via ElevenLabs
+ * 5. Generate kinetic typography video via ffmpeg
+ * 6. Upload to Supabase Storage + publish to social platforms
+ * 7. Mark promise as posted in database
+ */
+export async function runPromisesReelPipeline() {
     try {
         // ── Step 1: Verify one promise (daily fact-check) ────────
         console.log('\n📋 Step 1: Running Truth Engine verification...');
@@ -301,12 +323,11 @@ export async function runLegacyAutomatedReelPipeline() {
         
         // Fallback script using the "Modi Ki Guarantee" format
         let voiceoverText = `Aaj ki is video mein hum baat karenge Modi Ki Guarantee No ${reelNumber} ki. Vaada tha: ${reelPromise.title}. Lekin sawaal yeh hai, kya yeh vaada sach mein poora hua, ya sirf aadha? Ground analysis ke mutaabik, verdict hai: ${reelPromise.status}. Aise hi aur Modi Ki Guarantee audits ke liye Rajneeti TV Network ko follow karein.`;
-        let slide1 = `Modi Ki Guarantee #${reelNumber}`;
-        let slide2 = `${reelPromise.title.slice(0, 35)}`;
-        let slide3 = `Verdict: ${reelPromise.status}`;
-        let slide1Prompt = `A professional photorealistic style image representing Narendra Modi BJP government's promise context for category: ${reelPromise.category}, high quality, clear details`;
-        let slide2Prompt = `A professional photorealistic style image representing public project development or infrastructure progress in India, high quality`;
-        let slide3Prompt = `A professional graphic representation of an official audit checkmark or political review outcome, clean background`;
+        let generatedContent = {
+            slide1: `Modi Ki Guarantee #${reelNumber}`,
+            slide2: `${reelPromise.title.slice(0, 35)}`,
+            slide3: `Verdict: ${reelPromise.status}`,
+        };
         let scriptGenerated = false;
         const activeGeminiKey = process.env.GEMINI_API_KEY || GEMINI_API_KEY;
 
@@ -439,10 +460,7 @@ Output STRICT JSON ONLY:
     "year_spoken_hi": "The year written in Hindi spoken words (e.g. do hazaar chaudah)",
     "slide1": "Fuller Hindi promise description sentence (6-10 words)...",
     "slide2": "Fuller Hindi status & source sentence (6-12 words)...",
-    "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)...",
-    "slide1_prompt": "An English descriptive prompt for an image generator representing the topic (e.g. 'A professional photograph of an Indian solar farm under clear sky'). Do not include text, signs, labels, or speech bubbles in the image.",
-    "slide2_prompt": "An English descriptive prompt to illustrate the evidence/action of Slide 2. Do not include text.",
-    "slide3_prompt": "An English descriptive prompt to illustrate the final verdict/verdict context of Slide 3. Do not include text."
+    "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)..."
 }`;
 
         const userPromptText = `INPUT DATA:
@@ -458,7 +476,7 @@ Output STRICT JSON ONLY:
 IMPORTANT: Write ALL years as Hindi spoken words (${reelPromise.source_manifesto_year} = "${yearSpokenHi}"). Do NOT use any bare numerals for years in the voiceover.
 
 Write the script of 24 to 32 seconds (max 30 seconds, Voiceover must be under 30 seconds when spoken naturally, which is around 75 to 85 words).
-Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3, slide1_prompt, slide2_prompt, slide3_prompt.`;
+Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3.`;
 
         // ── Method A: Try Google Gemini API ──
         if (activeGeminiKey && activeGeminiKey !== 'PLACEHOLDER_API_KEY') {
@@ -493,20 +511,14 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                     if (rawText) {
                         const parsed = JSON.parse(rawText);
                         voiceoverText = parsed.voiceover || voiceoverText;
-                        slide1 = parsed.slide1 || slide1;
-                        slide2 = parsed.slide2 || slide2;
-                        slide3 = parsed.slide3 || slide3;
-                        slide1Prompt = parsed.slide1_prompt || slide1Prompt;
-                        slide2Prompt = parsed.slide2_prompt || slide2Prompt;
-                        slide3Prompt = parsed.slide3_prompt || slide3Prompt;
+                        generatedContent.slide1 = parsed.slide1 || generatedContent.slide1;
+                        generatedContent.slide2 = parsed.slide2 || generatedContent.slide2;
+                        generatedContent.slide3 = parsed.slide3 || generatedContent.slide3;
                         console.log(`[Pipeline] Successfully generated young-explainer script via Gemini!`);
                         console.log(`[Pipeline] Voiceover: "${voiceoverText}"`);
-                        console.log(`[Pipeline] Slide 1: "${slide1}"`);
-                        console.log(`[Pipeline] Slide 2: "${slide2}"`);
-                        console.log(`[Pipeline] Slide 3: "${slide3}"`);
-                        console.log(`[Pipeline] Slide 1 Prompt: "${slide1Prompt}"`);
-                        console.log(`[Pipeline] Slide 2 Prompt: "${slide2Prompt}"`);
-                        console.log(`[Pipeline] Slide 3 Prompt: "${slide3Prompt}"`);
+                        console.log(`[Pipeline] Slide 1: "${generatedContent.slide1}"`);
+                        console.log(`[Pipeline] Slide 2: "${generatedContent.slide2}"`);
+                        console.log(`[Pipeline] Slide 3: "${generatedContent.slide3}"`);
                         scriptGenerated = true;
                     }
                 } else {
@@ -551,12 +563,9 @@ Make sure to only mention facts from the verified data, explicitly naming the le
                     if (content) {
                         const parsed = JSON.parse(content);
                         voiceoverText = parsed.voiceover || voiceoverText;
-                        slide1 = parsed.slide1 || slide1;
-                        slide2 = parsed.slide2 || slide2;
-                        slide3 = parsed.slide3 || slide3;
-                        slide1Prompt = parsed.slide1_prompt || slide1Prompt;
-                        slide2Prompt = parsed.slide2_prompt || slide2Prompt;
-                        slide3Prompt = parsed.slide3_prompt || slide3Prompt;
+                        generatedContent.slide1 = parsed.slide1 || generatedContent.slide1;
+                        generatedContent.slide2 = parsed.slide2 || generatedContent.slide2;
+                        generatedContent.slide3 = parsed.slide3 || generatedContent.slide3;
                         console.log(`[Pipeline] Successfully generated young-explainer script via OpenAI!`);
                     }
                 } else {
@@ -590,236 +599,84 @@ Make sure to only mention facts from the verified data, explicitly naming the le
             audioBuffer = Buffer.alloc(0);
         }
 
-        // ── Step 4.5: Find or generate topic images for slides ───
-        console.log('\n🖼️ Step 4.5: Finding or generating topic images (Imagen / Wikimedia)...');
-        const topicImageUrls: string[] = [];
-        const tags = [reelPromise.category, 'India', 'BJP', 'Narendra Modi'].filter(Boolean);
+        // ── Step 5: Generate Video via ffmpeg kinetic typography ──
+        console.log('\n🎥 Step 5: Generating kinetic typography video via ffmpeg...');
 
-        // Slide 1 Image
-        try {
-            const slide1Slug = `${reelPromise.slug}_slide1`;
-            console.log(`[Pipeline] Checking local cache for Slide 1 (${slide1Slug})...`);
-            let img1 = null;
-            if (supabase) {
-                const { data } = await (supabase as any)
-                    .from('media_assets')
-                    .select('*')
-                    .eq('slug', slide1Slug)
-                    .limit(1);
-                if (data && data.length > 0) {
-                    console.log(`[Pipeline] Found cached/pre-seeded Slide 1 image: ${data[0].path}`);
-                    img1 = {
-                        path: data[0].path,
-                        publicUrl: supabase.storage.from('reel-assets').getPublicUrl(data[0].path).data.publicUrl
-                    };
-                }
+        const videoBuffer = await generateKineticReel(
+            audioBuffer,
+            [
+                { text: generatedContent.slide1, type: 'headline' as const },
+                { text: generatedContent.slide2, type: 'fact' as const },
+                { text: generatedContent.slide3, type: 'verdict' as const },
+            ],
+            {
+                reelNumber: reelNumber,
+                year: reelPromise.source_manifesto_year || '2014',
+                title: reelPromise.title,
             }
+        );
+        console.log(`[Pipeline] Video generated: ${videoBuffer.length} bytes`);
 
-            if (!img1) {
-                console.log(`[Pipeline] Skipping Imagen 4.0. Importing from Wikimedia Commons...`);
-                img1 = await findOrImportWikimediaImage(
-                    reelPromise.category || 'Politics',
-                    tags,
-                    'modi',
-                    reelPromise.source_manifesto_year,
-                    slide1Slug
-                );
-            }
-            if (img1) topicImageUrls.push(img1.publicUrl);
-        } catch (err: any) {
-            console.warn(`[Pipeline] Slide 1 image process failed: ${err.message}`);
+        // ── Step 6: Upload to Supabase Storage ───────────────────
+        console.log('\n☁️ Step 6: Uploading reel to Supabase Storage...');
+        const safeSlug = reelPromise.slug.slice(0, 50);
+        const fileName = `promise-reel-kinetic-${safeSlug}-${Date.now()}.mp4`;
+        const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
+
+        if (!publicUrl) {
+            throw new Error('[Pipeline] Supabase upload failed. Cannot continue without video URL.');
         }
+        console.log(`[Pipeline] Stored at: ${publicUrl}`);
 
-        // Slide 2 Image
-        try {
-            const slide2Slug = `${reelPromise.slug}_slide2`;
-            console.log(`[Pipeline] Checking local cache for Slide 2 (${slide2Slug})...`);
-            let img2 = null;
-            if (supabase) {
-                const { data } = await (supabase as any)
-                    .from('media_assets')
-                    .select('*')
-                    .eq('slug', slide2Slug)
-                    .limit(1);
-                if (data && data.length > 0) {
-                    console.log(`[Pipeline] Found cached/pre-seeded Slide 2 image: ${data[0].path}`);
-                    img2 = {
-                        path: data[0].path,
-                        publicUrl: supabase.storage.from('reel-assets').getPublicUrl(data[0].path).data.publicUrl
-                    };
-                }
-            }
+        // ── Step 7: Publish to Social Media ──────────────────────
+        console.log('\n📱 Step 7: Publishing reel to social platforms...');
 
-            if (!img2) {
-                console.log(`[Pipeline] Skipping Imagen 4.0. Importing from Wikimedia Commons...`);
-                const cleanTitle = (reelPromise.title || '').replace(/[^a-zA-Z0-9 ]/g, '');
-                const titleKeywords = cleanTitle.split(' ').filter((w: string) => w.length > 3).slice(0, 3).join(' ');
-                if (titleKeywords) {
-                    img2 = await findOrImportWikimediaImage(
-                        titleKeywords,
-                        [reelPromise.category, 'India'],
-                        undefined,
-                        reelPromise.source_manifesto_year,
-                        slide2Slug
-                    );
-                }
-            }
+        const igCaption = buildInstagramCaption(reelPromise, reelNumber);
+        const fbCaption = igCaption;
+        const ytTitle = buildYouTubeTitle(reelPromise, reelNumber);
+        const ytDescription = buildYouTubeDescription(reelPromise, reelNumber);
+        const ytHashtags = buildYouTubeHashtags(reelPromise, reelNumber);
 
-            if (img2) {
-                topicImageUrls.push(img2.publicUrl);
-            } else if (topicImageUrls[0]) {
-                topicImageUrls.push(topicImageUrls[0]); // fallback
-            }
-        } catch (err: any) {
-            console.warn(`[Pipeline] Slide 2 image process failed: ${err.message}`);
-            if (topicImageUrls[0]) topicImageUrls.push(topicImageUrls[0]);
-        }
+        console.log(`[Pipeline] YT Title: "${ytTitle}"`);
 
-        // Slide 3 Image
-        try {
-            const slide3Slug = `${reelPromise.slug}_slide3`;
-            console.log(`[Pipeline] Checking local cache for Slide 3 (${slide3Slug})...`);
-            let img3 = null;
-            if (supabase) {
-                const { data } = await (supabase as any)
-                    .from('media_assets')
-                    .select('*')
-                    .eq('slug', slide3Slug)
-                    .limit(1);
-                if (data && data.length > 0) {
-                    console.log(`[Pipeline] Found cached/pre-seeded Slide 3 image: ${data[0].path}`);
-                    img3 = {
-                        path: data[0].path,
-                        publicUrl: supabase.storage.from('reel-assets').getPublicUrl(data[0].path).data.publicUrl
-                    };
-                }
-            }
+        // Instagram
+        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
+        if (!igSuccess) console.warn('[Pipeline] Instagram upload failed, continuing...');
 
-            if (!img3) {
-                console.log(`[Pipeline] Skipping Imagen 4.0. Importing from Wikimedia Commons...`);
-                img3 = await findOrImportWikimediaImage(
-                    'Parliament of India',
-                    ['Government', 'India', 'Delhi'],
-                    undefined,
-                    reelPromise.source_manifesto_year,
-                    slide3Slug
-                );
-            }
+        // Facebook
+        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, fbCaption);
+        if (!fbSuccess) console.warn('[Pipeline] Facebook upload failed, continuing...');
 
-            if (img3) {
-                topicImageUrls.push(img3.publicUrl);
-            } else if (topicImageUrls[0]) {
-                topicImageUrls.push(topicImageUrls[0]); // fallback
-            }
-        } catch (err: any) {
-            console.warn(`[Pipeline] Slide 3 image process failed: ${err.message}`);
-            if (topicImageUrls[0]) topicImageUrls.push(topicImageUrls[0]);
-        }
+        // YouTube
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytHashtags.metaTags);
+        if (!ytSuccess) console.warn('[Pipeline] YouTube upload failed.');
 
-        console.log(`[Pipeline] Final slide images for rendering: [${topicImageUrls.join(', ')}]`);
+        // ── Step 8: Mark promise as posted in Supabase ───────────
+        if (supabase) {
+            console.log('\n✏️ Step 8: Marking promise as reel-posted in database...');
+            const { error: markError } = await (supabase as any)
+                .from('manifesto_promises')
+                .update({
+                    reel_posted: true,
+                    reel_link: publicUrl,
+                })
+                .eq('id', reelPromise.id);
 
-
-        // ── Step 5: Generate Video via Puppeteer ─────────────────
-        console.log('\n🎥 Step 5: Capturing headless video...');
-
-        // Set env vars for the puppeteer video generator
-        process.env.NEWS_TITLE = `Modi Ki Guarantee: ${reelPromise.title}`;
-        process.env.NEWS_SUMMARY = reelPromise.verdict_summary;
-        process.env.SLIDE_1 = slide1;
-        process.env.SLIDE_2 = slide2;
-        process.env.SLIDE_3 = slide3;
-        process.env.REEL_NUM = String(reelNumber);
-        process.env.MANIFESTO_YEAR = String(reelPromise.source_manifesto_year);
-
-        const stylesToGenerate = ['kinetic', 'dashboard'];
-        let overallSuccess = true;
-
-        for (const currentStyle of stylesToGenerate) {
-            console.log(`\n🎬 [Pipeline] Compiling and posting video for style: ${currentStyle.toUpperCase()}`);
-            
-            const videoBuffer = await generateHeadlessVideo(
-                reelPromise.slug, 
-                audioBuffer, 
-                topicImageUrls, 
-                undefined, 
-                undefined, 
-                currentStyle
-            );
-            console.log(`[Pipeline] Video generated for style ${currentStyle}: ${videoBuffer.length} bytes`);
-
-            // ── Step 6: Upload to Supabase Storage ───────────────────
-            console.log(`\n☁️ [Pipeline] Uploading ${currentStyle} reel to Supabase Storage...`);
-            const safeSlug = reelPromise.slug.slice(0, 50);
-            const fileName = `promise-reel-${currentStyle}-${safeSlug}-${Date.now()}.mp4`;
-            const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
-
-            if (!publicUrl) {
-                console.error(`[Pipeline] Supabase upload failed for style ${currentStyle}. Skipping.`);
-                overallSuccess = false;
-                continue;
-            }
-            console.log(`[Pipeline] Stored style ${currentStyle} at: ${publicUrl}`);
-
-            // ── Step 7: Publish to Social Media ──────────────────────
-            console.log(`\n📱 [Pipeline] Publishing ${currentStyle} reel to social platforms...`);
-
-            // Add style indicator to caption
-            const styleLabel = currentStyle === 'kinetic' ? 'Kinetic Typography Visual Audit' : 'Interactive Scorecard Dashboard Audit';
-            const igCaption = buildInstagramCaption(reelPromise, reelNumber) + `\n\n[Format: ${styleLabel}]`;
-            const fbCaption = igCaption;
-
-            // Differentiate YouTube title slightly
-            let ytTitle = buildYouTubeTitle(reelPromise, reelNumber);
-            if (currentStyle === 'kinetic') {
-                ytTitle = `${ytTitle} - Kinetic`.slice(0, 100);
-            } else {
-                ytTitle = `${ytTitle} - Scorecard`.slice(0, 100);
-            }
-            const ytDescription = buildYouTubeDescription(reelPromise, reelNumber);
-            const ytHashtags = buildYouTubeHashtags(reelPromise, reelNumber);
-
-            console.log(`[Pipeline] YT Title: "${ytTitle}"`);
-            
-            // Instagram
-            const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
-            if (!igSuccess) console.warn(`[Pipeline] Instagram upload failed for style ${currentStyle}, continuing...`);
-
-            // Facebook
-            const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, fbCaption);
-            if (!fbSuccess) console.warn(`[Pipeline] Facebook upload failed for style ${currentStyle}, continuing...`);
-
-            // YouTube
-            const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytHashtags.metaTags);
-            if (!ytSuccess) console.warn(`[Pipeline] YouTube upload failed for style ${currentStyle}.`);
-
-            // ── Step 8: Mark promise as posted in Supabase (we save the dashboard URL) ───────────
-            if (supabase && currentStyle === 'dashboard') {
-                console.log('\n✏️ [Pipeline] Marking promise as reel-posted in database...');
-                const { error: markError } = await (supabase as any)
-                    .from('manifesto_promises')
-                    .update({
-                        reel_posted: true,
-                        reel_link: publicUrl,
-                    })
-                    .eq('id', reelPromise.id);
-
-                if (markError) {
-                    console.error(`[Pipeline] Failed to mark as posted in database: ${markError.message}`);
-                }
+            if (markError) {
+                console.error(`[Pipeline] Failed to mark as posted in database: ${markError.message}`);
             }
         }
 
         // ── Step 9: Cleanup old videos ───────────────────────────
         await SupabaseStorageService.cleanupOldVideos();
 
-        console.log('\n=== AUTOMATED REEL PIPELINE COMPLETED SUCCESSFULLY ===');
+        console.log('\n=== PM PROMISES REEL PIPELINE COMPLETED SUCCESSFULLY ===');
         console.log(`   Promise: "${reelPromise.title}"`);
         console.log(`   Status: ${reelPromise.status}`);
         console.log(`   Reel #: ${reelNumber}`);
-        console.log(`   Processed and uploaded both styles (Kinetic & Dashboard).`);
 
     } catch (err: any) {
-        console.error('\n=== AUTOMATED REEL PIPELINE FAILED ===', err.message || err);
+        console.error('\n=== PM PROMISES REEL PIPELINE FAILED ===', err.message || err);
         throw err;
     }
 }

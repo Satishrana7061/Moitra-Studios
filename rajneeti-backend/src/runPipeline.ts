@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 console.log("🚀 Starting standalone automated reel pipeline execution...");
+console.log("   This will run BOTH PM Promises + PM Interview pipelines.");
 
 runAutomatedReelPipeline().then(() => {
     console.log("✅ Pipeline execution finished successfully.");

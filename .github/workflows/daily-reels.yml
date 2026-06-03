@@ -37,18 +37,24 @@ jobs:
         working-directory: ./rajneeti-backend
         run: npm ci
 
-      - name: Install ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install ffmpeg and Hindi Fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-noto-core
+          # Verify font installation
+          fc-list :lang=hi | head -5 || echo "Hindi fonts check complete"
+          # Verify bundled fonts exist
+          ls -la rajneeti-backend/assets/fonts/ || echo "No bundled fonts dir"
 
-      - name: Install Puppeteer Browsers
-        working-directory: ./rajneeti-backend
-        run: npx puppeteer browsers install chrome
+      # Puppeteer is NO LONGER NEEDED — video is generated via pure ffmpeg
+      # - name: Install Puppeteer Browsers
+      #   working-directory: ./rajneeti-backend
+      #   run: npx puppeteer browsers install chrome
 
       - name: Run Pipeline
         working-directory: ./rajneeti-backend
         env:
           # System
-          FRONTEND_URL: "https://moitrastudios.com"
           ENABLE_AUTO_POSTING: "true"
           
           # AI & Audio
@@ -76,4 +82,3 @@ jobs:
 
 
         run: npx tsx src/runPipeline.ts
-

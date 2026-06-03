@@ -23,6 +23,31 @@ app.use(cors());
 app.use(express.json());
 
 let cachedEvents: RajneetiEvent[] = [];
+
+/**
+ * Splits text content into 3 slide segments for kinetic typography reels.
+ * Used by the manual reel trigger endpoint.
+ */
+function splitIntoSlides(text: string): { text: string; type: 'headline' | 'fact' | 'verdict' }[] {
+    const sentences = text.split(/[।\.\n]+/).filter((s: string) => s.trim().length > 0);
+    
+    if (sentences.length <= 3) {
+        const types: ('headline' | 'fact' | 'verdict')[] = ['headline', 'fact', 'verdict'];
+        return sentences.map((s: string, i: number) => ({
+            text: s.trim(),
+            type: types[Math.min(i, 2)],
+        }));
+    }
+    
+    // Group into 3 slides
+    const third = Math.ceil(sentences.length / 3);
+    return [
+        { text: sentences.slice(0, third).join('। ').trim(), type: 'headline' as const },
+        { text: sentences.slice(third, third * 2).join('। ').trim(), type: 'fact' as const },
+        { text: sentences.slice(third * 2).join('। ').trim(), type: 'verdict' as const },
+    ];
+}
+
 let lastRefresh: string | null = null;
 
 // Candidate list for the AI prompt
@@ -396,7 +421,7 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
 
     try {
         const { generateAudio } = await import("./services/elevenLabsService.js");
-        const { generateHeadlessVideo } = await import("./services/puppeteerVideoGenerator.js");
+        const { generateKineticReel } = await import("./services/ffmpegVideoGenerator.js");
         const { SupabaseStorageService } = await import("./services/supabaseStorage.js");
         const { SocialUploadService } = await import("./services/socialUploadService.js");
 
@@ -410,9 +435,15 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
             audioBuffer = Buffer.alloc(0);
         }
 
-        // 2. Video
-        console.log(`[Manual Pipeline] Capturing Headless Video...`);
-        const videoBuffer = await generateHeadlessVideo(slug, audioBuffer);
+        // 2. Video — pure ffmpeg kinetic typography (no Puppeteer)
+        console.log(`[Manual Pipeline] Generating kinetic typography video via ffmpeg...`);
+        const contentText = hindi_content || summary || title;
+        const slides = splitIntoSlides(contentText);
+        const videoBuffer = await generateKineticReel(
+            audioBuffer,
+            slides,
+            { reelNumber: 1, year: '2024', title: title || 'Rajneeti Update' }
+        );
 
         // 3. Storage
         console.log(`[Manual Pipeline] Uploading to Storage...`);

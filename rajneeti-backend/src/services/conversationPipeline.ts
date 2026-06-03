@@ -1,5 +1,6 @@
 import { generateAudio } from "./elevenLabsService.js";
-import { generateHeadlessVideo } from "./puppeteerVideoGenerator.js";
+import { generateAudioWithTimestamps } from "./elevenLabsService.js";
+import { generateSubtitleReel, estimateWordTimings } from "./ffmpegVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
 import { createClient } from '@supabase/supabase-js';
@@ -230,12 +231,15 @@ export async function runConversationalReelPipeline() {
         const modiPath = path.join(tmpDir, 'modi.mp3');
         const stitchedPath = path.join(tmpDir, 'stitched.mp3');
 
-        // 4. Generate audios from ElevenLabs
+        // 4. Generate audios from ElevenLabs (with word-level timestamps)
         console.log('\n🎙️ Step 4: Synthesizing reporter and Modi audios...');
         let reporterAudioBuffer: Buffer;
+        let reporterWordTimings: { word: string; start: number; end: number }[];
         let reporterDuration = 5.0;
         try {
-            reporterAudioBuffer = await generateAudio(script.question, selectedReporter.voiceId);
+            const reporterResult = await generateAudioWithTimestamps(script.question, selectedReporter.voiceId);
+            reporterAudioBuffer = reporterResult.audioBuffer;
+            reporterWordTimings = reporterResult.wordTimings;
             fs.writeFileSync(reporterPath, reporterAudioBuffer);
             reporterDuration = parseFloat(
                 execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${reporterPath}"`)
@@ -247,12 +251,16 @@ export async function runConversationalReelPipeline() {
             execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 5 -q:a 9 "${reporterPath}"`, { stdio: 'ignore' });
             reporterAudioBuffer = fs.readFileSync(reporterPath);
             reporterDuration = 5.0;
+            reporterWordTimings = estimateWordTimings(script.question, reporterDuration);
         }
 
         let modiAudioBuffer: Buffer;
+        let modiWordTimings: { word: string; start: number; end: number }[];
         let modiDuration = 10.0;
         try {
-            modiAudioBuffer = await generateAudio(script.answer, MODI_VOICE_ID);
+            const modiResult = await generateAudioWithTimestamps(script.answer, MODI_VOICE_ID);
+            modiAudioBuffer = modiResult.audioBuffer;
+            modiWordTimings = modiResult.wordTimings;
             fs.writeFileSync(modiPath, modiAudioBuffer);
             modiDuration = parseFloat(
                 execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${modiPath}"`)
@@ -264,6 +272,7 @@ export async function runConversationalReelPipeline() {
             execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 10 -q:a 9 "${modiPath}"`, { stdio: 'ignore' });
             modiAudioBuffer = fs.readFileSync(modiPath);
             modiDuration = 10.0;
+            modiWordTimings = estimateWordTimings(script.answer, modiDuration);
         }
 
         // 5. Stitch audios and measure durations using ffmpeg
@@ -309,18 +318,18 @@ export async function runConversationalReelPipeline() {
             console.warn(`[Conversational Pipeline] ⚠️ Database write failed: ${dbErr.message}. Continuing video generation...`);
         }
 
-        // 7. Render Video via Puppeteer
-        console.log('\n🎥 Step 7: Capturing video from Headless Browser...');
-        process.env.NEWS_TITLE = script.title;
-        process.env.NEWS_SUMMARY = script.news_context;
-        
-        // Pass empty array since HeadlessReelGenerator resolves reporter/Modi/parliament visuals internally
-        const videoBuffer = await generateHeadlessVideo(
-            interviewId, 
-            stitchedAudioBuffer, 
-            [], 
-            reporterDuration, 
-            modiDuration
+        // 7. Render Video via ffmpeg
+        console.log('\n🎥 Step 7: Generating video via ffmpeg...');
+        const videoBuffer = await generateSubtitleReel(
+            reporterAudioBuffer,
+            modiAudioBuffer,
+            reporterWordTimings,
+            modiWordTimings,
+            {
+                title: script.title,
+                reporterName: selectedReporter.name,
+                newsContext: script.news_context,
+            }
         );
 
         // 8. Upload to Supabase Storage
@@ -367,7 +376,7 @@ export async function runConversationalReelPipeline() {
 
 /**
  * Compiles a video reel for an existing PM Interview ID.
- * Generates ElevenLabs audio, renders video via Puppeteer, uploads to Storage,
+ * Generates ElevenLabs audio, renders video via ffmpeg, uploads to Storage,
  * and updates the pm_interviews record with the video URL.
  */
 export async function generateReelForInterviewId(interviewId: string): Promise<string> {
@@ -401,12 +410,15 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
     const stitchedPath = path.join(tmpDir, 'stitched.mp3');
 
     try {
-        // 4. Generate audio via ElevenLabs
+        // 4. Generate audio via ElevenLabs (with word-level timestamps)
         console.log(`[Conversational Pipeline] Synthesizing audio for Q&A...`);
         let reporterAudioBuffer: Buffer;
+        let reporterWordTimings: { word: string; start: number; end: number }[];
         let reporterDuration = 5.0;
         try {
-            reporterAudioBuffer = await generateAudio(interview.question, reporterVoiceId);
+            const reporterResult = await generateAudioWithTimestamps(interview.question, reporterVoiceId);
+            reporterAudioBuffer = reporterResult.audioBuffer;
+            reporterWordTimings = reporterResult.wordTimings;
             fs.writeFileSync(reporterPath, reporterAudioBuffer);
             reporterDuration = parseFloat(
                 execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${reporterPath}"`)
@@ -418,12 +430,16 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
             execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 5 -q:a 9 "${reporterPath}"`, { stdio: 'ignore' });
             reporterAudioBuffer = fs.readFileSync(reporterPath);
             reporterDuration = 5.0;
+            reporterWordTimings = estimateWordTimings(interview.question, reporterDuration);
         }
 
         let modiAudioBuffer: Buffer;
+        let modiWordTimings: { word: string; start: number; end: number }[];
         let modiDuration = 10.0;
         try {
-            modiAudioBuffer = await generateAudio(interview.answer, MODI_VOICE_ID);
+            const modiResult = await generateAudioWithTimestamps(interview.answer, MODI_VOICE_ID);
+            modiAudioBuffer = modiResult.audioBuffer;
+            modiWordTimings = modiResult.wordTimings;
             fs.writeFileSync(modiPath, modiAudioBuffer);
             modiDuration = parseFloat(
                 execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${modiPath}"`)
@@ -435,6 +451,7 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
             execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 10 -q:a 9 "${modiPath}"`, { stdio: 'ignore' });
             modiAudioBuffer = fs.readFileSync(modiPath);
             modiDuration = 10.0;
+            modiWordTimings = estimateWordTimings(interview.answer, modiDuration);
         }
 
         // 5. Stitch audios
@@ -442,17 +459,18 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
         execSync(`ffmpeg -y -i "${reporterPath}" -i "${modiPath}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
         const stitchedAudioBuffer = fs.readFileSync(stitchedPath);
 
-        // 6. Generate Video via Puppeteer
-        console.log(`[Conversational Pipeline] Rendering vertical video via Puppeteer...`);
-        process.env.NEWS_TITLE = interview.title;
-        process.env.NEWS_SUMMARY = interview.news_context;
-
-        const videoBuffer = await generateHeadlessVideo(
-            interviewId,
-            stitchedAudioBuffer,
-            [],
-            reporterDuration,
-            modiDuration
+        // 6. Generate Video via ffmpeg
+        console.log(`[Conversational Pipeline] Rendering vertical video via ffmpeg...`);
+        const videoBuffer = await generateSubtitleReel(
+            reporterAudioBuffer,
+            modiAudioBuffer,
+            reporterWordTimings,
+            modiWordTimings,
+            {
+                title: interview.title,
+                reporterName: interview.reporter_name || REPORTERS[0].name,
+                newsContext: interview.news_context,
+            }
         );
 
         // 7. Upload to Supabase Storage
@@ -484,4 +502,3 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
         try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
     }
 }
-

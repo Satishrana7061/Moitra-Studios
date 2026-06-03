@@ -328,10 +328,8 @@ export async function generateKineticReel(
             `fontcolor=white@0.3:fontsize=22:x=70:y=1880`
         );
 
-        filterLines.push('[v]');
-
-        // Join all filter lines
-        const filterComplex = filterLines.join(',\n');
+        // Join all filter lines and append the output label [v]
+        const filterComplex = filterLines.join(',\n') + '\n[v]';
 
         // ── Write filter to temp file ────────────────────────────
         const filterPath = path.join(tmpDir, 'filter.txt');
@@ -666,10 +664,8 @@ export async function generateSubtitleReel(
             `fontcolor=white@0.3:fontsize=20:x=60:y=1870`
         );
 
-        filterLines.push('[v]');
-
         // Join and write filter
-        const filterComplex = filterLines.join(',\n');
+        const filterComplex = filterLines.join(',\n') + '\n[v]';
         const filterPath = path.join(tmpDir, 'filter.txt');
         fs.writeFileSync(filterPath, filterComplex, 'utf-8');
 

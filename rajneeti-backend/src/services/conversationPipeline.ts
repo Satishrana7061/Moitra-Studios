@@ -28,7 +28,7 @@ const REPORTERS = [
     { name: 'Sia', voiceId: 'YJpPt0sBEgMzYwcMkF5o' },
     { name: 'Mitali', voiceId: 'onQAwbsky3pmzMu2uapN' }
 ];
-const MODI_VOICE_ID = 'TM3DRXe9gqZUKdw8qnXA';
+const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
 
 /**
  * AI completion call to generate the dialogue script using OpenAI gpt-5.4
@@ -38,7 +38,7 @@ async function generateDialogueScript(newsEvent: any): Promise<any> {
     const geminiKey = process.env.GEMINI_API_KEY || '';
 
     const prompt = `
-You are an AI political analyst writing a daily PM Interview script for Rajneeti TV Network.
+You are an AI political analyst writing a daily PM Open Press Conference script for Rajneeti TV Network.
 Based on the following news event about India, generate a professional, fact-based Q&A dialogue script:
 
 NEWS DATE: ${newsEvent.news_date}
@@ -46,14 +46,21 @@ TITLE: ${newsEvent.ticker_headline || newsEvent.blog_title || 'Latest Briefing'}
 SUMMARY: ${newsEvent.blog_content || 'No details provided'}
 STATE: ${newsEvent.state || 'National'}
 
-TASK:
-1. Formulate a short, punchy title (max 5 words) for this Q&A briefing in English.
-2. Write a sharp, accountable question in Hindi (with common Hinglish vocabulary) that a news anchor would ask PM Narendra Modi about this news event/problem.
-3. Write a professional, factual, source-backed answer in Hindi (with common Hinglish vocabulary) by PM Narendra Modi. Make it sound exactly like Modi's speech style (e.g., speaking in the first person plural 'hum', mentioning government efforts, using respectful and patriotic phrasing). Keep it concise (3-4 sentences maximum so it fits vertical reel timing).
-4. Write a 1-2 sentence background context summarizing the facts or statistics (e.g. budgets, official records) used.
+TOPICS & ISSUES DIRECTIVE:
+If the news relates or can be linked to any major national crises, prioritize auditing top-level front-page issues such as:
+- NEET/CBSE paper leaks and exam grading controversies.
+- High inflation, consumer price index hikes, or household budget impacts.
+- Stock market bloodbaths, net FDI/FPI outflows, and foreign portfolio investors pulling out capital.
+- National infrastructure projects and employment.
 
-CRITICAL CONSTRAINT:
-The answer must be purely objective, highlighting real data, budgets, or official sources. Avoid political bias.
+TASK:
+1. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
+2. Write a sharp, accountable question in Hindi (with common Hinglish vocabulary) that a news journalist/reporter would ask PM Narendra Modi at the press conference. Focus directly on the national problem and demand accountability.
+3. Write a professional, factual, data-backed answer in Hindi (with common Hinglish vocabulary) by PM Narendra Modi. Make it sound exactly like Modi's speech style (speaking in the first person plural 'hum', referencing national growth and cooperative efforts). Keep it concise (3-4 sentences maximum so it fits vertical reel timing).
+4. Write a 1-2 sentence background context summarizing the audited facts or statistics used.
+
+CRITICAL DATA CONSTRAINT:
+The PM's reply must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures. Highlight official resource allocations or policy audits objectively.
 
 OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences):
 {
@@ -63,6 +70,7 @@ OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences)
    "news_context": "Brief factual background context in Hindi..."
 }
 `.trim();
+
 
     let rawContent = "";
 
@@ -356,3 +364,124 @@ export async function runConversationalReelPipeline() {
         throw err;
     }
 }
+
+/**
+ * Compiles a video reel for an existing PM Interview ID.
+ * Generates ElevenLabs audio, renders video via Puppeteer, uploads to Storage,
+ * and updates the pm_interviews record with the video URL.
+ */
+export async function generateReelForInterviewId(interviewId: string): Promise<string> {
+    if (!supabase) {
+        throw new Error("Supabase client not initialized.");
+    }
+
+    console.log(`[Conversational Pipeline] Starting manual compilation for interview ID: ${interviewId}`);
+
+    // 1. Fetch interview from database
+    const { data: interview, error: fetchErr } = await (supabase as any)
+        .from('pm_interviews')
+        .select('*')
+        .eq('id', interviewId)
+        .single();
+
+    if (fetchErr || !interview) {
+        throw new Error(`Interview not found in database: ${fetchErr?.message || 'Empty result'}`);
+    }
+
+    console.log(`[Conversational Pipeline] Loaded interview: "${interview.title}"`);
+
+    // 2. Select reporter voice (or fallback)
+    const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
+    const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
+
+    // 3. Create temp directory
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'conv-manual-'));
+    const reporterPath = path.join(tmpDir, 'reporter.mp3');
+    const modiPath = path.join(tmpDir, 'modi.mp3');
+    const stitchedPath = path.join(tmpDir, 'stitched.mp3');
+
+    try {
+        // 4. Generate audio via ElevenLabs
+        console.log(`[Conversational Pipeline] Synthesizing audio for Q&A...`);
+        let reporterAudioBuffer: Buffer;
+        let reporterDuration = 5.0;
+        try {
+            reporterAudioBuffer = await generateAudio(interview.question, reporterVoiceId);
+            fs.writeFileSync(reporterPath, reporterAudioBuffer);
+            reporterDuration = parseFloat(
+                execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${reporterPath}"`)
+                    .toString()
+                    .trim()
+            );
+        } catch (err: any) {
+            console.warn(`[Conversational Pipeline] ElevenLabs failed for Reporter. Using fallback silence: ${err.message}`);
+            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 5 -q:a 9 "${reporterPath}"`, { stdio: 'ignore' });
+            reporterAudioBuffer = fs.readFileSync(reporterPath);
+            reporterDuration = 5.0;
+        }
+
+        let modiAudioBuffer: Buffer;
+        let modiDuration = 10.0;
+        try {
+            modiAudioBuffer = await generateAudio(interview.answer, MODI_VOICE_ID);
+            fs.writeFileSync(modiPath, modiAudioBuffer);
+            modiDuration = parseFloat(
+                execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${modiPath}"`)
+                    .toString()
+                    .trim()
+            );
+        } catch (err: any) {
+            console.warn(`[Conversational Pipeline] ElevenLabs failed for PM Modi. Using fallback silence: ${err.message}`);
+            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 10 -q:a 9 "${modiPath}"`, { stdio: 'ignore' });
+            modiAudioBuffer = fs.readFileSync(modiPath);
+            modiDuration = 10.0;
+        }
+
+        // 5. Stitch audios
+        console.log(`[Conversational Pipeline] Stitching audios (Reporter: ${reporterDuration.toFixed(2)}s, Modi: ${modiDuration.toFixed(2)}s)...`);
+        execSync(`ffmpeg -y -i "${reporterPath}" -i "${modiPath}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
+        const stitchedAudioBuffer = fs.readFileSync(stitchedPath);
+
+        // 6. Generate Video via Puppeteer
+        console.log(`[Conversational Pipeline] Rendering vertical video via Puppeteer...`);
+        process.env.NEWS_TITLE = interview.title;
+        process.env.NEWS_SUMMARY = interview.news_context;
+
+        const videoBuffer = await generateHeadlessVideo(
+            interviewId,
+            stitchedAudioBuffer,
+            [],
+            reporterDuration,
+            modiDuration
+        );
+
+        // 7. Upload to Supabase Storage
+        console.log(`[Conversational Pipeline] Uploading reel to Storage...`);
+        const targetSlug = createSlug(interview.title) || 'pm-press-conf';
+        const fileName = `pm-press-conf-${targetSlug}-${Date.now()}.mp4`;
+        const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
+
+        if (!publicUrl) {
+            throw new Error("Failed to upload manual compilation to Storage.");
+        }
+
+        // 8. Update database with video URL
+        console.log(`[Conversational Pipeline] Updating pm_interviews record with video URL: ${publicUrl}`);
+        const { error: updateErr } = await (supabase as any)
+            .from('pm_interviews')
+            .update({ video_url: publicUrl })
+            .eq('id', interviewId);
+
+        if (updateErr) {
+            console.warn(`[Conversational Pipeline] Failed to update database record: ${updateErr.message}. Returning public url anyway.`);
+        }
+
+        console.log(`[Conversational Pipeline] Manual reel compiled successfully: ${publicUrl}`);
+        return publicUrl;
+
+    } finally {
+        // Cleanup temp files
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    }
+}
+

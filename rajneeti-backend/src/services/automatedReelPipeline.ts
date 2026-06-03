@@ -731,61 +731,81 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         process.env.REEL_NUM = String(reelNumber);
         process.env.MANIFESTO_YEAR = String(reelPromise.source_manifesto_year);
 
-        const videoBuffer = await generateHeadlessVideo(reelPromise.slug, audioBuffer, topicImageUrls);
-        console.log(`[Pipeline] Video generated: ${videoBuffer.length} bytes`);
+        const stylesToGenerate = ['kinetic', 'dashboard'];
+        let overallSuccess = true;
 
-        // ── Step 6: Upload to Supabase Storage ───────────────────
-        console.log('\n☁️ Step 6: Uploading to Supabase Storage...');
-        const safeSlug = reelPromise.slug.slice(0, 50);
-        const fileName = `promise-reel-${safeSlug}-${Date.now()}.mp4`;
-        const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
+        for (const currentStyle of stylesToGenerate) {
+            console.log(`\n🎬 [Pipeline] Compiling and posting video for style: ${currentStyle.toUpperCase()}`);
+            
+            const videoBuffer = await generateHeadlessVideo(
+                reelPromise.slug, 
+                audioBuffer, 
+                topicImageUrls, 
+                undefined, 
+                undefined, 
+                currentStyle
+            );
+            console.log(`[Pipeline] Video generated for style ${currentStyle}: ${videoBuffer.length} bytes`);
 
-        if (!publicUrl) {
-            throw new Error('Supabase upload failed. Check bucket permissions and secrets.');
-        }
-        console.log(`[Pipeline] Stored at: ${publicUrl}`);
+            // ── Step 6: Upload to Supabase Storage ───────────────────
+            console.log(`\n☁️ [Pipeline] Uploading ${currentStyle} reel to Supabase Storage...`);
+            const safeSlug = reelPromise.slug.slice(0, 50);
+            const fileName = `promise-reel-${currentStyle}-${safeSlug}-${Date.now()}.mp4`;
+            const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
 
-        // ── Step 7: Publish to Social Media ──────────────────────
-        console.log('\n📱 Step 7: Publishing to social platforms...');
+            if (!publicUrl) {
+                console.error(`[Pipeline] Supabase upload failed for style ${currentStyle}. Skipping.`);
+                overallSuccess = false;
+                continue;
+            }
+            console.log(`[Pipeline] Stored style ${currentStyle} at: ${publicUrl}`);
 
-        // Build platform-specific captions, titles, descriptions, and tags
-        const igCaption = buildInstagramCaption(reelPromise, reelNumber);
-        const ytTitle = buildYouTubeTitle(reelPromise, reelNumber);
-        const ytDescription = buildYouTubeDescription(reelPromise, reelNumber);
-        const ytHashtags = buildYouTubeHashtags(reelPromise, reelNumber);
+            // ── Step 7: Publish to Social Media ──────────────────────
+            console.log(`\n📱 [Pipeline] Publishing ${currentStyle} reel to social platforms...`);
 
-        // Facebook uses the same caption as Instagram
-        const fbCaption = igCaption;
+            // Add style indicator to caption
+            const styleLabel = currentStyle === 'kinetic' ? 'Kinetic Typography Visual Audit' : 'Interactive Scorecard Dashboard Audit';
+            const igCaption = buildInstagramCaption(reelPromise, reelNumber) + `\n\n[Format: ${styleLabel}]`;
+            const fbCaption = igCaption;
 
-        console.log(`[Pipeline] YT Title: "${ytTitle}"`);
-        console.log(`[Pipeline] IG Hashtags: "${buildInstagramHashtags(reelPromise, reelNumber)}"`);
-        console.log(`[Pipeline] YT Tags: [${ytHashtags.metaTags.join(', ')}]`);
+            // Differentiate YouTube title slightly
+            let ytTitle = buildYouTubeTitle(reelPromise, reelNumber);
+            if (currentStyle === 'kinetic') {
+                ytTitle = `${ytTitle} - Kinetic`.slice(0, 100);
+            } else {
+                ytTitle = `${ytTitle} - Scorecard`.slice(0, 100);
+            }
+            const ytDescription = buildYouTubeDescription(reelPromise, reelNumber);
+            const ytHashtags = buildYouTubeHashtags(reelPromise, reelNumber);
 
-        // Instagram
-        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
-        if (!igSuccess) console.warn('[Pipeline] Instagram upload failed, but continuing...');
+            console.log(`[Pipeline] YT Title: "${ytTitle}"`);
+            
+            // Instagram
+            const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
+            if (!igSuccess) console.warn(`[Pipeline] Instagram upload failed for style ${currentStyle}, continuing...`);
 
-        // Facebook
-        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, fbCaption);
-        if (!fbSuccess) console.warn('[Pipeline] Facebook upload failed, but continuing...');
+            // Facebook
+            const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, fbCaption);
+            if (!fbSuccess) console.warn(`[Pipeline] Facebook upload failed for style ${currentStyle}, continuing...`);
 
-        // YouTube
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytHashtags.metaTags);
-        if (!ytSuccess) console.warn('[Pipeline] YouTube upload failed.');
+            // YouTube
+            const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytHashtags.metaTags);
+            if (!ytSuccess) console.warn(`[Pipeline] YouTube upload failed for style ${currentStyle}.`);
 
-        // ── Step 8: Mark promise as posted in Supabase ───────────
-        if (supabase) {
-            console.log('\n✏️ Step 8: Marking promise as reel-posted in database...');
-            const { error: markError } = await (supabase as any)
-                .from('manifesto_promises')
-                .update({
-                    reel_posted: true,
-                    reel_link: publicUrl,
-                })
-                .eq('id', reelPromise.id);
+            // ── Step 8: Mark promise as posted in Supabase (we save the dashboard URL) ───────────
+            if (supabase && currentStyle === 'dashboard') {
+                console.log('\n✏️ [Pipeline] Marking promise as reel-posted in database...');
+                const { error: markError } = await (supabase as any)
+                    .from('manifesto_promises')
+                    .update({
+                        reel_posted: true,
+                        reel_link: publicUrl,
+                    })
+                    .eq('id', reelPromise.id);
 
-            if (markError) {
-                console.error(`[Pipeline] Failed to mark as posted: ${markError.message}`);
+                if (markError) {
+                    console.error(`[Pipeline] Failed to mark as posted in database: ${markError.message}`);
+                }
             }
         }
 
@@ -796,7 +816,7 @@ Make sure to only mention facts from the verified data, explicitly naming the le
         console.log(`   Promise: "${reelPromise.title}"`);
         console.log(`   Status: ${reelPromise.status}`);
         console.log(`   Reel #: ${reelNumber}`);
-        console.log(`   Platforms: IG=${igSuccess} FB=${fbSuccess} YT=${ytSuccess}`);
+        console.log(`   Processed and uploaded both styles (Kinetic & Dashboard).`);
 
     } catch (err: any) {
         console.error('\n=== AUTOMATED REEL PIPELINE FAILED ===', err.message || err);

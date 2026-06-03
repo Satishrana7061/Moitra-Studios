@@ -173,11 +173,10 @@ const HeadlessReelGenerator: React.FC = () => {
 
     if (format === 'conversational') {
         if (!interviewData) {
-            return <div style={{ color: 'white' }}>Loading PM Interview... <span id="status">{status}</span></div>;
+            return <div style={{ color: 'white' }}>Loading PM Open Press Conference... <span id="status">{status}</span></div>;
         }
 
         const reporterName = interviewData.reporter_name || 'Kanika';
-        const reporterAvatar = ANCHOR_AVATARS[reporterName] || ANCHOR_AVATARS['Kanika'];
 
         return (
             <div style={{ background: '#000', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -201,13 +200,13 @@ const HeadlessReelGenerator: React.FC = () => {
                                 </div>
                             </div>
                             <div className="text-amber-400 font-extrabold uppercase tracking-widest text-3xl border-b border-white/10 pb-4">
-                                🎤 PM Daily accountability
+                                🎤 PM Open Press Conference
                             </div>
                         </div>
 
-                        {/* Main Slide Carousel Section */}
-                        <div className="flex-1 relative flex items-center justify-center my-8 z-10 w-full">
-                            <div className="w-[950px] h-[950px] relative">
+                        {/* Middle Text/Visuals Section */}
+                        <div className="flex-1 relative flex flex-col items-center justify-between my-8 z-10 w-full">
+                            <div className="w-[950px] h-[1150px] relative">
                                 {slides.map((slide, i) => {
                                     const isActive = i === slideIndex;
                                     return (
@@ -216,69 +215,38 @@ const HeadlessReelGenerator: React.FC = () => {
                                             className={`absolute inset-0 transition-all duration-700 ease-out transform ${
                                                 isActive ? 'translate-y-0 opacity-100 scale-100' :
                                                 i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
-                                            }`}
+                                            } flex flex-col items-center justify-between h-full`}
                                         >
-                                            <div className="flex flex-col items-center p-12 bg-white/[0.02] backdrop-blur-xl border border-white/10 rounded-[40px] shadow-2xl w-full h-full justify-between relative overflow-hidden">
-                                                <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/[0.01] rounded-full" />
+                                            {/* Text Box at the Top Half of the Reel */}
+                                            <div className="w-[950px] bg-slate-900/85 border border-white/15 backdrop-blur-2xl p-10 rounded-[40px] shadow-[0_25px_50px_rgba(0,0,0,0.8)] mt-4 min-h-[360px] flex flex-col justify-center relative overflow-hidden">
+                                                <div className="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-gameOrange via-amber-500 to-gameOrange" />
                                                 
-                                                {/* Header within slide */}
-                                                <div className="w-full text-center mb-6">
-                                                    <span className="text-sm font-black uppercase tracking-[0.4em] text-white/30">
-                                                        Topic Briefing
+                                                {/* Speaker Indicator Badge inside Text Box */}
+                                                <div className="flex items-center gap-3 mb-6 self-center">
+                                                    <span className={`px-6 py-2 rounded-full font-black text-lg tracking-widest uppercase border ${
+                                                        slide.type === 'question' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                                                        slide.type === 'answer' ? 'bg-orange-500/10 text-gameOrange border-gameOrange/30' :
+                                                        'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                                                    }`}>
+                                                        {slide.type === 'question' ? `🎤 REPORTER ${reporterName} QUESTION` :
+                                                         slide.type === 'answer' ? '🎤 PM NARENDRA MODI ANSWER' :
+                                                         '📝 FACT CHECK AUDIT VERDICT'}
                                                     </span>
-                                                    <h2 className="text-3xl font-black font-rajdhani text-white uppercase tracking-wider line-clamp-1 mt-1">
-                                                        {slide.title}
-                                                    </h2>
                                                 </div>
 
-                                                {/* Speaker Visual Frame */}
-                                                {slide.type === 'question' && (
-                                                    <div className="flex flex-col items-center gap-6 my-auto">
-                                                        <div className="w-64 h-64 rounded-full overflow-hidden border-[6px] border-blue-500 shadow-[0_0_40px_rgba(59,130,246,0.3)] bg-blue-950 flex items-center justify-center">
-                                                            <img src={reporterAvatar} alt={reporterName} className="w-full h-full object-cover" />
-                                                        </div>
-                                                        <div className="flex items-center gap-3 bg-blue-500/10 border border-blue-500/30 px-6 py-2 rounded-full">
-                                                            <Mic size={20} className="text-blue-400 animate-pulse" />
-                                                            <span className="text-xl font-bold uppercase tracking-widest text-blue-400">Reporter {reporterName}</span>
-                                                        </div>
-                                                    </div>
-                                                )}
+                                                <p className="text-white text-3.5xl md:text-4xl font-extrabold leading-relaxed text-center normal-case tracking-wide">
+                                                    {slide.type === 'context' ? slide.content : `"${slide.content}"`}
+                                                </p>
+                                            </div>
 
-                                                {slide.type === 'answer' && (
-                                                    <div className="flex flex-col items-center gap-6 my-auto">
-                                                        <div className="w-64 h-64 rounded-full overflow-hidden border-[6px] border-orange-500 shadow-[0_0_40px_rgba(249,115,22,0.3)] bg-orange-950 flex items-center justify-center">
-                                                            <img src={MODI_AVATAR} alt="Narendra Modi" className="w-full h-full object-cover" />
-                                                        </div>
-                                                        <div className="flex items-center gap-3 bg-orange-500/10 border border-orange-500/30 px-6 py-2 rounded-full">
-                                                            <Mic size={20} className="text-orange-400 animate-pulse" />
-                                                            <span className="text-xl font-bold uppercase tracking-widest text-orange-400">PM Narendra Modi</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {slide.type === 'context' && (
-                                                    <div className="flex flex-col items-center gap-6 my-auto w-full">
-                                                        <div className="w-full h-[400px] rounded-3xl overflow-hidden border border-white/10 shadow-lg relative bg-slate-900">
-                                                            <img src={PARLIAMENT_BG} alt="Fact Check Context" className="w-full h-full object-cover opacity-75" />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
-                                                            <div className="absolute bottom-6 left-6 right-6 text-left">
-                                                                <span className="bg-gameOrange text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded">Official Source</span>
-                                                                <h4 className="text-white text-lg font-bold mt-2">Government Records Audited</h4>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-gameBlue">
-                                                            <AlertCircle size={20} />
-                                                            <span className="text-lg font-black uppercase tracking-widest">Fact Check Audit Verdict</span>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Quote Bubble Content */}
-                                                <div className="w-full bg-white/[0.01] border border-white/5 p-8 rounded-3xl shadow-inner mt-4 min-h-[220px] flex items-center justify-center">
-                                                    <p className="text-white text-3xl md:text-4xl font-semibold leading-relaxed text-center normal-case">
-                                                        {slide.type === 'context' ? slide.content : `"${slide.content}"`}
-                                                    </p>
-                                                </div>
+                                            {/* Modi at Microphone Visual Container at the Bottom Half of the Reel */}
+                                            <div className="w-[950px] h-[680px] overflow-hidden rounded-[40px] border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative bg-slate-900 mb-4 shrink-0">
+                                                <img 
+                                                    src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Narendra_Modi_delivering_his_address_to_the_Nation.jpg" 
+                                                    alt="PM Modi Addressing Press Conference"
+                                                    className="w-full h-full object-cover object-center"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
                                             </div>
                                         </div>
                                     );
@@ -296,10 +264,10 @@ const HeadlessReelGenerator: React.FC = () => {
                             </div>
                             <div className="flex items-center justify-between">
                                 <div className="text-gameOrange text-2xl font-black uppercase tracking-[0.2em]">
-                                    PM INTERVIEW
+                                    PM PRESS CONFERENCE
                                 </div>
                                 <h3 className="text-white/60 font-black text-xl tracking-[0.1em] uppercase">
-                                    Aise hi aur audits ke liye Rajneeti ko follow karein
+                                    Factual Q&A audits verified against official sources
                                 </h3>
                             </div>
                         </div>
@@ -307,7 +275,11 @@ const HeadlessReelGenerator: React.FC = () => {
                 </div>
                 
                 <style>{`
-                    body { background-color: transparent !important; }
+                    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700;800;900&family=Outfit:wght@400;500;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+                    body, html { 
+                        background-color: transparent !important; 
+                        font-family: 'Outfit', 'Noto Sans Devanagari', 'Inter', sans-serif !important;
+                    }
                 `}</style>
             </div>
         );
@@ -316,6 +288,8 @@ const HeadlessReelGenerator: React.FC = () => {
     if (!newsItem) {
         return <div style={{ color: 'white' }}>Loading Standard Reel... <span id="status">{status}</span></div>;
     }
+
+    const styleParam = searchParams.get('style') || 'kinetic';
 
     return (
         <div style={{ background: '#000', height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
@@ -326,7 +300,7 @@ const HeadlessReelGenerator: React.FC = () => {
 
                 <div className="flex flex-col h-full w-full bg-black relative p-16 justify-between overflow-hidden">
                     {/* Premium Radial Vignette Backdrop overlay */}
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,41,59,0.3)_0%,rgba(0,0,0,1)_100%)] pointer-events-none z-0" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(30,41,59,0.35)_0%,rgba(0,0,0,1)_100%)] pointer-events-none z-0" />
                     
                     {/* Header Section — Modi Ki Guarantee branding */}
                     <div className="flex flex-col gap-4 mt-8 relative z-10">
@@ -343,7 +317,7 @@ const HeadlessReelGenerator: React.FC = () => {
 
                     {/* Middle Section: News Story Slides */}
                     <div className="flex-1 relative flex items-center justify-center my-16 z-10">
-                        <div className="w-[950px] h-[850px] relative">
+                        <div className="w-[950px] h-[950px] relative">
                             {slides.map((slide, i) => (
                                 <div 
                                     key={i} 
@@ -352,36 +326,150 @@ const HeadlessReelGenerator: React.FC = () => {
                                         i < slideIndex ? '-translate-y-full opacity-0 scale-95' : 'translate-y-full opacity-0 scale-95'
                                     }`}
                                 >
-                                    <div className="flex flex-col items-start p-8 bg-white/[0.03] backdrop-blur-lg border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] w-full h-full justify-between">
-                                        <div className="w-full flex flex-col items-start">
-                                            <div className={`text-white px-8 py-3 font-bold uppercase tracking-widest mb-6 text-3xl rounded-xl shadow-lg ${
-                                                slide.type === 'headline' ? 'bg-gradient-to-r from-amber-600 to-orange-600' : 'bg-[#1d4ed8]'
-                                            }`}>
-                                                {slide.type === 'headline' ? 'Modi Ki Guarantee' : `Analysis Point ${i}/${slides.length - 1}`}
+                                    {/* STYLE 1: KINETIC TYPOGRAPHY */}
+                                    {styleParam === 'kinetic' && (
+                                        <div className="flex flex-col items-center justify-center bg-slate-950/60 border border-white/10 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.6)] w-full h-full p-12 relative overflow-hidden text-center">
+                                            {/* Subtle grid pattern background inside the slide container */}
+                                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px] pointer-events-none opacity-40" />
+                                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-orange-600/5 rounded-full blur-[150px] pointer-events-none" />
+                                            
+                                            {/* Floating particles */}
+                                            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+                                                <div className="absolute w-2 h-2 bg-orange-500 rounded-full animate-float-slow top-1/4 left-1/4" />
+                                                <div className="absolute w-3.5 h-3.5 bg-amber-500 rounded-full animate-float-slow top-2/3 left-1/3" style={{ animationDelay: '2s' }} />
+                                                <div className="absolute w-2 h-2 bg-yellow-500 rounded-full animate-float-slow top-1/3 left-2/3" style={{ animationDelay: '4s' }} />
+                                                <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-float-slow top-3/4 left-3/4" style={{ animationDelay: '1.5s' }} />
                                             </div>
-                                            {imageUrls[i] && (
-                                                <div className="w-full h-[420px] mb-6 overflow-hidden rounded-2xl border border-white/10 relative">
-                                                    <img 
-                                                        src={imageUrls[i]} 
-                                                        alt="Topic Visual" 
-                                                        className="w-full h-full object-cover"
-                                                    />
+
+                                            <div className="flex flex-col items-center gap-8 my-auto w-full">
+                                                <div className="text-amber-500/80 font-black text-2xl uppercase tracking-[0.4em] mb-4">
+                                                    {slide.type === 'headline' ? '★ MODI KI GUARANTEE ★' : `FACT AUDIT POINT ${i}`}
                                                 </div>
-                                            )}
+                                                
+                                                <h2 className="font-sans font-black tracking-wide leading-normal uppercase text-5xl md:text-6xl text-white select-none transition-all duration-300 drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                                                    {slide.content.split(' ').map((word, idx) => {
+                                                        const cleanWord = word.replace(/[^a-zA-Z0-9\u0900-\u097F]/g, '');
+                                                        const isKeyword = cleanWord.match(/^[0-9]+$/) || 
+                                                                          ['percent', 'crore', 'lakh', 'vaada', 'guarantee', 'modi', 'bjp', 'government', 'development', 'million', 'billion', 'रुपये', 'करोड़', 'लाख', 'मोदी', 'गारंटी'].includes(cleanWord.toLowerCase());
+                                                        return (
+                                                            <span 
+                                                                key={idx} 
+                                                                className={`inline-block mr-3 mb-3 ${isKeyword ? 'text-gameOrange drop-shadow-[0_0_12px_rgba(255,107,0,0.8)]' : 'text-white'}`}
+                                                            >
+                                                                {word}
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </h2>
+                                            </div>
                                         </div>
-                                        <h2 className="font-serif leading-[1.3] text-4xl md:text-5xl font-extrabold text-white text-left tracking-wide uppercase mt-auto w-full line-clamp-3">
-                                            {slide.content}
-                                        </h2>
-                                    </div>
+                                    )}
+
+                                    {/* STYLE 2: INTERACTIVE DASHBOARD SCORECARD */}
+                                    {styleParam === 'dashboard' && (
+                                        <div className="flex flex-col items-center justify-between bg-slate-900/40 border border-white/10 rounded-[40px] shadow-[0_20px_50px_rgba(0,0,0,0.6)] w-full h-full p-12 relative overflow-hidden">
+                                            {/* Top half: The promise text card */}
+                                            <div className="w-full bg-slate-950/70 border border-white/10 backdrop-blur-xl p-8 rounded-3xl shadow-xl flex flex-col justify-center min-h-[220px]">
+                                                <span className="text-[10px] font-black text-gameOrange tracking-[0.3em] uppercase mb-3">
+                                                    {slide.type === 'headline' ? 'THE MODI GUARANTEE' : `AUDIT VERDICT ANALYSIS (PART ${i})`}
+                                                </span>
+                                                <p className="text-white text-3.5xl font-extrabold leading-snug text-left normal-case tracking-wide">
+                                                    {slide.content}
+                                                </p>
+                                            </div>
+
+                                            {/* Center: Scorecard and PM Modi Cut-out */}
+                                            <div className="flex-1 w-full flex items-center justify-between my-8 gap-8">
+                                                {/* PM Modi image */}
+                                                <div className="w-[320px] h-[320px] rounded-3xl overflow-hidden border border-white/15 shadow-2xl relative bg-slate-900 shrink-0">
+                                                    <img 
+                                                        src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Narendra_Modi_delivering_his_address_to_the_Nation.jpg" 
+                                                        alt="PM Modi"
+                                                        className="w-full h-full object-cover object-top"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 to-transparent" />
+                                                    <div className="absolute bottom-4 left-4">
+                                                        <span className="text-[10px] font-black text-white/50 tracking-wider uppercase font-sans">Authorizer</span>
+                                                        <h4 className="text-white font-bold text-sm">PM Narendra Modi</h4>
+                                                    </div>
+                                                </div>
+
+                                                {/* Scorecard Gauge & Stats card */}
+                                                <div className="flex-1 bg-slate-950/40 border border-white/5 rounded-3xl p-6 flex flex-col gap-5 h-full justify-center">
+                                                    {/* SVG Progress Gauge */}
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="relative w-24 h-24">
+                                                            <svg className="w-full h-full transform -rotate-90">
+                                                                <circle cx="48" cy="48" r="40" stroke="rgba(255,255,255,0.05)" strokeWidth="8" fill="transparent" />
+                                                                <circle 
+                                                                    cx="48" 
+                                                                    cy="48" 
+                                                                    r="40" 
+                                                                    stroke="#FF6B00" 
+                                                                    strokeWidth="8" 
+                                                                    fill="transparent" 
+                                                                    strokeDasharray="251.2" 
+                                                                    strokeDashoffset={
+                                                                        newsItem?.status === 'Fulfilled' ? '15' :
+                                                                        newsItem?.status === 'Partially Fulfilled' ? '125' :
+                                                                        newsItem?.status === 'In Progress' ? '180' : '251.2'
+                                                                    }
+                                                                />
+                                                            </svg>
+                                                            <div className="absolute inset-0 flex items-center justify-center flex-col">
+                                                                <span className="text-white font-black text-lg">
+                                                                    {newsItem?.status === 'Fulfilled' ? '94%' :
+                                                                     newsItem?.status === 'Partially Fulfilled' ? '50%' :
+                                                                     newsItem?.status === 'In Progress' ? '25%' : '0%'}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-white/40 text-[10px] font-black uppercase tracking-wider">Fulfillment Index</span>
+                                                            <span className="text-white font-bold text-sm">
+                                                                {newsItem?.status === 'Fulfilled' ? 'Fulfillment Achieved' :
+                                                                 newsItem?.status === 'Partially Fulfilled' ? 'Partial Progress' :
+                                                                 newsItem?.status === 'In Progress' ? 'Under Execution' : 'No Substantial Progress'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Audit Verdict Badge */}
+                                                    <div className="flex flex-col gap-1 border-t border-white/5 pt-4">
+                                                        <span className="text-white/40 text-[10px] font-black uppercase tracking-wider font-sans">Official Status</span>
+                                                        <span className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest text-center border w-fit ${
+                                                            newsItem?.status === 'Fulfilled' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-[0_0_12px_rgba(52,211,153,0.15)]' :
+                                                            newsItem?.status === 'Partially Fulfilled' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' :
+                                                            newsItem?.status === 'In Progress' ? 'bg-blue-500/10 text-gameBlue border-blue-500/30' :
+                                                            'bg-red-500/10 text-red-400 border-red-500/30'
+                                                        }`}>
+                                                            {newsItem?.status || 'NOT FULFILLED'}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Stat Metric */}
+                                                    <div className="flex flex-col gap-1 border-t border-white/5 pt-4">
+                                                        <span className="text-white/40 text-[10px] font-black uppercase tracking-wider font-sans">Verification Scope</span>
+                                                        <span className="text-white font-black text-sm uppercase tracking-wide">
+                                                            {newsItem?.source_manifesto_year || '2014'} BJP MANIFESTO AUDIT
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* Footer Section */}
-                    <div className="relative z-20 mt-auto bg-white/5 p-10 rounded-3xl border border-white/10 shadow-2xl">
-                        <div className="w-full h-3 bg-white/10 mb-8 rounded-full overflow-hidden relative">
-                            <div className="h-full bg-gradient-to-r from-amber-500 to-red-600 w-full" />
+                    <div className="relative z-20 mt-auto bg-white/5 p-10 rounded-3xl border border-white/10 shadow-2xl flex flex-col gap-4">
+                        <div className="w-full h-3 bg-white/10 mb-2 rounded-full overflow-hidden relative">
+                            <div 
+                                className="h-full bg-gradient-to-r from-gameOrange to-amber-500 transition-all duration-700 ease-out" 
+                                style={{ width: `${((slideIndex + 1) / slides.length) * 100}%` }}
+                            />
                         </div>
                         <div className="flex items-center gap-8">
                             <div className="bg-gradient-to-r from-amber-600 to-orange-600 text-white text-3xl font-black px-8 py-3 uppercase tracking-widest shadow-lg rounded">
@@ -393,11 +481,21 @@ const HeadlessReelGenerator: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                
             </div>
 
             <style>{`
-                body { background-color: transparent !important; }
+                @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;700;800;900&family=Outfit:wght@400;500;700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+                body, html { 
+                    background-color: transparent !important; 
+                    font-family: 'Outfit', 'Noto Sans Devanagari', 'Inter', sans-serif !important;
+                }
+                @keyframes float-slow {
+                    0%, 100% { transform: translateY(0px) scale(1); opacity: 0.15; }
+                    50% { transform: translateY(-20px) scale(1.1); opacity: 0.35; }
+                }
+                .animate-float-slow {
+                    animation: float-slow 12s ease-in-out infinite;
+                }
             `}</style>
         </div>
     );

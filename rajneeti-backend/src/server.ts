@@ -457,6 +457,31 @@ app.post("/api/admin/trigger-manual-reel", async (req, res) => {
     }
 });
 
+// Endpoint to trigger manual reel generation for a specific PM Open Press Conference Q&A
+app.post("/api/admin/trigger-conversational-reel", async (req, res) => {
+    const { interviewId } = req.body;
+    
+    if (!interviewId) {
+        return res.status(400).json({ error: "Missing interviewId" });
+    }
+
+    console.log(`[Server] Manual conversational reel compile requested for ID: ${interviewId}`);
+
+    try {
+        const { generateReelForInterviewId } = await import("./services/conversationPipeline.js");
+        const publicUrl = await generateReelForInterviewId(interviewId);
+        
+        res.json({
+            success: true,
+            message: "Conversational reel compiled and uploaded successfully!",
+            publicUrl
+        });
+    } catch (err: any) {
+        console.error("[Conversational Trigger] Error compiling reel:", err.message || err);
+        res.status(500).json({ error: err.message || "Failed to compile conversational reel." });
+    }
+});
+
 // ── Admin/Pipeline Endpoints ────────────────────────────────────
 
 // Endpoint to manually trigger the full automated pipeline for testing

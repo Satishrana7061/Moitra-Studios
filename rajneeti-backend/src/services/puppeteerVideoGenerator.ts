@@ -9,7 +9,8 @@ export async function generateHeadlessVideo(
     audioBuffer: Buffer, 
     imageUrls?: string[],
     reporterDuration?: number,
-    modiDuration?: number
+    modiDuration?: number,
+    style?: string
 ): Promise<Buffer> {
     const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
     const encodedTitle = encodeURIComponent(process.env.NEWS_TITLE || 'Rajneeti Update');
@@ -25,6 +26,9 @@ export async function generateHeadlessVideo(
     let targetUrl = `${FRONTEND_URL}/headless-reel/${campaignSlug}?title=${encodedTitle}&summary=${encodedSummary}&slide1=${slide1}&slide2=${slide2}&slide3=${slide3}&reelNum=${reelNum}&year=${year}${imagesParam}`;
     if (reporterDuration !== undefined && modiDuration !== undefined) {
         targetUrl += `&format=conversational&reporter_duration=${reporterDuration}&modi_duration=${modiDuration}`;
+    }
+    if (style) {
+        targetUrl += `&style=${style}`;
     }
 
     // Create a temp directory for our frames
@@ -58,6 +62,9 @@ export async function generateHeadlessVideo(
             const statusEl = document.getElementById('status');
             return statusEl && statusEl.innerText === 'ready';
         }, { timeout: 30000 });
+
+        console.log(`[Puppeteer] Waiting for web fonts to load...`);
+        await page.evaluate(() => document.fonts.ready);
 
         // Get total number of slides
         const totalSlides = await page.evaluate(() => (window as any).totalSlides || 3);

@@ -32,39 +32,33 @@ const REPORTERS = [
 const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
 
 /**
- * AI completion call to generate the dialogue script using OpenAI gpt-5.4
+ * AI completion call to generate the dialogue script using OpenAI/Gemini
+ * Passes a list of news events and asks the AI to pick the most important national issue.
  */
-async function generateDialogueScript(newsEvent: any): Promise<any> {
+async function generateDialogueScript(newsEvents: any[]): Promise<any> {
     const apiKey = OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || '';
 
     const prompt = `
 You are an AI political analyst writing a daily PM Open Press Conference script for Rajneeti TV Network.
-Based on the following news event about India, generate a professional, fact-based Q&A dialogue script:
+You are given a list of recent news events. Your FIRST task is to select the most important NATIONAL level problem (e.g., NEET/CBSE paper leaks, inflation, market crashes, national infrastructure) and ignore state-level or regional news.
 
-NEWS DATE: ${newsEvent.news_date}
-TITLE: ${newsEvent.ticker_headline || newsEvent.blog_title || 'Latest Briefing'}
-SUMMARY: ${newsEvent.blog_content || 'No details provided'}
-STATE: ${newsEvent.state || 'National'}
-
-TOPICS & ISSUES DIRECTIVE:
-If the news relates or can be linked to any major national crises, prioritize auditing top-level front-page issues such as:
-- NEET/CBSE paper leaks and exam grading controversies.
-- High inflation, consumer price index hikes, or household budget impacts.
-- Stock market bloodbaths, net FDI/FPI outflows, and foreign portfolio investors pulling out capital.
-- National infrastructure projects and employment.
+NEWS EVENTS:
+${newsEvents.map((e, idx) => `[${idx}] DATE: ${e.news_date} | TITLE: ${e.ticker_headline || e.blog_title} | STATE: ${e.state || 'National'} | SUMMARY: ${e.blog_content || 'N/A'}`).join('\n\n')}
 
 TASK:
-1. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
-2. Write a sharp, accountable question in Hindi (with common Hinglish vocabulary) that a news journalist/reporter would ask PM Narendra Modi at the press conference. Focus directly on the national problem and demand accountability.
-3. Write a professional, factual, data-backed answer in Hindi (with common Hinglish vocabulary) by PM Narendra Modi. Make it sound exactly like Modi's speech style (speaking in the first person plural 'hum', referencing national growth and cooperative efforts). Keep it concise (3-4 sentences maximum so it fits vertical reel timing).
-4. Write a 1-2 sentence background context summarizing the audited facts or statistics used.
+1. Select the index of the most critical national-level news event from the list above.
+2. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
+3. Write a sharp, accountable question in Hindi (with common Hinglish vocabulary) that a news journalist/reporter would ask PM Narendra Modi at the press conference. Focus directly on the national problem and demand accountability.
+4. Write a professional, factual, data-backed answer in Hindi (with common Hinglish vocabulary) by PM Narendra Modi. Make it sound exactly like Modi's speech style (speaking in the first person plural 'hum', referencing national growth and cooperative efforts). Keep it concise (3-4 sentences maximum so it fits vertical reel timing).
+5. Write a 1-2 sentence background context summarizing the audited facts or statistics used.
 
 CRITICAL DATA CONSTRAINT:
 The PM's reply must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures. Highlight official resource allocations or policy audits objectively.
 
 OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences):
 {
+   "selected_index": <number>,
    "title": "Short English Title",
    "question": "Hindi question from reporter...",
    "answer": "Hindi answer from PM Modi...",
@@ -126,7 +120,6 @@ OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences)
         }
 
         const data = await res.json();
-        console.log("[Conversational Pipeline] Gemini response data structure:", JSON.stringify(data, null, 2));
         rawContent = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
     } else {
         throw new Error("Neither OPENAI_API_KEY nor GEMINI_API_KEY is configured on the backend.");
@@ -183,34 +176,37 @@ export async function runConversationalReelPipeline() {
             query = query.not('news_date', 'in', `(${usedDates.map((d: any) => `"${d}"`).join(',')})`);
         }
 
-        const { data: newsEvents, error: newsError } = await query.limit(1);
+        const { data: fetchedNews, error: newsError } = await query.limit(10);
 
         if (newsError) {
             throw new Error(`Failed to query news events: ${newsError.message}`);
         }
 
-        let newsEvent = newsEvents?.[0];
-        if (!newsEvent) {
-            console.log('[Conversational Pipeline] No fresh daily news events found. Falling back to latest news event overall.');
+        let newsEvents = fetchedNews || [];
+        if (newsEvents.length === 0) {
+            console.log('[Conversational Pipeline] No fresh daily news events found. Falling back to latest news events overall.');
             const { data: allNews } = await (supabase as any)
                 .from('news_events')
                 .select('*')
                 .order('news_date', { ascending: false })
-                .limit(1);
+                .limit(10);
             
-            newsEvent = allNews?.[0];
+            newsEvents = allNews || [];
         }
 
-        if (!newsEvent) {
+        if (newsEvents.length === 0) {
             console.log('[Conversational Pipeline] No news events found in database. Cannot run pipeline.');
             return;
         }
 
-        console.log(`[Conversational Pipeline] Selected news event: "${newsEvent.ticker_headline}" (${newsEvent.news_date})`);
-
-        // 2. Generate Dialogue Script using AI
-        console.log('\n📝 Step 2: Generating Q&A dialogue script...');
-        const script = await generateDialogueScript(newsEvent);
+        // 2. Generate Dialogue Script using AI (AI will pick the most important national news event)
+        console.log('\n📝 Step 2: Generating Q&A dialogue script and selecting top national issue...');
+        const script = await generateDialogueScript(newsEvents);
+        
+        const selectedIndex = typeof script.selected_index === 'number' ? script.selected_index : 0;
+        const newsEvent = newsEvents[selectedIndex] || newsEvents[0];
+        
+        console.log(`[Conversational Pipeline] AI Selected news event: "${newsEvent.ticker_headline}" (${newsEvent.news_date})`);
         console.log(`[Conversational Pipeline] Script generated successfully.`);
         console.log(`   Title: "${script.title}"`);
         console.log(`   Q: "${script.question.slice(0, 40)}..."`);

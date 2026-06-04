@@ -8,8 +8,17 @@ async function test() {
     console.log("=== Testing Kinetic Reel Generator ===");
     try {
         const text = "do hazaar chaubis ke sankalp patra mein pradhan mantri mudra yojana ki limit bis lakh se badhakar tees lakh rupaye kar di gayi hai";
-        console.log("1. Generating audio...");
-        const audioBuffer = await generateAudio(text);
+        let audioBuffer: Buffer;
+        try {
+            audioBuffer = await generateAudio(text);
+        } catch (e) {
+            console.warn("[Test] ElevenLabs audio generation failed or unauthorized. Using local dummy audio buffer fallback...");
+            if (fs.existsSync('news-bg.wav')) {
+                audioBuffer = fs.readFileSync('news-bg.wav'); // use full news-bg.wav
+            } else {
+                audioBuffer = Buffer.alloc(0);
+            }
+        }
         
         console.log("2. Generating video...");
         const videoBuffer = await generateKineticReel(

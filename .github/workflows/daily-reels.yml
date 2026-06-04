@@ -37,12 +37,18 @@ jobs:
         working-directory: ./rajneeti-backend
         run: npm ci
 
-      - name: Install ffmpeg and Hindi Fonts
+      - name: Install ffmpeg, libass, and Hindi Fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-noto-core
+          sudo apt-get install -y ffmpeg fonts-noto-core libass-dev
+          # Register bundled fonts with fontconfig for ASS subtitle rendering
+          mkdir -p ~/.fonts
+          cp rajneeti-backend/assets/fonts/*.ttf ~/.fonts/
+          fc-cache -fv 2>/dev/null || true
           # Verify font installation
           fc-list :lang=hi | head -5 || echo "Hindi fonts check complete"
+          fc-list | grep -i "noto.*devanagari" | head -3 || echo "Noto Devanagari font check"
+          fc-list | grep -i "outfit" | head -3 || echo "Outfit font check"
           # Verify bundled fonts exist
           ls -la rajneeti-backend/assets/fonts/ || echo "No bundled fonts dir"
 

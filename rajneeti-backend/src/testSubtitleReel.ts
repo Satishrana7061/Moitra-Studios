@@ -1,5 +1,5 @@
-import { generateSubtitleReel } from './services/ffmpegVideoGenerator.js';
-import { generateAudioWithTimestamps } from './services/elevenLabsService.js';
+import { generateSubtitleReel, estimateWordTimings } from './services/ffmpegVideoGenerator.js';
+import { generateAudioWithTimestamps, WordTiming } from './services/elevenLabsService.js';
 import fs from 'fs';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -10,11 +10,40 @@ async function test() {
         const reporterText = "Namaste Pradhan Mantri ji. Mera sawal mudra yojana ke baare mein hai.";
         const modiText = "Mudra yojana se crore on logo ko fayda hua hai.";
 
-        console.log("1. Generating audio + timestamps (Reporter)...");
-        const { audioBuffer: reporterAudio, wordTimings: reporterWords } = await generateAudioWithTimestamps(reporterText);
+        let reporterAudio: Buffer;
+        let reporterWords: WordTiming[];
+        let modiAudio: Buffer;
+        let modiWords: WordTiming[];
 
-        console.log("2. Generating audio + timestamps (Modi)...");
-        const { audioBuffer: modiAudio, wordTimings: modiWords } = await generateAudioWithTimestamps(modiText, process.env.ELEVENLABS_MODI_VOICE_ID);
+        try {
+            console.log("1. Generating audio + timestamps (Reporter)...");
+            const res = await generateAudioWithTimestamps(reporterText);
+            reporterAudio = res.audioBuffer;
+            reporterWords = res.wordTimings;
+        } catch (e) {
+            console.warn("[Test] ElevenLabs Reporter audio failed. Using fallback...");
+            if (fs.existsSync('news-bg.wav')) {
+                reporterAudio = fs.readFileSync('news-bg.wav');
+            } else {
+                reporterAudio = Buffer.alloc(0);
+            }
+            reporterWords = estimateWordTimings(reporterText, 3.5);
+        }
+
+        try {
+            console.log("2. Generating audio + timestamps (Modi)...");
+            const res = await generateAudioWithTimestamps(modiText, process.env.ELEVENLABS_MODI_VOICE_ID);
+            modiAudio = res.audioBuffer;
+            modiWords = res.wordTimings;
+        } catch (e) {
+            console.warn("[Test] ElevenLabs Modi audio failed. Using fallback...");
+            if (fs.existsSync('news-bg.wav')) {
+                modiAudio = fs.readFileSync('news-bg.wav');
+            } else {
+                modiAudio = Buffer.alloc(0);
+            }
+            modiWords = estimateWordTimings(modiText, 5.0);
+        }
 
         console.log("3. Generating video...");
         const videoBuffer = await generateSubtitleReel(

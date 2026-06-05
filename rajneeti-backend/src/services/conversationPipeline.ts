@@ -49,11 +49,12 @@ ${newsEvents.map((e, idx) => `[${idx}] DATE: ${e.news_date} | TITLE: ${e.ticker_
 TASK:
 1. Select the index of the most critical national-level news event from the list above.
 2. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
-3. Write a 4-turn sarcastic and sharp dialogue (conversation) between a news journalist/reporter and PM Narendra Modi:
-   - Turn 1 (Reporter): A sharp, accountable question in Hindi (with common Hinglish vocabulary) demanding details on the selected national problem. (Keep it to 2 sentences max).
-   - Turn 2 (PM Modi): PM Modi's initial response in Hindi (with common Hinglish vocabulary), speaking in his characteristic style (using first person plural 'hum', referring to government efforts, etc.). (Keep it to 2 sentences max).
-   - Turn 3 (Reporter): A short, sharp, slightly sarcastic follow-up question or counter-argument in Hindi based on the PM's response (pointing out ground realities, speed of delivery, or public skepticism). (Keep it to 1-2 sentences max).
-   - Turn 4 (PM Modi): PM Modi's second response in Hindi, addressing the follow-up question with specific data points, policy measures, or reassurance. (Keep it to 2-3 sentences max).
+3. Write a 4-turn sarcastic, extremely brief, and sharp dialogue (conversation) between a news journalist/reporter and PM Narendra Modi:
+   - Turn 1 (Reporter): A sharp, accountable question in Hindi (with common Hinglish vocabulary) demanding details on the selected national problem. (Keep it to exactly 1 short sentence, max 12-15 words).
+   - Turn 2 (PM Modi): PM Modi's initial response in Hindi (with common Hinglish vocabulary), speaking in his characteristic style (using first person plural 'hum', referring to government efforts, etc.). (Keep it to exactly 1-2 short sentences, max 20-25 words).
+   - Turn 3 (Reporter): A short, sharp, slightly sarcastic follow-up question or counter-argument in Hindi based on the PM's response. (Keep it to exactly 1 short sentence, max 10-12 words).
+   - Turn 4 (PM Modi): PM Modi's second response in Hindi, addressing the follow-up question with a quick verified data point. (Keep it to exactly 1-2 short sentences, max 20-25 words).
+   Ensure every sentence is extremely concise and short. Long sentences must be avoided. The total dialogue should be fast-paced and fit for a quick social media reel.
 4. Write a 1-2 sentence background context summarizing the audited facts or statistics used in Hindi.
 
 CRITICAL DATA CONSTRAINT:

@@ -319,11 +319,11 @@ function buildSubtitleASS(
     ass += `[V4+ Styles]\n`;
     ass += `Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n`;
 
-    // Reporter phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 64
-    ass += `Style: Reporter,${hf},64,&H00FFFFFF,&H80FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4.5,1.5,8,80,80,330,1\n`;
+    // Reporter phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 84 (Bigger size, thicker outline/shadow for readability without background box)
+    ass += `Style: Reporter,${hf},84,&H00FFFFFF,&H80FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,5.5,2.0,8,80,80,330,1\n`;
 
-    // Modi phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 64
-    ass += `Style: Modi,${hf},64,&H00FFFFFF,&H80FFFFFF,&H00102040,&H80000000,1,0,0,0,100,100,0,0,1,4.5,1.5,8,80,80,330,1\n`;
+    // Modi phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 84 (Bigger size, thicker outline/shadow for readability without background box)
+    ass += `Style: Modi,${hf},84,&H00FFFFFF,&H80FFFFFF,&H00102040,&H80000000,1,0,0,0,100,100,0,0,1,5.5,2.0,8,80,80,330,1\n`;
 
     // Context/verdict text — Alignment 8 (Top Center), MarginV 450, Fontsize 56
     ass += `Style: Context,${hf},56,&H0081B910,&H0081B910,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,1.5,8,80,80,450,1\n`;
@@ -403,7 +403,7 @@ function buildSubtitleASS(
             end: w.end + startOffset,
         }));
         
-        const phrases = groupWordsIntoPhrases(offsetWords, 4);
+        const phrases = groupWordsIntoPhrases(offsetWords, 3); // Display fewer words at a time (3 words) for a cleaner layout with larger font size
         const style = turn.speaker === 'reporter' ? 'Reporter' : 'Modi';
         
         for (let j = 0; j < phrases.length; j++) {
@@ -411,7 +411,7 @@ function buildSubtitleASS(
             const nextStart = j < phrases.length - 1 ? phrases[j + 1].startTime : turnEnd;
             const displayEnd = Math.min(nextStart, phrase.endTime + 0.5);
             
-            const wrapped = wrapASSText(escapeASSText(phrase.text), 35);
+            const wrapped = wrapASSText(escapeASSText(phrase.text), 26); // Wrap at 26 characters max to fit the larger font perfectly
             ass += `Dialogue: 5,${toASSTime(phrase.startTime)},${toASSTime(displayEnd)},${style},,0,0,0,,{\\fad(200,100)\\blur1.2\\fscx102\\fscy102\\t(0,250,\\fscx100\\fscy100)}${wrapped}\n`;
         }
     }
@@ -473,9 +473,6 @@ function buildVideoFilterChain(
 
     // Thin separator line below header area
     filters.push(`drawbox=x=60:y=310:w=960:h=2:color=white@0.08:t=fill`);
-
-    // Semi-transparent dark navy background box behind the top subtitle text area for readability
-    filters.push(`drawbox=x=60:y=312:w=960:h=200:color=0x060d1a@0.75:t=fill`);
 
     // Progress bar background (semi-transparent white track)
     filters.push(`drawbox=x=60:y=${progressBarY}:w=960:h=10:color=white@0.12:t=fill`);

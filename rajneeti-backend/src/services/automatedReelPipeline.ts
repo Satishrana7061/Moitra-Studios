@@ -1,4 +1,4 @@
-import { generateAudio } from "./elevenLabsService.js";
+import { generateAudio, normalizeNumeralsForTTS } from "./elevenLabsService.js";
 import { generateKineticReel } from "./ffmpegVideoGenerator.js";
 import { SocialUploadService } from "./socialUploadService.js";
 import { SupabaseStorageService } from "./supabaseStorage.js";
@@ -14,47 +14,14 @@ if (SUPABASE_URL && SUPABASE_KEY) {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 }
 
-// ── Hindi numeral normalization map for TTS ─────────────────────
-const HINDI_NUMERAL_MAP: Record<string, string> = {
-    '2014': 'do hazaar chaudah',
-    '2019': 'do hazaar unnees',
-    '2024': 'do hazaar chaubis',
-    '2025': 'do hazaar pachees',
-    '2026': 'do hazaar chhabbees',
-    '1': 'ek',
-    '2': 'do',
-    '3': 'teen',
-    '4': 'chaar',
-    '5': 'paanch',
-    '6': 'chheh',
-    '7': 'saat',
-    '8': 'aath',
-    '9': 'nau',
-    '10': 'das',
-    '100': 'sau',
+// ── English numeral normalization map for TTS ───────────────────
+const ENGLISH_NUMERAL_MAP: Record<string, string> = {
+    '2014': 'twenty fourteen',
+    '2019': 'twenty nineteen',
+    '2024': 'twenty twenty four',
+    '2025': 'twenty twenty five',
+    '2026': 'twenty twenty six',
 };
-
-/**
- * Normalizes bare numerals in text to Hindi spoken words for TTS.
- * Converts years (2014, 2019, 2024) and common numbers to their
- * Hindi spoken equivalents so ElevenLabs pronounces them correctly.
- */
-function normalizeNumeralsForTTS(text: string): string {
-    let normalized = text;
-
-    // Replace years first (longer patterns before shorter ones)
-    const yearKeys = Object.keys(HINDI_NUMERAL_MAP)
-        .filter(k => k.length === 4)
-        .sort((a, b) => b.length - a.length);
-
-    for (const year of yearKeys) {
-        // Use word boundary regex to only replace standalone numbers
-        const regex = new RegExp(`\\b${year}\\b`, 'g');
-        normalized = normalized.replace(regex, HINDI_NUMERAL_MAP[year]);
-    }
-
-    return normalized;
-}
 
 /**
  * Builds hashtags for Instagram based on content.
@@ -308,7 +275,7 @@ export async function runPromisesReelPipeline() {
         console.log(`[Pipeline] Calculated current Reel Number: #${reelNumber}`);
 
         // Pre-compute spoken year for TTS normalization
-        const yearSpokenHi = HINDI_NUMERAL_MAP[String(reelPromise.source_manifesto_year)] || String(reelPromise.source_manifesto_year);
+        const yearSpokenEn = ENGLISH_NUMERAL_MAP[String(reelPromise.source_manifesto_year)] || String(reelPromise.source_manifesto_year);
 
         // ── Step 3: Generate young-explainer Hinglish script ─────────
         console.log('\n📝 Step 3: Building young-explainer Hinglish script with TTS normalization...');
@@ -448,8 +415,8 @@ Say it in a neutral and evidence-based way, not angry or sarcastic.
 
 Output STRICT JSON ONLY:
 {
-    "voiceover": "Final Hinglish voiceover script (around 75-85 words, maximum 30 seconds, ALL YEARS IN HINDI WORDS not digits)...",
-    "year_spoken_hi": "The year written in Hindi spoken words (e.g. do hazaar chaudah)",
+    "voiceover": "Final Hinglish voiceover script (around 75-85 words, maximum 30 seconds, ALL YEARS IN ENGLISH WORDS not digits)...",
+    "year_spoken_en": "The year written in English spoken words (e.g. twenty fourteen)",
     "slide1": "Fuller Hindi promise description sentence (6-10 words)...",
     "slide2": "Fuller Hindi status & source sentence (6-12 words)...",
     "slide3": "Fuller Hindi 2026 progress or budget sentence (6-12 words)..."
@@ -459,16 +426,16 @@ Output STRICT JSON ONLY:
 - Promise Sequence Number: ${reelNumber}
 - Promise title: "${reelPromise.title}"
 - Year: ${reelPromise.source_manifesto_year}
-- Year in Hindi: "${yearSpokenHi}"
+- Year in English: "${yearSpokenEn}"
 - Leader: Narendra Modi
 - Latest verified status: "${reelPromise.status}"
 - Verified facts / Evidence details: "${reelPromise.verdict_summary}"
 - Source list / details: "${reelPromise.fulfilled_details || ''} ${reelPromise.unfulfilled_details || ''}"
 
-IMPORTANT: Write ALL years as Hindi spoken words (${reelPromise.source_manifesto_year} = "${yearSpokenHi}"). Do NOT use any bare numerals for years in the voiceover.
+IMPORTANT: Write ALL years as English spoken words (${reelPromise.source_manifesto_year} = "${yearSpokenEn}"). Do NOT use any bare numerals for years in the voiceover.
 
 Write the script of 24 to 32 seconds (max 30 seconds, Voiceover must be under 30 seconds when spoken naturally, which is around 75 to 85 words).
-Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_hi, slide1, slide2, slide3.`;
+Make sure to only mention facts from the verified data, explicitly naming the legitimate news media or government sources. Output ONLY the JSON with fields: voiceover, year_spoken_en, slide1, slide2, slide3.`;
 
         // ── Method A: Try Google Gemini API ──
         if (activeGeminiKey && activeGeminiKey !== 'PLACEHOLDER_API_KEY') {

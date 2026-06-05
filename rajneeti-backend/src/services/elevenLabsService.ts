@@ -17,10 +17,67 @@ export interface WordTiming {
 }
 
 /**
+ * Converts numbers to their English spoken word equivalents.
+ */
+function numberToEnglishWord(num: number): string {
+    if (num === 0) return 'zero';
+    
+    // For years (like 2014, 2024, 1999), it is best pronounced as "twenty fourteen" or "twenty twenty four"
+    if (num >= 1900 && num <= 2099) {
+        const firstHalf = Math.floor(num / 100);
+        const secondHalf = num % 100;
+        if (secondHalf === 0) {
+            return `${numberToEnglishWord(firstHalf)} hundred`;
+        }
+        if (secondHalf < 10) {
+            return `${numberToEnglishWord(firstHalf)} oh ${numberToEnglishWord(secondHalf)}`;
+        }
+        return `${numberToEnglishWord(firstHalf)} ${numberToEnglishWord(secondHalf)}`;
+    }
+
+    const ones = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+    let words = '';
+
+    if (num >= 1000) {
+        words += ones[Math.floor(num / 1000)] + ' thousand ';
+        num %= 1000;
+    }
+
+    if (num >= 100) {
+        words += ones[Math.floor(num / 100)] + ' hundred ';
+        num %= 100;
+    }
+
+    if (num >= 20) {
+        words += tens[Math.floor(num / 10)] + ' ';
+        num %= 10;
+    }
+
+    if (num > 0) {
+        words += ones[num] + ' ';
+    }
+
+    return words.trim();
+}
+
+/**
+ * Replaces sequences of digits (years, single digits, larger counts) with their English words.
+ */
+export function normalizeNumeralsForTTS(text: string): string {
+    return text.replace(/\b\d+\b/g, (match) => {
+        const num = parseInt(match, 10);
+        return numberToEnglishWord(num);
+    });
+}
+
+/**
  * Standard TTS — generates audio buffer from text.
  * Used by PM Promises pipeline where word-level sync is not needed.
  */
 export async function generateAudio(text: string, voiceId?: string): Promise<Buffer> {
+    const normalizedText = normalizeNumeralsForTTS(text);
     const apiKey = process.env.ELEVENLABS_API_KEY;
     const finalVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs'; // User defined voice
 
@@ -37,7 +94,7 @@ export async function generateAudio(text: string, voiceId?: string): Promise<Buf
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                text: text,
+                text: normalizedText,
                 // Use multilingual v2 for proper Hindi/Hinglish pronunciation
                 model_id: 'eleven_multilingual_v2',
                 voice_settings: {
@@ -75,6 +132,7 @@ export async function generateAudioWithTimestamps(
     text: string, 
     voiceId?: string
 ): Promise<{ audioBuffer: Buffer; wordTimings: WordTiming[] }> {
+    const normalizedText = normalizeNumeralsForTTS(text);
     const apiKey = process.env.ELEVENLABS_API_KEY;
     const finalVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs';
 
@@ -85,7 +143,7 @@ export async function generateAudioWithTimestamps(
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${finalVoiceId}/with-timestamps`;
 
     try {
-        console.log(`[ElevenLabs] Generating audio with timestamps for ${text.length} chars...`);
+        console.log(`[ElevenLabs] Generating audio with timestamps for ${normalizedText.length} chars...`);
 
         const response = await fetch(url, {
             method: 'POST',
@@ -94,7 +152,7 @@ export async function generateAudioWithTimestamps(
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                text: text,
+                text: normalizedText,
                 model_id: 'eleven_multilingual_v2',
                 voice_settings: {
                     stability: 0.55,

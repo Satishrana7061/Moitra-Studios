@@ -856,25 +856,46 @@ export async function generateSubtitleReel(
             return 'modi1';
         };
 
-        const usedPads = new Set<string>();
+        const intervals: Record<string, string[]> = {
+            'rep': [],
+            'rep_dim': [],
+            'modi1': [],
+            'modi1_dim': [],
+            'modi2': [],
+            'modi2_dim': [],
+            'modi3': [],
+            'modi3_dim': [],
+        };
 
         for (let i = 0; i < turns.length; i++) {
             const turn = turns[i];
+            const start = turnStartTimes[i];
+            const end = turnEndTimes[i];
+            const modiAvatar = getModiAvatarName(i);
+
+            const intervalStr = `between(t,${start.toFixed(3)},${end.toFixed(3)})`;
+
             if (turn.speaker === 'reporter') {
-                usedPads.add('rep');
-                const m = getModiAvatarName(i);
-                usedPads.add(`${m}_dim`);
+                intervals['rep'].push(intervalStr);
+                intervals[`${modiAvatar}_dim`].push(intervalStr);
             } else {
-                usedPads.add('rep_dim');
-                const m = getModiAvatarName(i);
-                usedPads.add(m);
+                intervals['rep_dim'].push(intervalStr);
+                intervals[modiAvatar].push(intervalStr);
             }
         }
-        
+
         // Context slide uses both dimmed
-        usedPads.add('rep_dim');
-        const lastM = getLastModiAvatarName();
-        usedPads.add(`${lastM}_dim`);
+        const ctxIntervalStr = `between(t,${totalDuration.toFixed(3)},${fullDuration.toFixed(3)})`;
+        intervals['rep_dim'].push(ctxIntervalStr);
+        const lastModiAvatar = getLastModiAvatarName();
+        intervals[`${lastModiAvatar}_dim`].push(ctxIntervalStr);
+
+        const usedPads = new Set<string>();
+        for (const [padName, list] of Object.entries(intervals)) {
+            if (list.length > 0) {
+                usedPads.add(padName);
+            }
+        }
 
         const overlayFilters: string[] = [];
 
@@ -884,15 +905,11 @@ export async function generateSubtitleReel(
             const hasNormal = usedPads.has(name);
             const hasDim = usedPads.has(`${name}_dim`);
             
-            if (hasNormal && hasDim) {
-                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}_scaled]`);
-                overlayFilters.push(`[${name}_scaled] split=2 [${name}] [${name}_to_dim]`);
-                overlayFilters.push(`[${name}_to_dim] format=rgba,colorchannelmixer=aa=0.45 [${name}_dim]`);
-            } else if (hasNormal) {
+            if (hasNormal) {
                 overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}]`);
-            } else if (hasDim) {
-                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}_to_dim]`);
-                overlayFilters.push(`[${name}_to_dim] format=rgba,colorchannelmixer=aa=0.45 [${name}_dim]`);
+            }
+            if (hasDim) {
+                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba,colorchannelmixer=aa=0.45 [${name}_dim]`);
             }
         };
 
@@ -903,50 +920,33 @@ export async function generateSubtitleReel(
 
         // Overlay turns sequentially
         let currentPad = '[0:v]';
+        let overlayCount = 0;
 
-        for (let i = 0; i < turns.length; i++) {
-            const turn = turns[i];
-            const start = turnStartTimes[i];
-            const end = turnEndTimes[i];
-            const modiAvatar = getModiAvatarName(i);
+        const applyOverlay = (padName: string, x: number, y: number) => {
+            if (!usedPads.has(padName)) return;
+            const exprs = intervals[padName];
+            if (exprs.length === 0) return;
+            
+            const enableExpr = exprs.join('+');
+            const nextPad = `[v_overlay_${overlayCount++}]`;
+            
+            overlayFilters.push(`${currentPad}[${padName}] overlay=x=${x}:y=${y}:enable='${enableExpr}' ${nextPad}`);
+            currentPad = nextPad;
+        };
 
-            const repSrc = turn.speaker === 'reporter' ? 'rep' : 'rep_dim';
-            const modiSrc = turn.speaker === 'modi' ? modiAvatar : `${modiAvatar}_dim`;
+        // Overlay reporter configurations
+        applyOverlay('rep', 60, 960);
+        applyOverlay('rep_dim', 60, 960);
 
-            let padA = currentPad;
-            if (repIdx !== -1) {
-                padA = `[v_t${i}_a]`;
-                overlayFilters.push(`${currentPad}[${repSrc}] overlay=x=60:y=960:enable='between(t,${start.toFixed(3)},${end.toFixed(3)})' ${padA}`);
-            }
+        // Overlay Modi configurations
+        applyOverlay('modi1', 540, 960);
+        applyOverlay('modi1_dim', 540, 960);
+        applyOverlay('modi2', 540, 960);
+        applyOverlay('modi2_dim', 540, 960);
+        applyOverlay('modi3', 540, 960);
+        applyOverlay('modi3_dim', 540, 960);
 
-            let padB = padA;
-            if (modi1Idx !== -1) {
-                padB = `[v_t${i}_b]`;
-                overlayFilters.push(`${padA}[${modiSrc}] overlay=x=540:y=960:enable='between(t,${start.toFixed(3)},${end.toFixed(3)})' ${padB}`);
-            }
-
-            currentPad = padB;
-        }
-
-        // Overlay context slide at the end (from totalDuration to fullDuration)
-        const contextStart = totalDuration;
-        const contextEnd = fullDuration;
-
-        let padContextA = currentPad;
-        if (repIdx !== -1) {
-            padContextA = `[v_ctx_a]`;
-            overlayFilters.push(`${currentPad}[rep_dim] overlay=x=60:y=960:enable='between(t,${contextStart.toFixed(3)},${contextEnd.toFixed(3)})' ${padContextA}`);
-        }
-
-        let padContextB = padContextA;
-        const lastModiAvatarName = getLastModiAvatarName();
-
-        if (modi1Idx !== -1) {
-            padContextB = `[v_ctx_b]`;
-            overlayFilters.push(`${padContextA}[${lastModiAvatarName}_dim] overlay=x=540:y=960:enable='between(t,${contextStart.toFixed(3)},${contextEnd.toFixed(3)})' ${padContextB}`);
-        }
-
-        currentPad = padContextB;
+        currentPad = currentPad;
 
         // Build background and overlay subtitle chain starting on currentPad
         const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad);

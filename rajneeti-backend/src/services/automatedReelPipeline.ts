@@ -227,16 +227,8 @@ export async function runAutomatedReelPipeline() {
         return;
     }
 
-    // Run PM Promises reel first
-    console.log('\n=== PHASE 1: PM PROMISES REEL ===');
-    try {
-        await runPromisesReelPipeline();
-    } catch (err: any) {
-        console.error('[Pipeline] PM Promises pipeline failed:', err.message);
-    }
-
-    // Then run PM Interview reel
-    console.log('\n=== PHASE 2: PM INTERVIEW REEL ===');
+    // Only run PM Interview reel (Conversational Cartoon Dialogue)
+    console.log('\n=== PHASE: PM INTERVIEW REEL (CONVERSATIONAL CARTOON) ===');
     try {
         const { runConversationalReelPipeline } = await import('./conversationPipeline.js');
         await runConversationalReelPipeline();

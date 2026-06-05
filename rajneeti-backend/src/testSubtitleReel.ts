@@ -7,8 +7,8 @@ dotenv.config();
 async function test() {
     console.log("=== Testing Subtitle Reel Generator ===");
     try {
-        const reporterText = "Namaste Pradhan Mantri ji. Mera sawal mudra yojana ke baare mein hai.";
-        const modiText = "Mudra yojana se crore on logo ko fayda hua hai.";
+        const reporterText = "नमस्ते प्रधानमंत्री जी। मेरा सवाल मुद्रा योजना के बारे में है।";
+        const modiText = "मुद्रा योजना से करोड़ों लोगों को फायदा हुआ है।";
 
         let reporterAudio: Buffer;
         let reporterWords: WordTiming[];

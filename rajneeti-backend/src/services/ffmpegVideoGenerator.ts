@@ -319,14 +319,14 @@ function buildSubtitleASS(
     ass += `[V4+ Styles]\n`;
     ass += `Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n`;
 
-    // Reporter phrase text — white with thick border and glow
-    ass += `Style: Reporter,${hf},60,&H00FFFFFF,&H80FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,3.5,1.5,5,80,80,0,1\n`;
+    // Reporter phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 64
+    ass += `Style: Reporter,${hf},64,&H00FFFFFF,&H80FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4.5,1.5,8,80,80,330,1\n`;
 
-    // Modi phrase text — white with saffron tint border
-    ass += `Style: Modi,${hf},60,&H00FFFFFF,&H80FFFFFF,&H00102040,&H80000000,1,0,0,0,100,100,0,0,1,3.5,1.5,5,80,80,0,1\n`;
+    // Modi phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 64
+    ass += `Style: Modi,${hf},64,&H00FFFFFF,&H80FFFFFF,&H00102040,&H80000000,1,0,0,0,100,100,0,0,1,4.5,1.5,8,80,80,330,1\n`;
 
-    // Context/verdict text — green
-    ass += `Style: Context,${hf},52,&H0081B910,&H0081B910,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,3.5,1.5,5,80,80,0,1\n`;
+    // Context/verdict text — Alignment 8 (Top Center), MarginV 450, Fontsize 56
+    ass += `Style: Context,${hf},56,&H0081B910,&H0081B910,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,1.5,8,80,80,450,1\n`;
 
     // PM OPEN PRESS CONFERENCE header
     ass += `Style: Header,${ef},42,&H0000B8FF,&H0000B8FF,&H50000000,&H40000000,1,0,0,0,100,100,2,0,1,2.5,1,7,60,0,0,1\n`;
@@ -340,14 +340,14 @@ function buildSubtitleASS(
     // Network branding (top-right)
     ass += `Style: Network,${ef},26,&H50FFFFFF,&H50FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,9,0,60,0,1\n`;
 
-    // Speaker badge — Reporter (blue, opaque box)
-    ass += `Style: BadgeReporter,${ef},30,&H00F6823B,&H00F6823B,&H00F6823B,&H20F6823B,1,0,0,0,100,100,0,0,3,0,0,8,0,0,0,1\n`;
+    // Speaker badge — Reporter (blue, opaque box, white text, bottom center)
+    ass += `Style: BadgeReporter,${ef},28,&H00FFFFFF,&H00FFFFFF,&H00F6823B,&H00F6823B,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
-    // Speaker badge — Modi (saffron, opaque box)
-    ass += `Style: BadgeModi,${ef},30,&H0000B8FF,&H0000B8FF,&H0000B8FF,&H200000B8,1,0,0,0,100,100,0,0,3,0,0,8,0,0,0,1\n`;
+    // Speaker badge — Modi (saffron, opaque box, white text, bottom center)
+    ass += `Style: BadgeModi,${ef},28,&H00FFFFFF,&H00FFFFFF,&H0000B8FF,&H0000B8FF,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
-    // Speaker badge — Fact Check (green, opaque box)
-    ass += `Style: BadgeContext,${ef},30,&H0081B910,&H0081B910,&H0081B910,&H2000B981,1,0,0,0,100,100,0,0,3,0,0,8,0,0,0,1\n`;
+    // Speaker badge — Fact Check (green, opaque box, white text, bottom center)
+    ass += `Style: BadgeContext,${ef},28,&H00FFFFFF,&H00FFFFFF,&H0081B910,&H0081B910,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
     // Footer
     ass += `Style: Footer,${ef},24,&H6000B8FF,&H6000B8FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,0,0,1,0,0,0,1\n`;
@@ -383,12 +383,12 @@ function buildSubtitleASS(
         const end = turnStartTimes[i + 1] || totalDuration;
         
         if (turn.speaker === 'reporter') {
-            ass += `Dialogue: 10,${toASSTime(start)},${toASSTime(end)},BadgeReporter,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  REPORTER ${metadata.reporterName.toUpperCase()}  \n`;
+            ass += `Dialogue: 10,${toASSTime(start)},${toASSTime(end)},BadgeReporter,,0,0,0,,{\\blur0.3}REPORTER ${metadata.reporterName.toUpperCase()}\n`;
         } else {
-            ass += `Dialogue: 10,${toASSTime(start)},${toASSTime(end)},BadgeModi,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  PM NARENDRA MODI  \n`;
+            ass += `Dialogue: 10,${toASSTime(start)},${toASSTime(end)},BadgeModi,,0,0,0,,{\\blur0.3}PM NARENDRA MODI\n`;
         }
     }
-    ass += `Dialogue: 10,${toASSTime(totalDuration)},${tEnd},BadgeContext,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  FACT CHECK VERDICT  \n`;
+    ass += `Dialogue: 10,${toASSTime(totalDuration)},${tEnd},BadgeContext,,0,0,0,,{\\blur0.3}FACT CHECK VERDICT\n`;
 
     // ─ Dialogue Text Phrases (timed per turn) ─
     for (let i = 0; i < turns.length; i++) {
@@ -403,7 +403,7 @@ function buildSubtitleASS(
             end: w.end + startOffset,
         }));
         
-        const phrases = groupWordsIntoPhrases(offsetWords, 5);
+        const phrases = groupWordsIntoPhrases(offsetWords, 4);
         const style = turn.speaker === 'reporter' ? 'Reporter' : 'Modi';
         
         for (let j = 0; j < phrases.length; j++) {
@@ -411,14 +411,14 @@ function buildSubtitleASS(
             const nextStart = j < phrases.length - 1 ? phrases[j + 1].startTime : turnEnd;
             const displayEnd = Math.min(nextStart, phrase.endTime + 0.5);
             
-            const wrapped = wrapASSText(escapeASSText(phrase.text), 18);
-            ass += `Dialogue: 5,${toASSTime(phrase.startTime)},${toASSTime(displayEnd)},${style},,0,0,0,,{\\fad(250,100)\\blur1\\fscx104\\fscy104\\t(0,300,\\fscx100\\fscy100)}${wrapped}\n`;
+            const wrapped = wrapASSText(escapeASSText(phrase.text), 35);
+            ass += `Dialogue: 5,${toASSTime(phrase.startTime)},${toASSTime(displayEnd)},${style},,0,0,0,,{\\fad(200,100)\\blur1.2\\fscx102\\fscy102\\t(0,250,\\fscx100\\fscy100)}${wrapped}\n`;
         }
     }
 
     // ─ Context/verdict slide ─
-    const wrappedContext = wrapASSText(escapeASSText(metadata.newsContext), 20);
-    ass += `Dialogue: 5,${toASSTime(totalDuration)},${tEnd},Context,,0,0,0,,{\\fad(400,0)\\blur1.2\\fscx106\\fscy106\\t(0,500,\\fscx100\\fscy100)}${wrappedContext}\n`;
+    const wrappedContext = wrapASSText(escapeASSText(metadata.newsContext), 30);
+    ass += `Dialogue: 5,${toASSTime(totalDuration)},${tEnd},Context,,0,0,0,,{\\fad(300,0)\\blur1.2\\fscx104\\fscy104\\t(0,400,\\fscx100\\fscy100)}${wrappedContext}\n`;
 
     // ─ Footer ─
     ass += `Dialogue: 10,${t0},${tEnd},Footer,,60,0,100,,{\\an1}PM PRESS CONFERENCE\n`;
@@ -446,7 +446,8 @@ function buildVideoFilterChain(
     assPath: string,
     fontsDir: string,
     inputPad: string = '[0:v]',
-    progressBarY: number = 1780
+    progressBarY: number = 1780,
+    drawCenterGlow: boolean = false
 ): string {
     const af = escapeFilterPath(assPath);
     const fd = escapeFilterPath(fontsDir);
@@ -460,7 +461,9 @@ function buildVideoFilterChain(
     filters.push(`drawbox=x=0:y=ih*2/3:w=iw:h=ih/3:color=0x060418@0.15:t=fill`);
 
     // Center area subtle glow (draws eye to text)
-    filters.push(`drawbox=x=100:y=500:w=880:h=800:color=0x1a0a40@0.08:t=fill`);
+    if (drawCenterGlow) {
+        filters.push(`drawbox=x=100:y=500:w=880:h=800:color=0x1a0a40@0.08:t=fill`);
+    }
 
     // Animated noise particles (alls=strength, allf=t means temporal/animated)
     filters.push(`noise=alls=6:allf=t`);
@@ -470,6 +473,9 @@ function buildVideoFilterChain(
 
     // Thin separator line below header area
     filters.push(`drawbox=x=60:y=310:w=960:h=2:color=white@0.08:t=fill`);
+
+    // Semi-transparent dark navy background box behind the top subtitle text area for readability
+    filters.push(`drawbox=x=60:y=312:w=960:h=200:color=0x060d1a@0.75:t=fill`);
 
     // Progress bar background (semi-transparent white track)
     filters.push(`drawbox=x=60:y=${progressBarY}:w=960:h=10:color=white@0.12:t=fill`);
@@ -549,7 +555,7 @@ export async function generateKineticReel(
         console.log(`[ffmpeg-kinetic] Background audio: ${hasBgAudio ? 'found' : 'not found'}`);
 
         // ── Build filter chain ───────────────────────────────────
-        const videoFilter = buildVideoFilterChain(duration, assPath, FONTS_DIR);
+        const videoFilter = buildVideoFilterChain(duration, assPath, FONTS_DIR, '[0:v]', 1780, true);
 
         // Compose the full filter_complex
         let filterComplex = videoFilter + '\n[v]';
@@ -858,13 +864,9 @@ export async function generateSubtitleReel(
 
         const intervals: Record<string, string[]> = {
             'rep': [],
-            'rep_dim': [],
             'modi1': [],
-            'modi1_dim': [],
             'modi2': [],
-            'modi2_dim': [],
             'modi3': [],
-            'modi3_dim': [],
         };
 
         for (let i = 0; i < turns.length; i++) {
@@ -877,18 +879,10 @@ export async function generateSubtitleReel(
 
             if (turn.speaker === 'reporter') {
                 intervals['rep'].push(intervalStr);
-                intervals[`${modiAvatar}_dim`].push(intervalStr);
             } else {
-                intervals['rep_dim'].push(intervalStr);
                 intervals[modiAvatar].push(intervalStr);
             }
         }
-
-        // Context slide uses both dimmed
-        const ctxIntervalStr = `between(t,${totalDuration.toFixed(3)},${fullDuration.toFixed(3)})`;
-        intervals['rep_dim'].push(ctxIntervalStr);
-        const lastModiAvatar = getLastModiAvatarName();
-        intervals[`${lastModiAvatar}_dim`].push(ctxIntervalStr);
 
         const usedPads = new Set<string>();
         for (const [padName, list] of Object.entries(intervals)) {
@@ -899,17 +893,13 @@ export async function generateSubtitleReel(
 
         const overlayFilters: string[] = [];
 
-        // Scale and prepare transparency/dimming for inputs (only if actually used)
+        // Scale active speaker avatars (1800 width to stretch grey background wall to cover the screen width)
         const prepareAvatarPad = (name: string, inputIdx: number) => {
             if (inputIdx === -1) return;
             const hasNormal = usedPads.has(name);
-            const hasDim = usedPads.has(`${name}_dim`);
             
             if (hasNormal) {
-                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}]`);
-            }
-            if (hasDim) {
-                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba,colorchannelmixer=aa=0.45 [${name}_dim]`);
+                overlayFilters.push(`[${inputIdx}:v] scale=1800:-1,format=rgba [${name}]`);
             }
         };
 
@@ -918,7 +908,7 @@ export async function generateSubtitleReel(
         prepareAvatarPad('modi2', modi2Idx !== -1 ? modi2Idx : modi1Idx);
         prepareAvatarPad('modi3', modi3Idx !== -1 ? modi3Idx : (modi2Idx !== -1 ? modi2Idx : modi1Idx));
 
-        // Overlay turns sequentially
+        // Overlay active speaker sequentially
         let currentPad = '[0:v]';
         let overlayCount = 0;
 
@@ -934,17 +924,13 @@ export async function generateSubtitleReel(
             currentPad = nextPad;
         };
 
-        // Overlay reporter configurations
-        applyOverlay('rep', 60, 960);
-        applyOverlay('rep_dim', 60, 960);
+        // Overlay active reporter (zoomed and centered, shifted down to align with separator line)
+        applyOverlay('rep', -360, 310);
 
-        // Overlay Modi configurations
-        applyOverlay('modi1', 540, 960);
-        applyOverlay('modi1_dim', 540, 960);
-        applyOverlay('modi2', 540, 960);
-        applyOverlay('modi2_dim', 540, 960);
-        applyOverlay('modi3', 540, 960);
-        applyOverlay('modi3_dim', 540, 960);
+        // Overlay active Modi configurations (zoomed and centered, shifted down to align with separator line)
+        applyOverlay('modi1', -360, 310);
+        applyOverlay('modi2', -360, 310);
+        applyOverlay('modi3', -360, 310);
 
         currentPad = currentPad;
 
@@ -960,6 +946,12 @@ export async function generateSubtitleReel(
 
         const filterPath = path.join(tmpDir, 'filter.txt');
         fs.writeFileSync(filterPath, filterComplex, 'utf-8');
+        
+        // Write a copy to scratch for debugging
+        try {
+            fs.mkdirSync(path.join(process.cwd(), 'scratch'), { recursive: true });
+            fs.writeFileSync(path.join(process.cwd(), 'scratch', 'filter.txt'), filterComplex, 'utf-8');
+        } catch {}
 
         // Build FFmpeg command execution
         cmd.push('-filter_complex_script', filterPath);

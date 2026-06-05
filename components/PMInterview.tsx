@@ -239,37 +239,54 @@ const PMInterview: React.FC = () => {
                                 </div>
 
                                 <div className="flex flex-col gap-6">
-                                    {/* Journalist Question Turn */}
-                                    <div className="flex gap-4 items-start max-w-[85%] self-start animate-fade-in">
-                                        <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 shadow-md shrink-0 bg-blue-950 flex items-center justify-center">
-                                            <img src={reporterAvatar} alt={activeInterview.reporter_name} className="w-full h-full object-cover" />
-                                        </div>
-                                        <div className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-black text-gameBlue uppercase tracking-widest">Reporter {activeInterview.reporter_name}</span>
-                                                <Mic size={10} className="text-gameBlue" />
-                                            </div>
-                                            <div className="bg-slate-950/60 border border-blue-900/20 text-slate-200 px-5 py-4 rounded-2xl rounded-tl-none shadow-md text-sm md:text-base leading-relaxed normal-case">
-                                                {activeInterview.question}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    {(() => {
+                                        const qTurns = activeInterview.question.split('\n\n');
+                                        const aTurns = activeInterview.answer.split('\n\n');
+                                        
+                                        return qTurns.map((q, idx) => {
+                                            const cleanQ = q.replace(/^(1\.|2\.|Q1:|Q2:)\s*/i, '').trim();
+                                            const rawA = aTurns[idx] || '';
+                                            const cleanA = rawA.replace(/^(1\.|2\.|A1:|A2:)\s*/i, '').trim();
 
-                                    {/* Prime Minister Modi Response Turn */}
-                                    <div className="flex gap-4 items-start max-w-[85%] self-end flex-row-reverse animate-fade-in">
-                                        <div className="w-12 h-12 rounded-full overflow-hidden border border-gameOrange/30 shadow-md shrink-0 bg-orange-950 flex items-center justify-center">
-                                            <img src={MODI_AVATAR} alt="Narendra Modi" className="w-full h-full object-cover" />
-                                        </div>
-                                        <div className="flex flex-col gap-1 items-end">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-xs font-black text-gameOrange uppercase tracking-widest">PM Narendra Modi</span>
-                                                <Mic size={10} className="text-gameOrange" />
-                                            </div>
-                                            <div className="bg-gameOrange/5 border border-gameOrange/20 text-slate-200 px-5 py-4 rounded-2xl rounded-tr-none shadow-md text-sm md:text-base leading-relaxed normal-case">
-                                                {activeInterview.answer}
-                                            </div>
-                                        </div>
-                                    </div>
+                                            return (
+                                                <React.Fragment key={idx}>
+                                                    {cleanQ && (
+                                                        <div className="flex gap-4 items-start max-w-[85%] self-start animate-fade-in">
+                                                            <div className="w-12 h-12 rounded-full overflow-hidden border border-white/20 shadow-md shrink-0 bg-blue-950 flex items-center justify-center">
+                                                                <img src={reporterAvatar} alt={activeInterview.reporter_name} className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs font-black text-gameBlue uppercase tracking-widest">Reporter {activeInterview.reporter_name}</span>
+                                                                    <Mic size={10} className="text-gameBlue" />
+                                                                </div>
+                                                                <div className="bg-slate-950/60 border border-blue-900/20 text-slate-200 px-5 py-4 rounded-2xl rounded-tl-none shadow-md text-sm md:text-base leading-relaxed normal-case">
+                                                                    {cleanQ}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {cleanA && (
+                                                        <div className="flex gap-4 items-start max-w-[85%] self-end flex-row-reverse animate-fade-in">
+                                                            <div className="w-12 h-12 rounded-full overflow-hidden border border-gameOrange/30 shadow-md shrink-0 bg-orange-950 flex items-center justify-center">
+                                                                <img src={MODI_AVATAR} alt="Narendra Modi" className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1 items-end">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="text-xs font-black text-gameOrange uppercase tracking-widest">PM Narendra Modi</span>
+                                                                    <Mic size={10} className="text-gameOrange" />
+                                                                </div>
+                                                                <div className="bg-gameOrange/5 border border-gameOrange/20 text-slate-200 px-5 py-4 rounded-2xl rounded-tr-none shadow-md text-sm md:text-base leading-relaxed normal-case">
+                                                                    {cleanA}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </React.Fragment>
+                                            );
+                                        });
+                                    })()}
                                 </div>
 
                                 {/* Video Player Section */}

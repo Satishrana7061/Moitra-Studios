@@ -49,19 +49,24 @@ ${newsEvents.map((e, idx) => `[${idx}] DATE: ${e.news_date} | TITLE: ${e.ticker_
 TASK:
 1. Select the index of the most critical national-level news event from the list above.
 2. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
-3. Write a sharp, accountable question in Hindi (with common Hinglish vocabulary) that a news journalist/reporter would ask PM Narendra Modi at the press conference. Focus directly on the national problem and demand accountability.
-4. Write a professional, factual, data-backed answer in Hindi (with common Hinglish vocabulary) by PM Narendra Modi. Make it sound exactly like Modi's speech style (speaking in the first person plural 'hum', referencing national growth and cooperative efforts). Keep it concise (3-4 sentences maximum so it fits vertical reel timing).
-5. Write a 1-2 sentence background context summarizing the audited facts or statistics used.
+3. Write a 4-turn sarcastic and sharp dialogue (conversation) between a news journalist/reporter and PM Narendra Modi:
+   - Turn 1 (Reporter): A sharp, accountable question in Hindi (with common Hinglish vocabulary) demanding details on the selected national problem. (Keep it to 2 sentences max).
+   - Turn 2 (PM Modi): PM Modi's initial response in Hindi (with common Hinglish vocabulary), speaking in his characteristic style (using first person plural 'hum', referring to government efforts, etc.). (Keep it to 2 sentences max).
+   - Turn 3 (Reporter): A short, sharp, slightly sarcastic follow-up question or counter-argument in Hindi based on the PM's response (pointing out ground realities, speed of delivery, or public skepticism). (Keep it to 1-2 sentences max).
+   - Turn 4 (PM Modi): PM Modi's second response in Hindi, addressing the follow-up question with specific data points, policy measures, or reassurance. (Keep it to 2-3 sentences max).
+4. Write a 1-2 sentence background context summarizing the audited facts or statistics used in Hindi.
 
 CRITICAL DATA CONSTRAINT:
-The PM's reply must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures. Highlight official resource allocations or policy audits objectively.
+PM Modi's replies must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures. Highlight official resource allocations or policy audits objectively.
 
 OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences):
 {
    "selected_index": <number>,
    "title": "Short English Title",
-   "question": "Hindi question from reporter...",
-   "answer": "Hindi answer from PM Modi...",
+   "reporter_q1": "Hindi first question from reporter...",
+   "modi_a1": "Hindi first answer from PM Modi...",
+   "reporter_q2": "Hindi short follow-up question from reporter...",
+   "modi_a2": "Hindi second answer from PM Modi...",
    "news_context": "Brief factual background context in Hindi..."
 }
 `.trim();
@@ -144,6 +149,9 @@ OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences)
 /**
  * Runs the automated conversational reels & PM Daily Interview pipeline.
  */
+/**
+ * Runs the automated conversational reels & PM Daily Interview pipeline.
+ */
 export async function runConversationalReelPipeline() {
     if (!supabase) {
         console.error("[Conversational Pipeline] Supabase client not initialized.");
@@ -209,8 +217,21 @@ export async function runConversationalReelPipeline() {
         console.log(`[Conversational Pipeline] AI Selected news event: "${newsEvent.ticker_headline}" (${newsEvent.news_date})`);
         console.log(`[Conversational Pipeline] Script generated successfully.`);
         console.log(`   Title: "${script.title}"`);
-        console.log(`   Q: "${script.question.slice(0, 40)}..."`);
-        console.log(`   A: "${script.answer.slice(0, 40)}..."`);
+
+        const q1 = script.reporter_q1 || '';
+        const a1 = script.modi_a1 || '';
+        const q2 = script.reporter_q2 || '';
+        const a2 = script.modi_a2 || '';
+
+        const combinedQuestion = q2 ? `1. ${q1}\n\n2. ${q2}` : q1;
+        const combinedAnswer = a2 ? `1. ${a1}\n\n2. ${a2}` : a1;
+
+        console.log(`   Q1: "${q1.slice(0, 40)}..."`);
+        console.log(`   A1: "${a1.slice(0, 40)}..."`);
+        if (q2) {
+            console.log(`   Q2: "${q2.slice(0, 40)}..."`);
+            console.log(`   A2: "${a2.slice(0, 40)}..."`);
+        }
 
         // 3. Select reporter and voice parameters
         const { count } = await (supabase as any)
@@ -223,60 +244,67 @@ export async function runConversationalReelPipeline() {
 
         // 4. Create temp directory first
         const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'conv-'));
-        const reporterPath = path.join(tmpDir, 'reporter.mp3');
-        const modiPath = path.join(tmpDir, 'modi.mp3');
-        const stitchedPath = path.join(tmpDir, 'stitched.mp3');
 
-        // 4. Generate audios from ElevenLabs (with word-level timestamps)
-        console.log('\n🎙️ Step 4: Synthesizing reporter and Modi audios...');
-        let reporterAudioBuffer: Buffer;
-        let reporterWordTimings: { word: string; start: number; end: number }[];
-        let reporterDuration = 5.0;
-        try {
-            const reporterResult = await generateAudioWithTimestamps(script.question, selectedReporter.voiceId);
-            reporterAudioBuffer = reporterResult.audioBuffer;
-            reporterWordTimings = reporterResult.wordTimings;
-            fs.writeFileSync(reporterPath, reporterAudioBuffer);
-            reporterDuration = parseFloat(
-                execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${reporterPath}"`)
-                    .toString()
-                    .trim()
+        // Helper to synthesize a turn
+        const synthesizeTurn = async (text: string, voiceId: string, filename: string, defaultDuration: number) => {
+            const filePath = path.join(tmpDir, filename);
+            let audioBuffer: Buffer;
+            let wordTimings: { word: string; start: number; end: number }[];
+            let duration = defaultDuration;
+            
+            try {
+                const result = await generateAudioWithTimestamps(text, voiceId);
+                audioBuffer = result.audioBuffer;
+                wordTimings = result.wordTimings;
+                fs.writeFileSync(filePath, audioBuffer);
+                duration = parseFloat(
+                    execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`)
+                        .toString()
+                        .trim()
+                );
+            } catch (err: any) {
+                console.warn(`[Conversational Pipeline] ElevenLabs failed for turn. Generating silent fallback audio: ${err.message}`);
+                execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t ${defaultDuration} -q:a 9 "${filePath}"`, { stdio: 'ignore' });
+                audioBuffer = fs.readFileSync(filePath);
+                duration = defaultDuration;
+                wordTimings = estimateWordTimings(text, duration);
+            }
+            return { text, audioBuffer, wordTimings, duration, filePath };
+        };
+
+        console.log('\n🎙️ Step 4: Synthesizing dialogue turn audios...');
+        const turnsToGenerate = [
+            { text: q1, voiceId: selectedReporter.voiceId, file: 'q1.mp3', dur: 5.0, speaker: 'reporter' as const },
+            { text: a1, voiceId: MODI_VOICE_ID, file: 'a1.mp3', dur: 10.0, speaker: 'modi' as const }
+        ];
+
+        if (q2) {
+            turnsToGenerate.push(
+                { text: q2, voiceId: selectedReporter.voiceId, file: 'q2.mp3', dur: 4.0, speaker: 'reporter' as const },
+                { text: a2, voiceId: MODI_VOICE_ID, file: 'a2.mp3', dur: 10.0, speaker: 'modi' as const }
             );
-        } catch (err: any) {
-            console.warn(`[Conversational Pipeline] ElevenLabs failed for Reporter. Generating silent fallback audio: ${err.message}`);
-            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 5 -q:a 9 "${reporterPath}"`, { stdio: 'ignore' });
-            reporterAudioBuffer = fs.readFileSync(reporterPath);
-            reporterDuration = 5.0;
-            reporterWordTimings = estimateWordTimings(script.question, reporterDuration);
         }
 
-        let modiAudioBuffer: Buffer;
-        let modiWordTimings: { word: string; start: number; end: number }[];
-        let modiDuration = 10.0;
-        try {
-            const modiResult = await generateAudioWithTimestamps(script.answer, MODI_VOICE_ID);
-            modiAudioBuffer = modiResult.audioBuffer;
-            modiWordTimings = modiResult.wordTimings;
-            fs.writeFileSync(modiPath, modiAudioBuffer);
-            modiDuration = parseFloat(
-                execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${modiPath}"`)
-                    .toString()
-                    .trim()
-            );
-        } catch (err: any) {
-            console.warn(`[Conversational Pipeline] ElevenLabs failed for Modi. Generating silent fallback audio: ${err.message}`);
-            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 10 -q:a 9 "${modiPath}"`, { stdio: 'ignore' });
-            modiAudioBuffer = fs.readFileSync(modiPath);
-            modiDuration = 10.0;
-            modiWordTimings = estimateWordTimings(script.answer, modiDuration);
+        const generatedTurns = [];
+        for (const t of turnsToGenerate) {
+            const gen = await synthesizeTurn(t.text, t.voiceId, t.file, t.dur);
+            generatedTurns.push({
+                speaker: t.speaker,
+                text: gen.text,
+                audioBuffer: gen.audioBuffer,
+                wordTimings: gen.wordTimings,
+                duration: gen.duration,
+                filePath: gen.filePath
+            });
         }
 
         // 5. Stitch audios and measure durations using ffmpeg
         console.log('\n🎛️ Step 5: Stitching audio tracks and calculating timeline...');
-        console.log(`[Conversational Pipeline] Speaker durations: Reporter=${reporterDuration.toFixed(2)}s, Modi=${modiDuration.toFixed(2)}s`);
+        const inputsStr = generatedTurns.map(t => `-i "${t.filePath}"`).join(' ');
+        const concatStr = generatedTurns.map((_, idx) => `[${idx}:a]`).join('') + `concat=n=${generatedTurns.length}:v=0:a=1[a]`;
+        const stitchedPath = path.join(tmpDir, 'stitched.mp3');
 
-        // Stitch together using an audio filter
-        execSync(`ffmpeg -y -i "${reporterPath}" -i "${modiPath}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
+        execSync(`ffmpeg -y ${inputsStr} -filter_complex "${concatStr}" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
         const stitchedAudioBuffer = fs.readFileSync(stitchedPath);
         console.log(`[Conversational Pipeline] Combined audio generated successfully (${stitchedAudioBuffer.length} bytes)`);
 
@@ -287,8 +315,8 @@ export async function runConversationalReelPipeline() {
             news_date: newsEvent.news_date,
             reporter_name: selectedReporter.name,
             reporter_voice_id: selectedReporter.voiceId,
-            question: script.question,
-            answer: script.answer,
+            question: combinedQuestion,
+            answer: combinedAnswer,
             news_context: script.news_context,
             source_url: newsEvent.original_url || 'https://moitrastudios.com'
         };
@@ -304,23 +332,19 @@ export async function runConversationalReelPipeline() {
                 .single();
 
             if (insertError) {
-                console.warn(`[Conversational Pipeline] ⚠️ Failed to save PM interview to Supabase (RLS policy block): ${insertError.message}`);
-                console.warn(`[Conversational Pipeline] This is expected if running locally with an Anon/Publishable key. Continuing video generation...`);
+                console.warn(`[Conversational Pipeline] ⚠️ Failed to save PM interview to Supabase: ${insertError.message}`);
             } else if (insertedInterview) {
                 interviewId = insertedInterview.id;
                 console.log(`[Conversational Pipeline] Saved to database with ID: ${interviewId}`);
             }
         } catch (dbErr: any) {
-            console.warn(`[Conversational Pipeline] ⚠️ Database write failed: ${dbErr.message}. Continuing video generation...`);
+            console.warn(`[Conversational Pipeline] ⚠️ Database write failed: ${dbErr.message}. Continuing...`);
         }
 
         // 7. Render Video via ffmpeg
         console.log('\n🎥 Step 7: Generating video via ffmpeg...');
         const videoBuffer = await generateSubtitleReel(
-            reporterAudioBuffer,
-            modiAudioBuffer,
-            reporterWordTimings,
-            modiWordTimings,
+            generatedTurns,
             {
                 title: script.title,
                 reporterName: selectedReporter.name,
@@ -340,28 +364,19 @@ export async function runConversationalReelPipeline() {
 
         // 9. Publish to Social Media
         console.log('\n📱 Step 9: Publishing to social platforms...');
-        
-        // Captain layouts
-        const igCaption = `PM Daily accountability: ${script.title} 🎤\n\nReporter ${selectedReporter.name} questions PM Narendra Modi about the latest developments.\n\nWatch full briefings and audits on our hub!\n\n#IndianPolitics #PMModi #FactCheck #NewsIndia #MoitraStudios #Rajneeti`;
+        const igCaption = `PM Daily accountability: ${script.title} 🎤\n\nReporter ${selectedReporter.name} questions PM Narendra Modi.\n\n#IndianPolitics #PMModi #FactCheck #NewsIndia #MoitraStudios #Rajneeti`;
         const ytTitle = `PM Modi Interview: ${script.title.slice(0, 50)} #Shorts #News`;
-        const ytDescription = `Daily direct interview briefing with Prime Minister Narendra Modi. Reporter ${selectedReporter.name} audits latest national developments. Factual responses verified against official records.`;
+        const ytDescription = `Daily direct interview briefing with Prime Minister Narendra Modi. Reporter ${selectedReporter.name} audits latest national developments.`;
         const ytTags = ['PM Modi', 'Narendra Modi', 'Indian Politics', 'News', 'Fact Check', 'Rajneeti', 'Moitra Studios'];
 
         const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
-        if (!igSuccess) console.warn('[Conversational Pipeline] Instagram upload failed, continuing...');
-
         const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
-        if (!fbSuccess) console.warn('[Conversational Pipeline] Facebook upload failed, continuing...');
-
         const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytTags);
-        if (!ytSuccess) console.warn('[Conversational Pipeline] YouTube Shorts upload failed.');
 
         // Cleanup temp files
         try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
 
         console.log('\n=== CONVERSATIONAL REEL PIPELINE COMPLETED SUCCESSFULLY ===');
-        console.log(`   Briefing: "${script.title}"`);
-        console.log(`   Date: ${newsEvent.news_date}`);
         console.log(`   Social posts: IG=${igSuccess} FB=${fbSuccess} YT=${ytSuccess}`);
 
     } catch (err: any) {
@@ -372,8 +387,6 @@ export async function runConversationalReelPipeline() {
 
 /**
  * Compiles a video reel for an existing PM Interview ID.
- * Generates ElevenLabs audio, renders video via ffmpeg, uploads to Storage,
- * and updates the pm_interviews record with the video URL.
  */
 export async function generateReelForInterviewId(interviewId: string): Promise<string> {
     if (!supabase) {
@@ -382,7 +395,6 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
 
     console.log(`[Conversational Pipeline] Starting manual compilation for interview ID: ${interviewId}`);
 
-    // 1. Fetch interview from database
     const { data: interview, error: fetchErr } = await (supabase as any)
         .from('pm_interviews')
         .select('*')
@@ -395,73 +407,83 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
 
     console.log(`[Conversational Pipeline] Loaded interview: "${interview.title}"`);
 
-    // 2. Select reporter voice (or fallback)
     const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
     const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
 
-    // 3. Create temp directory
+    // Parse Q&A turns
+    const qParts = (interview.question || '').split('\n\n').map((s: string) => s.replace(/^(1\.|2\.|Q1:|Q2:)\s*/i, '').trim());
+    const aParts = (interview.answer || '').split('\n\n').map((s: string) => s.replace(/^(1\.|2\.|A1:|A2:)\s*/i, '').trim());
+    
+    const q1 = qParts[0] || '';
+    const q2 = qParts[1] || '';
+    const a1 = aParts[0] || '';
+    const a2 = aParts[1] || '';
+
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'conv-manual-'));
-    const reporterPath = path.join(tmpDir, 'reporter.mp3');
-    const modiPath = path.join(tmpDir, 'modi.mp3');
-    const stitchedPath = path.join(tmpDir, 'stitched.mp3');
 
     try {
-        // 4. Generate audio via ElevenLabs (with word-level timestamps)
+        const synthesizeTurn = async (text: string, voiceId: string, filename: string, defaultDuration: number) => {
+            const filePath = path.join(tmpDir, filename);
+            let audioBuffer: Buffer;
+            let wordTimings: { word: string; start: number; end: number }[];
+            let duration = defaultDuration;
+            
+            try {
+                const result = await generateAudioWithTimestamps(text, voiceId);
+                audioBuffer = result.audioBuffer;
+                wordTimings = result.wordTimings;
+                fs.writeFileSync(filePath, audioBuffer);
+                duration = parseFloat(
+                    execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`)
+                        .toString()
+                        .trim()
+                );
+            } catch (err: any) {
+                console.warn(`[Conversational Pipeline] ElevenLabs failed for turn. Using fallback silence: ${err.message}`);
+                execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t ${defaultDuration} -q:a 9 "${filePath}"`, { stdio: 'ignore' });
+                audioBuffer = fs.readFileSync(filePath);
+                duration = defaultDuration;
+                wordTimings = estimateWordTimings(text, duration);
+            }
+            return { text, audioBuffer, wordTimings, duration, filePath };
+        };
+
         console.log(`[Conversational Pipeline] Synthesizing audio for Q&A...`);
-        let reporterAudioBuffer: Buffer;
-        let reporterWordTimings: { word: string; start: number; end: number }[];
-        let reporterDuration = 5.0;
-        try {
-            const reporterResult = await generateAudioWithTimestamps(interview.question, reporterVoiceId);
-            reporterAudioBuffer = reporterResult.audioBuffer;
-            reporterWordTimings = reporterResult.wordTimings;
-            fs.writeFileSync(reporterPath, reporterAudioBuffer);
-            reporterDuration = parseFloat(
-                execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${reporterPath}"`)
-                    .toString()
-                    .trim()
+        const turnsToGenerate = [
+            { text: q1, voiceId: reporterVoiceId, file: 'q1.mp3', dur: 5.0, speaker: 'reporter' as const },
+            { text: a1, voiceId: MODI_VOICE_ID, file: 'a1.mp3', dur: 10.0, speaker: 'modi' as const }
+        ];
+
+        if (q2) {
+            turnsToGenerate.push(
+                { text: q2, voiceId: reporterVoiceId, file: 'q2.mp3', dur: 4.0, speaker: 'reporter' as const },
+                { text: a2, voiceId: MODI_VOICE_ID, file: 'a2.mp3', dur: 10.0, speaker: 'modi' as const }
             );
-        } catch (err: any) {
-            console.warn(`[Conversational Pipeline] ElevenLabs failed for Reporter. Using fallback silence: ${err.message}`);
-            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 5 -q:a 9 "${reporterPath}"`, { stdio: 'ignore' });
-            reporterAudioBuffer = fs.readFileSync(reporterPath);
-            reporterDuration = 5.0;
-            reporterWordTimings = estimateWordTimings(interview.question, reporterDuration);
         }
 
-        let modiAudioBuffer: Buffer;
-        let modiWordTimings: { word: string; start: number; end: number }[];
-        let modiDuration = 10.0;
-        try {
-            const modiResult = await generateAudioWithTimestamps(interview.answer, MODI_VOICE_ID);
-            modiAudioBuffer = modiResult.audioBuffer;
-            modiWordTimings = modiResult.wordTimings;
-            fs.writeFileSync(modiPath, modiAudioBuffer);
-            modiDuration = parseFloat(
-                execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${modiPath}"`)
-                    .toString()
-                    .trim()
-            );
-        } catch (err: any) {
-            console.warn(`[Conversational Pipeline] ElevenLabs failed for PM Modi. Using fallback silence: ${err.message}`);
-            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 10 -q:a 9 "${modiPath}"`, { stdio: 'ignore' });
-            modiAudioBuffer = fs.readFileSync(modiPath);
-            modiDuration = 10.0;
-            modiWordTimings = estimateWordTimings(interview.answer, modiDuration);
+        const generatedTurns = [];
+        for (const t of turnsToGenerate) {
+            const gen = await synthesizeTurn(t.text, t.voiceId, t.file, t.dur);
+            generatedTurns.push({
+                speaker: t.speaker,
+                text: gen.text,
+                audioBuffer: gen.audioBuffer,
+                wordTimings: gen.wordTimings,
+                duration: gen.duration,
+                filePath: gen.filePath
+            });
         }
 
-        // 5. Stitch audios
-        console.log(`[Conversational Pipeline] Stitching audios (Reporter: ${reporterDuration.toFixed(2)}s, Modi: ${modiDuration.toFixed(2)}s)...`);
-        execSync(`ffmpeg -y -i "${reporterPath}" -i "${modiPath}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
-        const stitchedAudioBuffer = fs.readFileSync(stitchedPath);
+        console.log(`[Conversational Pipeline] Stitching audios...`);
+        const inputsStr = generatedTurns.map(t => `-i "${t.filePath}"`).join(' ');
+        const concatStr = generatedTurns.map((_, idx) => `[${idx}:a]`).join('') + `concat=n=${generatedTurns.length}:v=0:a=1[a]`;
+        const stitchedPath = path.join(tmpDir, 'stitched.mp3');
 
-        // 6. Generate Video via ffmpeg
+        execSync(`ffmpeg -y ${inputsStr} -filter_complex "${concatStr}" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
+
         console.log(`[Conversational Pipeline] Rendering vertical video via ffmpeg...`);
         const videoBuffer = await generateSubtitleReel(
-            reporterAudioBuffer,
-            modiAudioBuffer,
-            reporterWordTimings,
-            modiWordTimings,
+            generatedTurns,
             {
                 title: interview.title,
                 reporterName: interview.reporter_name || REPORTERS[0].name,
@@ -469,7 +491,6 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
             }
         );
 
-        // 7. Upload to Supabase Storage
         console.log(`[Conversational Pipeline] Uploading reel to Storage...`);
         const targetSlug = createSlug(interview.title) || 'pm-press-conf';
         const fileName = `pm-press-conf-${targetSlug}-${Date.now()}.mp4`;
@@ -479,22 +500,10 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
             throw new Error("Failed to upload manual compilation to Storage.");
         }
 
-        // 8. Update database with video URL
-        console.log(`[Conversational Pipeline] Updating pm_interviews record with video URL: ${publicUrl}`);
-        const { error: updateErr } = await (supabase as any)
-            .from('pm_interviews')
-            .update({ video_url: publicUrl })
-            .eq('id', interviewId);
-
-        if (updateErr) {
-            console.warn(`[Conversational Pipeline] Failed to update database record: ${updateErr.message}. Returning public url anyway.`);
-        }
-
         console.log(`[Conversational Pipeline] Manual reel compiled successfully: ${publicUrl}`);
         return publicUrl;
 
     } finally {
-        // Cleanup temp files
         try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
     }
 }

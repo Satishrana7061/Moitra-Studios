@@ -296,10 +296,9 @@ function buildKineticASS(
 // ────────────────────────────────────────────────────────────────
 
 function buildSubtitleASS(
-    reporterPhrases: SubtitleSegment[],
-    modiPhrases: SubtitleSegment[],
+    turns: DialogueTurn[],
+    turnStartTimes: number[],
     metadata: { title: string; reporterName: string; newsContext: string },
-    reporterDuration: number,
     totalDuration: number,
     fullDuration: number
 ): string {
@@ -377,30 +376,44 @@ function buildSubtitleASS(
     const topicTitle = metadata.title.length > 40 ? metadata.title.slice(0, 40) + '...' : metadata.title;
     ass += `Dialogue: 10,${t0},${tEnd},Topic,,60,0,235,,{\\an7}${escapeASSText(topicTitle)}\n`;
 
-    // ─ Speaker badges (timed) ─
-    ass += `Dialogue: 10,${t0},${toASSTime(reporterDuration)},BadgeReporter,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  REPORTER ${metadata.reporterName.toUpperCase()}  \n`;
-    ass += `Dialogue: 10,${toASSTime(reporterDuration)},${toASSTime(totalDuration)},BadgeModi,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  PM NARENDRA MODI  \n`;
+    // ─ Speaker badges (timed per turn) ─
+    for (let i = 0; i < turns.length; i++) {
+        const turn = turns[i];
+        const start = turnStartTimes[i];
+        const end = turnStartTimes[i + 1] || totalDuration;
+        
+        if (turn.speaker === 'reporter') {
+            ass += `Dialogue: 10,${toASSTime(start)},${toASSTime(end)},BadgeReporter,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  REPORTER ${metadata.reporterName.toUpperCase()}  \n`;
+        } else {
+            ass += `Dialogue: 10,${toASSTime(start)},${toASSTime(end)},BadgeModi,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  PM NARENDRA MODI  \n`;
+        }
+    }
     ass += `Dialogue: 10,${toASSTime(totalDuration)},${tEnd},BadgeContext,,0,0,375,,{\\an8\\bord12\\shad0\\blur0.5}  FACT CHECK VERDICT  \n`;
 
-    // ─ Reporter phrases ─
-    const allReporter = reporterPhrases;
-    for (let i = 0; i < allReporter.length; i++) {
-        const phrase = allReporter[i];
-        const nextStart = i < allReporter.length - 1 ? allReporter[i + 1].startTime : reporterDuration;
-        const displayEnd = Math.min(nextStart, phrase.endTime + 0.5);
-
-        const wrapped = wrapASSText(escapeASSText(phrase.text), 18);
-        ass += `Dialogue: 5,${toASSTime(phrase.startTime)},${toASSTime(displayEnd)},Reporter,,0,0,0,,{\\fad(250,100)\\blur1\\fscx104\\fscy104\\t(0,300,\\fscx100\\fscy100)}${wrapped}\n`;
-    }
-
-    // ─ Modi phrases ─
-    for (let i = 0; i < modiPhrases.length; i++) {
-        const phrase = modiPhrases[i];
-        const nextStart = i < modiPhrases.length - 1 ? modiPhrases[i + 1].startTime : totalDuration;
-        const displayEnd = Math.min(nextStart, phrase.endTime + 0.5);
-
-        const wrapped = wrapASSText(escapeASSText(phrase.text), 18);
-        ass += `Dialogue: 5,${toASSTime(phrase.startTime)},${toASSTime(displayEnd)},Modi,,0,0,0,,{\\fad(250,100)\\blur1\\fscx104\\fscy104\\t(0,300,\\fscx100\\fscy100)}${wrapped}\n`;
+    // ─ Dialogue Text Phrases (timed per turn) ─
+    for (let i = 0; i < turns.length; i++) {
+        const turn = turns[i];
+        const startOffset = turnStartTimes[i];
+        const turnEnd = turnStartTimes[i + 1] || totalDuration;
+        
+        // Offset word timings for this turn
+        const offsetWords = turn.wordTimings.map(w => ({
+            ...w,
+            start: w.start + startOffset,
+            end: w.end + startOffset,
+        }));
+        
+        const phrases = groupWordsIntoPhrases(offsetWords, 5);
+        const style = turn.speaker === 'reporter' ? 'Reporter' : 'Modi';
+        
+        for (let j = 0; j < phrases.length; j++) {
+            const phrase = phrases[j];
+            const nextStart = j < phrases.length - 1 ? phrases[j + 1].startTime : turnEnd;
+            const displayEnd = Math.min(nextStart, phrase.endTime + 0.5);
+            
+            const wrapped = wrapASSText(escapeASSText(phrase.text), 18);
+            ass += `Dialogue: 5,${toASSTime(phrase.startTime)},${toASSTime(displayEnd)},${style},,0,0,0,,{\\fad(250,100)\\blur1\\fscx104\\fscy104\\t(0,300,\\fscx100\\fscy100)}${wrapped}\n`;
+        }
     }
 
     // ─ Context/verdict slide ─
@@ -432,6 +445,7 @@ function buildVideoFilterChain(
     duration: number,
     assPath: string,
     fontsDir: string,
+    inputPad: string = '[0:v]',
     progressBarY: number = 1780
 ): string {
     const af = escapeFilterPath(assPath);
@@ -439,8 +453,8 @@ function buildVideoFilterChain(
 
     const filters: string[] = [];
 
-    // Subtle purple gradient at top (header area glow), starting from the [0:v] input pad
-    filters.push(`[0:v]drawbox=x=0:y=0:w=iw:h=ih/3:color=0x120828@0.12:t=fill`);
+    // Subtle purple gradient at top (header area glow), starting from the input pad
+    filters.push(`${inputPad}drawbox=x=0:y=0:w=iw:h=ih/3:color=0x120828@0.12:t=fill`);
 
     // Subtle darker band at bottom (footer area)
     filters.push(`drawbox=x=0:y=ih*2/3:w=iw:h=ih/3:color=0x060418@0.15:t=fill`);
@@ -664,12 +678,24 @@ function groupWordsIntoPhrases(words: WordTiming[], wordsPerPhrase: number = 5):
  * Audio: Reporter question + PM Modi answer (stitched)
  * Output: 1080×1920 vertical MP4 at 30fps
  */
+export interface DialogueTurn {
+    speaker: 'reporter' | 'modi';
+    text: string;
+    audioBuffer: Buffer;
+    wordTimings: WordTiming[];
+    duration?: number;
+    filePath?: string;
+}
+
+/**
+ * Generates a subtitle-style reel for PM Interview (Open Press Conference) using cartoon characters.
+ */
 export async function generateSubtitleReel(
-    reporterAudio: Buffer,
-    modiAudio: Buffer,
-    reporterWords: WordTiming[],
-    modiWords: WordTiming[],
-    metadata: {
+    turnsOrReporterAudio: DialogueTurn[] | Buffer,
+    metadataOrModiAudio?: any,
+    reporterWords?: WordTiming[],
+    modiWords?: WordTiming[],
+    metadataLegacy?: {
         title: string;
         reporterName: string;
         newsContext: string;
@@ -680,91 +706,279 @@ export async function generateSubtitleReel(
     const outputPath = path.join(tmpDir, 'output.mp4');
 
     try {
-        // ── Write audio files ────────────────────────────────────
-        const reporterPath = path.join(tmpDir, 'reporter.mp3');
-        const modiPath = path.join(tmpDir, 'modi.mp3');
-        const stitchedPath = path.join(tmpDir, 'stitched.mp3');
+        let turns: DialogueTurn[] = [];
+        let metadata: { title: string; reporterName: string; newsContext: string };
 
-        const hasReporterAudio = reporterAudio && reporterAudio.length > 0;
-        const hasModiAudio = modiAudio && modiAudio.length > 0;
-
-        if (hasReporterAudio) fs.writeFileSync(reporterPath, reporterAudio);
-        if (hasModiAudio) fs.writeFileSync(modiPath, modiAudio);
-
-        // ── Get individual audio durations ───────────────────────
-        let reporterDuration = 5.0;
-        let modiDuration = 10.0;
-
-        if (hasReporterAudio) {
-            try {
-                reporterDuration = parseFloat(
-                    execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${reporterPath}"`)
-                        .toString().trim()
-                );
-            } catch {}
-        }
-        if (hasModiAudio) {
-            try {
-                modiDuration = parseFloat(
-                    execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${modiPath}"`)
-                        .toString().trim()
-                );
-            } catch {}
-        }
-
-        // ── Stitch audio ─────────────────────────────────────────
-        if (hasReporterAudio && hasModiAudio) {
-            execSync(
-                `ffmpeg -y -i "${reporterPath}" -i "${modiPath}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" "${stitchedPath}"`,
-                { stdio: 'pipe' }
-            );
-        } else if (hasReporterAudio) {
-            fs.copyFileSync(reporterPath, stitchedPath);
-        } else if (hasModiAudio) {
-            fs.copyFileSync(modiPath, stitchedPath);
+        if (Array.isArray(turnsOrReporterAudio)) {
+            turns = turnsOrReporterAudio;
+            metadata = metadataOrModiAudio;
         } else {
-            execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t 15 -q:a 9 "${stitchedPath}"`, { stdio: 'pipe' });
+            // Reconstruct legacy turns for backward compatibility
+            turns = [
+                { speaker: 'reporter', text: metadataLegacy?.title || 'Question', audioBuffer: turnsOrReporterAudio, wordTimings: reporterWords || [] },
+                { speaker: 'modi', text: metadataLegacy?.title || 'Answer', audioBuffer: metadataOrModiAudio, wordTimings: modiWords || [] }
+            ];
+            metadata = metadataLegacy!;
         }
 
-        const totalDuration = reporterDuration + modiDuration;
+        console.log(`[ffmpeg-subtitle] Starting video generation with ${turns.length} turns.`);
+
+        // 1. Process audio files and find durations
+        const turnStartTimes: number[] = [];
+        const turnEndTimes: number[] = [];
+        let accumulatedTime = 0.0;
+
+        for (let i = 0; i < turns.length; i++) {
+            const turn = turns[i];
+            const audioPath = path.join(tmpDir, `turn_${i}.mp3`);
+            
+            if (turn.filePath && fs.existsSync(turn.filePath)) {
+                fs.copyFileSync(turn.filePath, audioPath);
+            } else {
+                fs.writeFileSync(audioPath, turn.audioBuffer);
+            }
+            
+            let duration = turn.duration || 5.0;
+            if (!turn.duration) {
+                try {
+                    duration = parseFloat(
+                        execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${audioPath}"`)
+                            .toString().trim()
+                    );
+                } catch {
+                    console.warn(`[ffmpeg-subtitle] ffprobe failed for turn ${i}, using fallback duration.`);
+                }
+            }
+
+            turnStartTimes.push(accumulatedTime);
+            accumulatedTime += duration;
+            turnEndTimes.push(accumulatedTime);
+            
+            turn.duration = duration;
+            turn.filePath = audioPath;
+        }
+
+        const totalDuration = accumulatedTime;
         const contextDuration = 4.0;
         const fullDuration = totalDuration + contextDuration;
 
-        console.log(`[ffmpeg-subtitle] Durations: Reporter=${reporterDuration.toFixed(2)}s, Modi=${modiDuration.toFixed(2)}s, Total=${totalDuration.toFixed(2)}s`);
+        console.log(`[ffmpeg-subtitle] Total Dialogue Duration: ${totalDuration.toFixed(2)}s, Full Duration: ${fullDuration.toFixed(2)}s`);
 
-        // ── Group words into phrases ─────────────────────────────
-        const reporterPhrases = groupWordsIntoPhrases(reporterWords, 5);
-        const offsetModiWords = modiWords.map(w => ({
-            ...w,
-            start: w.start + reporterDuration,
-            end: w.end + reporterDuration,
-        }));
-        const modiPhrases = groupWordsIntoPhrases(offsetModiWords, 5);
+        // 2. Stitch audios together
+        const stitchedPath = path.join(tmpDir, 'stitched.mp3');
+        const inputsStr = turns.map(t => `-i "${t.filePath}"`).join(' ');
+        const concatStr = turns.map((_, idx) => `[${idx}:a]`).join('') + `concat=n=${turns.length}:v=0:a=1[a]`;
+        execSync(`ffmpeg -y ${inputsStr} -filter_complex "${concatStr}" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
 
-        reporterPhrases.forEach(p => p.speaker = 'reporter');
-        modiPhrases.forEach(p => p.speaker = 'modi');
-
-        console.log(`[ffmpeg-subtitle] ${reporterPhrases.length} reporter phrases + ${modiPhrases.length} Modi phrases`);
-
-        // ── Build ASS subtitle file ──────────────────────────────
-        const assContent = buildSubtitleASS(
-            reporterPhrases, modiPhrases, metadata,
-            reporterDuration, totalDuration, fullDuration
-        );
+        // 3. Build ASS subtitle file
+        const assContent = buildSubtitleASS(turns, turnStartTimes, metadata, totalDuration, fullDuration);
         const assPath = path.join(tmpDir, 'subtitle.ass');
         fs.writeFileSync(assPath, assContent, 'utf-8');
         console.log(`[ffmpeg-subtitle] ASS subtitle file written to: ${assPath}`);
 
-        // ── Check for background audio ───────────────────────────
+        // 4. Check for background audio
         const bgAudioPath = path.join(process.cwd(), 'news-bg.wav');
         const hasBgAudio = fs.existsSync(bgAudioPath);
 
-        // ── Build filter chain ───────────────────────────────────
-        const videoFilter = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR);
+        // 5. Setup dynamic cartoon character overlays
+        const avatarsDir = path.resolve(__dirname, '..', '..', 'assets', 'avatars');
+        const reporterAvatar = path.join(avatarsDir, 'reporter.png');
+        const modi1 = path.join(avatarsDir, 'modi_1.png');
+        const modi2 = path.join(avatarsDir, 'modi_2.png');
+        const modi3 = path.join(avatarsDir, 'modi_3.png');
 
-        let filterComplex = videoFilter + '\n[v]';
+        const cmd: string[] = ['ffmpeg', '-y'];
 
-        // Audio mixing
+        // Input 0: Color background
+        cmd.push('-f', 'lavfi', '-i', `color=c=0x060d1a:s=1080x1920:d=${fullDuration.toFixed(3)},format=yuv420p`);
+
+        // Input 1: stitched audio
+        cmd.push('-i', stitchedPath);
+        const audioIdx = 1;
+
+        // Input 2: background music
+        let bgIdx = -1;
+        if (hasBgAudio) {
+            cmd.push('-stream_loop', '-1', '-i', bgAudioPath);
+            bgIdx = 2;
+        }
+
+        // Avatar inputs:
+        let repIdx = -1;
+        let modi1Idx = -1;
+        let modi2Idx = -1;
+        let modi3Idx = -1;
+
+        let nextInputIdx = hasBgAudio ? 3 : 2;
+
+        if (fs.existsSync(reporterAvatar)) {
+            cmd.push('-i', reporterAvatar);
+            repIdx = nextInputIdx++;
+        }
+        if (fs.existsSync(modi1)) {
+            cmd.push('-i', modi1);
+            modi1Idx = nextInputIdx++;
+        }
+        if (fs.existsSync(modi2)) {
+            cmd.push('-i', modi2);
+            modi2Idx = nextInputIdx++;
+        }
+        if (fs.existsSync(modi3)) {
+            cmd.push('-i', modi3);
+            modi3Idx = nextInputIdx++;
+        }
+
+        const getModiAvatarName = (turnIdx: number) => {
+            let modiCount = 0;
+            for (let i = 0; i <= turnIdx; i++) {
+                if (turns[i].speaker === 'modi') {
+                    modiCount++;
+                }
+            }
+            if (turns[turnIdx].speaker === 'reporter') {
+                let lookaheadModiCount = modiCount + 1;
+                if (lookaheadModiCount === 2) return 'modi2';
+                if (lookaheadModiCount >= 3) return 'modi3';
+                return 'modi1';
+            }
+            if (modiCount === 2) return 'modi2';
+            if (modiCount >= 3) return 'modi3';
+            return 'modi1';
+        };
+
+        const getLastModiAvatarName = () => {
+            let modiCount = 0;
+            for (const t of turns) {
+                if (t.speaker === 'modi') modiCount++;
+            }
+            if (modiCount >= 3) return 'modi3';
+            if (modiCount === 2) return 'modi2';
+            return 'modi1';
+        };
+
+        const usedPads = new Set<string>();
+
+        for (let i = 0; i < turns.length; i++) {
+            const turn = turns[i];
+            if (turn.speaker === 'reporter') {
+                usedPads.add('rep');
+                const m = getModiAvatarName(i);
+                usedPads.add(`${m}_dim`);
+            } else {
+                usedPads.add('rep_dim');
+                const m = getModiAvatarName(i);
+                usedPads.add(m);
+            }
+        }
+        
+        // Context slide uses both dimmed
+        usedPads.add('rep_dim');
+        const lastM = getLastModiAvatarName();
+        usedPads.add(`${lastM}_dim`);
+
+        const overlayFilters: string[] = [];
+
+        // Scale and prepare transparency/dimming for inputs (only if actually used)
+        if (repIdx !== -1) {
+            if (usedPads.has('rep') || usedPads.has('rep_dim')) {
+                overlayFilters.push(`[${repIdx}:v] scale=480:860,format=rgba [rep]`);
+            }
+            if (usedPads.has('rep_dim')) {
+                overlayFilters.push(`[rep] format=rgba,colorchannelmixer=aa=0.45 [rep_dim]`);
+            }
+        }
+        if (modi1Idx !== -1) {
+            if (usedPads.has('modi1') || usedPads.has('modi1_dim')) {
+                overlayFilters.push(`[${modi1Idx}:v] scale=480:860,format=rgba [modi1]`);
+            }
+            if (usedPads.has('modi1_dim')) {
+                overlayFilters.push(`[modi1] format=rgba,colorchannelmixer=aa=0.45 [modi1_dim]`);
+            }
+        }
+        if (modi2Idx !== -1) {
+            if (usedPads.has('modi2') || usedPads.has('modi2_dim')) {
+                overlayFilters.push(`[${modi2Idx}:v] scale=480:860,format=rgba [modi2]`);
+            }
+            if (usedPads.has('modi2_dim')) {
+                overlayFilters.push(`[modi2] format=rgba,colorchannelmixer=aa=0.45 [modi2_dim]`);
+            }
+        } else if (modi1Idx !== -1) {
+            if (usedPads.has('modi2')) {
+                overlayFilters.push(`[modi1] format=rgba [modi2]`);
+            }
+            if (usedPads.has('modi2_dim')) {
+                overlayFilters.push(`[modi1_dim] format=rgba [modi2_dim]`);
+            }
+        }
+        if (modi3Idx !== -1) {
+            if (usedPads.has('modi3') || usedPads.has('modi3_dim')) {
+                overlayFilters.push(`[${modi3Idx}:v] scale=480:860,format=rgba [modi3]`);
+            }
+            if (usedPads.has('modi3_dim')) {
+                overlayFilters.push(`[modi3] format=rgba,colorchannelmixer=aa=0.45 [modi3_dim]`);
+            }
+        } else if (modi1Idx !== -1) {
+            if (usedPads.has('modi3')) {
+                overlayFilters.push(`[modi1] format=rgba [modi3]`);
+            }
+            if (usedPads.has('modi3_dim')) {
+                overlayFilters.push(`[modi1_dim] format=rgba [modi3_dim]`);
+            }
+        }
+
+        // Overlay turns sequentially
+        let currentPad = '[0:v]';
+
+        for (let i = 0; i < turns.length; i++) {
+            const turn = turns[i];
+            const start = turnStartTimes[i];
+            const end = turnEndTimes[i];
+            const modiAvatar = getModiAvatarName(i);
+
+            const repSrc = turn.speaker === 'reporter' ? 'rep' : 'rep_dim';
+            const modiSrc = turn.speaker === 'modi' ? modiAvatar : `${modiAvatar}_dim`;
+
+            let padA = currentPad;
+            if (repIdx !== -1) {
+                padA = `[v_t${i}_a]`;
+                overlayFilters.push(`${currentPad}[${repSrc}] overlay=x=60:y=960:enable='between(t,${start.toFixed(3)},${end.toFixed(3)})' ${padA}`);
+            }
+
+            let padB = padA;
+            if (modi1Idx !== -1) {
+                padB = `[v_t${i}_b]`;
+                overlayFilters.push(`${padA}[${modiSrc}] overlay=x=540:y=960:enable='between(t,${start.toFixed(3)},${end.toFixed(3)})' ${padB}`);
+            }
+
+            currentPad = padB;
+        }
+
+        // Overlay context slide at the end (from totalDuration to fullDuration)
+        const contextStart = totalDuration;
+        const contextEnd = fullDuration;
+
+        let padContextA = currentPad;
+        if (repIdx !== -1) {
+            padContextA = `[v_ctx_a]`;
+            overlayFilters.push(`${currentPad}[rep_dim] overlay=x=60:y=960:enable='between(t,${contextStart.toFixed(3)},${contextEnd.toFixed(3)})' ${padContextA}`);
+        }
+
+        let padContextB = padContextA;
+        const lastModiAvatarName = getLastModiAvatarName();
+
+        if (modi1Idx !== -1) {
+            padContextB = `[v_ctx_b]`;
+            overlayFilters.push(`${padContextA}[${lastModiAvatarName}_dim] overlay=x=540:y=960:enable='between(t,${contextStart.toFixed(3)},${contextEnd.toFixed(3)})' ${padContextB}`);
+        }
+
+        currentPad = padContextB;
+
+        // Build background and overlay subtitle chain starting on currentPad
+        const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad);
+        overlayFilters.push(videoFilters);
+
+        let filterComplex = overlayFilters.join(';\n') + '\n[v]';
+
         if (hasBgAudio) {
             filterComplex += `;\n[1:a]volume=1.0[voice];[2:a]volume=0.12[bg];[voice][bg]amix=inputs=2:duration=first:dropout_transition=0[a]`;
         }
@@ -772,36 +986,16 @@ export async function generateSubtitleReel(
         const filterPath = path.join(tmpDir, 'filter.txt');
         fs.writeFileSync(filterPath, filterComplex, 'utf-8');
 
-        // ── Build ffmpeg command ─────────────────────────────────
-        const cmd: string[] = ['ffmpeg', '-y'];
-
-        // Input 0: Dark background
-        cmd.push('-f', 'lavfi', '-i',
-            `color=c=0x060d1a:s=1080x1920:d=${fullDuration.toFixed(3)},format=yuv420p`);
-
-        // Input 1: Stitched audio
-        cmd.push('-i', stitchedPath);
-        const audioIdx = 1;
-
-        // Input 2: Background music
-        let bgIdx = -1;
-        if (hasBgAudio) {
-            cmd.push('-stream_loop', '-1', '-i', bgAudioPath);
-            bgIdx = 2;
-        }
-
-        // Filter complex
+        // Build FFmpeg command execution
         cmd.push('-filter_complex_script', filterPath);
         cmd.push('-map', '[v]');
 
-        // Audio
         if (hasBgAudio) {
             cmd.push('-map', '[a]');
         } else {
             cmd.push('-map', `${audioIdx}:a`);
         }
 
-        // Encoding
         cmd.push(
             '-c:v', 'libx264',
             '-preset', 'fast',
@@ -820,7 +1014,6 @@ export async function generateSubtitleReel(
 
         execSync(fullCmd, { stdio: 'pipe', timeout: 180000 });
 
-        // ── Return output ────────────────────────────────────────
         const videoBuffer = fs.readFileSync(outputPath);
         console.log(`[ffmpeg-subtitle] ✅ Video generated: ${videoBuffer.length} bytes (${(videoBuffer.length / 1024 / 1024).toFixed(2)} MB)`);
 

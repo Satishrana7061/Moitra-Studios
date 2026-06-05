@@ -879,52 +879,27 @@ export async function generateSubtitleReel(
         const overlayFilters: string[] = [];
 
         // Scale and prepare transparency/dimming for inputs (only if actually used)
-        if (repIdx !== -1) {
-            if (usedPads.has('rep') || usedPads.has('rep_dim')) {
-                overlayFilters.push(`[${repIdx}:v] scale=480:860,format=rgba [rep]`);
+        const prepareAvatarPad = (name: string, inputIdx: number) => {
+            if (inputIdx === -1) return;
+            const hasNormal = usedPads.has(name);
+            const hasDim = usedPads.has(`${name}_dim`);
+            
+            if (hasNormal && hasDim) {
+                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}_scaled]`);
+                overlayFilters.push(`[${name}_scaled] split=2 [${name}] [${name}_to_dim]`);
+                overlayFilters.push(`[${name}_to_dim] format=rgba,colorchannelmixer=aa=0.45 [${name}_dim]`);
+            } else if (hasNormal) {
+                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}]`);
+            } else if (hasDim) {
+                overlayFilters.push(`[${inputIdx}:v] scale=480:860,format=rgba [${name}_to_dim]`);
+                overlayFilters.push(`[${name}_to_dim] format=rgba,colorchannelmixer=aa=0.45 [${name}_dim]`);
             }
-            if (usedPads.has('rep_dim')) {
-                overlayFilters.push(`[rep] format=rgba,colorchannelmixer=aa=0.45 [rep_dim]`);
-            }
-        }
-        if (modi1Idx !== -1) {
-            if (usedPads.has('modi1') || usedPads.has('modi1_dim')) {
-                overlayFilters.push(`[${modi1Idx}:v] scale=480:860,format=rgba [modi1]`);
-            }
-            if (usedPads.has('modi1_dim')) {
-                overlayFilters.push(`[modi1] format=rgba,colorchannelmixer=aa=0.45 [modi1_dim]`);
-            }
-        }
-        if (modi2Idx !== -1) {
-            if (usedPads.has('modi2') || usedPads.has('modi2_dim')) {
-                overlayFilters.push(`[${modi2Idx}:v] scale=480:860,format=rgba [modi2]`);
-            }
-            if (usedPads.has('modi2_dim')) {
-                overlayFilters.push(`[modi2] format=rgba,colorchannelmixer=aa=0.45 [modi2_dim]`);
-            }
-        } else if (modi1Idx !== -1) {
-            if (usedPads.has('modi2')) {
-                overlayFilters.push(`[modi1] format=rgba [modi2]`);
-            }
-            if (usedPads.has('modi2_dim')) {
-                overlayFilters.push(`[modi1_dim] format=rgba [modi2_dim]`);
-            }
-        }
-        if (modi3Idx !== -1) {
-            if (usedPads.has('modi3') || usedPads.has('modi3_dim')) {
-                overlayFilters.push(`[${modi3Idx}:v] scale=480:860,format=rgba [modi3]`);
-            }
-            if (usedPads.has('modi3_dim')) {
-                overlayFilters.push(`[modi3] format=rgba,colorchannelmixer=aa=0.45 [modi3_dim]`);
-            }
-        } else if (modi1Idx !== -1) {
-            if (usedPads.has('modi3')) {
-                overlayFilters.push(`[modi1] format=rgba [modi3]`);
-            }
-            if (usedPads.has('modi3_dim')) {
-                overlayFilters.push(`[modi1_dim] format=rgba [modi3_dim]`);
-            }
-        }
+        };
+
+        prepareAvatarPad('rep', repIdx);
+        prepareAvatarPad('modi1', modi1Idx);
+        prepareAvatarPad('modi2', modi2Idx !== -1 ? modi2Idx : modi1Idx);
+        prepareAvatarPad('modi3', modi3Idx !== -1 ? modi3Idx : (modi2Idx !== -1 ? modi2Idx : modi1Idx));
 
         // Overlay turns sequentially
         let currentPad = '[0:v]';

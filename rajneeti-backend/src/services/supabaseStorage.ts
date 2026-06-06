@@ -6,7 +6,7 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY || ''; // Use service role key for
 
 const BUCKET_NAME = 'automated-reels';
 
-let supabase: ReturnType<typeof createClient> | null = null;
+export let supabase: ReturnType<typeof createClient> | null = null;
 if (SUPABASE_URL && SUPABASE_KEY) {
     supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 }

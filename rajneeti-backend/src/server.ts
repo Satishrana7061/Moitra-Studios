@@ -513,6 +513,78 @@ app.post("/api/admin/trigger-conversational-reel", async (req, res) => {
     }
 });
 
+// Endpoint to seed the satirical PM interviews
+app.post("/api/admin/seed-satirical", async (_req, res) => {
+    console.log("[Server] Seeding satirical PM briefings into Supabase...");
+    try {
+        const { supabase } = await import("./services/supabaseStorage.js");
+        if (!supabase) {
+            return res.status(500).json({ error: "Supabase client not initialized." });
+        }
+
+        const satiricalInterviews = [
+            {
+                title: "NEET Exam early access",
+                news_date: "2026-06-02",
+                reporter_name: "Sia",
+                reporter_voice_id: "YJpPt0sBEgMzYwcMkF5o",
+                question: "1. NTA ne paper leak ke baad NEET exam cancel kiya. Is system breakdown ko sarkar kaise theek kar rahi hai?\n\n2. Lekin exam cancel hone se laakhon bacchon ka nuksaan ho raha hai. Telegram block karne se kya hoga?",
+                answer: "1. Dekhiye, pehle toh \"leak\" jaise negative shabd mat boliye. Yeh premium candidates ke liye Exclusive Early Access Program tha.\n\n2. NTA ne zero error policy ka vaada kiya tha—WhatsApp leak paper aur actual exam match hone mein koi error nahi tha! Telegram block kar diya, ab mirror todne se pimple toh gayab ho hi jayega.",
+                news_context: "NTA cancels May 3 NEET-UG exam for 2.2 million students over WhatsApp paper leak; blocks 120 Telegram channels in response.",
+                source_url: "https://moitrastudios.com"
+            },
+            {
+                title: "Century Bound Rupee",
+                news_date: "2026-06-03",
+                reporter_name: "Amit Gupta",
+                reporter_voice_id: "ltvR0942IpmQjl5QbXL1",
+                question: "1. Rupee dollar ke khilaaf lagatar girte hue 95.83 tak pahunch gaya hai. Hamari currency itni kamzor kyun ho rahi hai?\n\n2. Lekin imports mehnge ho rahe hain aur aam janta par bojh badh raha hai.",
+                answer: "1. Aap ise anti-national lens se dekh rahe hain. Rupee gir nahi raha, balki cultural respect mein Dollar ke aage jhuk raha hai—Atithi Devo Bhava!\n\n2. NRIs jab das dollar bhejenge toh aap sudden millionaire feel karenge. Hum toh bas Rupee ke hundred hit karne ka wait kar rahe hain taaki desh mein sweets baant sakein!",
+                news_context: "Indian Rupee reaches historical low, approaching 95.83 against the US Dollar amid global currency adjustments.",
+                source_url: "https://moitrastudios.com"
+            },
+            {
+                title: "RBI Inflation Warnings",
+                news_date: "2026-06-04",
+                reporter_name: "Mitali",
+                reporter_voice_id: "onQAwbsky3pmzMu2uapN",
+                question: "1. RBI ne inflation par warning di hai aur aam janta ki savings khatam ho rahi hain. Log kaise survive karenge?\n\n2. Lekin GST aur mehangai se aam insaan ki kamai ka bada hissa chala jata hai.",
+                answer: "1. RBI ka \"cautious approach\" toh bas middle class se poochne ka ek tareeqa hai ki: \"Bhai, kya abhi bhi paise bache hain tumhare paas?\".\n\n2. Hum middle class ko minimalism seekha rahe hain. Har cheez par 18% GST lagakar hum unhe material wealth se detached kar rahe hain.",
+                news_context: "RBI warns of inflation pressures and low household savings as 18% GST on health/life insurance premiums faces public debate.",
+                source_url: "https://moitrastudios.com"
+            },
+            {
+                title: "State sponsored fuel fitness",
+                news_date: "2026-06-05",
+                reporter_name: "Kanika",
+                reporter_voice_id: "y2H4TwIU5I2L0JXOdBeX",
+                question: "1. Global market ke baad bhi India mein petrol ki कीमतें itni high kyun hain?\n\n2. Lekin log taxes bhar rahe hain aur badle mein unhe bas kharab roads aur potholes milte hain.",
+                answer: "1. Yeh petrol prices high nahi hain, balki hamari National Health and Fitness Scheme hai. Mehnge petrol se aap walk karenge aur desh fit hoga!\n\n2. Taxes se hi toh hum har election se pehle ek hi pothole ko cheh baar theek karne ka world-class infrastructure fund karte hain. Keep paying taxes!",
+                news_context: "Fuel and petrol prices remain elevated in India despite global crude price drops, drawing focus before state elections.",
+                source_url: "https://moitrastudios.com"
+            }
+        ];
+
+        const { data: inserted, error } = await supabase
+            .from('pm_interviews')
+            .upsert(satiricalInterviews, { onConflict: 'news_date' })
+            .select();
+
+        if (error) {
+            throw error;
+        }
+
+        res.json({
+            success: true,
+            message: `Successfully seeded ${inserted.length} satirical interviews!`,
+            interviews: inserted
+        });
+    } catch (err: any) {
+        console.error("[Server] Seeding error:", err.message || err);
+        res.status(500).json({ error: err.message || "Failed to seed satirical interviews." });
+    }
+});
+
 // ── Admin/Pipeline Endpoints ────────────────────────────────────
 
 // Endpoint to manually trigger the full automated pipeline for testing

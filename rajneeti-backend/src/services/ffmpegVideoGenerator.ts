@@ -328,8 +328,8 @@ function buildSubtitleASS(
     // Context/verdict text — Alignment 8 (Top Center), MarginV 450, Fontsize 56
     ass += `Style: Context,${hf},56,&H0081B910,&H0081B910,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,1.5,8,80,80,450,1\n`;
 
-    // PM OPEN PRESS CONFERENCE header
-    ass += `Style: Header,${ef},42,&H0000B8FF,&H0000B8FF,&H50000000,&H40000000,1,0,0,0,100,100,2,0,1,2.5,1,7,60,0,0,1\n`;
+    // PM OPEN PRESS CONFERENCE header (enlarged)
+    ass += `Style: Header,${ef},54,&H0000B8FF,&H0000B8FF,&H50000000,&H40000000,1,0,0,0,100,100,2,0,1,2.5,1,7,60,0,0,1\n`;
 
     // Topic title
     ass += `Style: Topic,${ef},28,&H60FFFFFF,&H60FFFFFF,&H40000000,&H00000000,0,0,0,0,100,100,0,0,1,1,0,7,60,0,0,1\n`;
@@ -337,8 +337,8 @@ function buildSubtitleASS(
     // LIVE badge
     ass += `Style: Live,${ef},34,&H00FFFFFF,&H00FFFFFF,&H000000FF,&H000000FF,1,0,0,0,100,100,0,0,3,0,0,7,0,0,0,1\n`;
 
-    // Network branding (top-right) - highlighted saffron bold
-    ass += `Style: Network,${ef},30,&H0000B8FF,&H0000B8FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2.0,0.0,9,0,60,0,1\n`;
+    // Network branding (top-right) - highlighted saffron bold (enlarged)
+    ass += `Style: Network,${ef},38,&H0000B8FF,&H0000B8FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2.0,0.0,9,0,60,0,1\n`;
 
     // Speaker badge — Reporter (blue, opaque box, white text, bottom center)
     ass += `Style: BadgeReporter,${ef},28,&H00FFFFFF,&H00FFFFFF,&H00F6823B,&H00F6823B,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
@@ -349,10 +349,10 @@ function buildSubtitleASS(
     // Speaker badge — Fact Check (green, opaque box, white text, bottom center)
     ass += `Style: BadgeContext,${ef},28,&H00FFFFFF,&H00FFFFFF,&H0081B910,&H0081B910,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
-    // Footer (Opaque Orange, Bold, Size 36)
-    ass += `Style: Footer,${ef},36,&H0000B8FF,&H0000B8FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,1.5,0.0,1,0,0,95,1\n`;
-    // FooterSub (Opaque White, Size 28)
-    ass += `Style: FooterSub,${ef},28,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1.0,0.0,1,0,0,55,1\n`;
+    // Footer (Opaque Orange, Bold, Size 44, positioned at MarginV 85)
+    ass += `Style: Footer,${ef},44,&H0000B8FF,&H0000B8FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,1.5,0.0,1,0,0,85,1\n`;
+    // FooterSub (Opaque White, Size 32, positioned at MarginV 45)
+    ass += `Style: FooterSub,${ef},32,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,1.0,0.0,1,0,0,45,1\n`;
 
     ass += `\n`;
 
@@ -422,8 +422,8 @@ function buildSubtitleASS(
     ass += `Dialogue: 5,${toASSTime(totalDuration)},${tEnd},Context,,0,0,0,,{\\fad(300,0)\\blur1.2\\fscx104\\fscy104\\t(0,400,\\fscx100\\fscy100)}${wrappedContext}\n`;
 
     // ─ Footer ─
-    ass += `Dialogue: 10,${t0},${tEnd},Footer,,60,0,95,,{\\an1}PM PRESS CONFERENCE\n`;
-    ass += `Dialogue: 10,${t0},${tEnd},FooterSub,,60,0,55,,{\\an1}Factual Q\\&A verified against official sources\n`;
+    ass += `Dialogue: 10,${t0},${tEnd},Footer,,60,0,85,,{\\an1}PM PRESS CONFERENCE\n`;
+    ass += `Dialogue: 10,${t0},${tEnd},FooterSub,,60,0,45,,{\\an1}AI Generated Satirical Press Conference. For entertainment only.\n`;
 
     return ass;
 }

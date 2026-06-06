@@ -363,6 +363,17 @@ export async function runConversationalReelPipeline() {
         }
         console.log(`[Conversational Pipeline] Video stored at: ${publicUrl}`);
 
+        // Update database with video_url so it persists
+        try {
+            await (supabase as any)
+                .from('pm_interviews')
+                .update({ video_url: publicUrl })
+                .eq('id', interviewId);
+            console.log(`[Conversational Pipeline] Saved video_url to pm_interviews for ID: ${interviewId}`);
+        } catch (dbErr: any) {
+            console.warn(`[Conversational Pipeline] ⚠️ Failed to save video_url to database: ${dbErr.message}`);
+        }
+
         // 9. Publish to Social Media
         console.log('\n📱 Step 9: Publishing to social platforms...');
         const igCaption = `PM Daily accountability: ${script.title} 🎤\n\nReporter ${selectedReporter.name} questions PM Narendra Modi.\n\n#IndianPolitics #PMModi #FactCheck #NewsIndia #MoitraStudios #Rajneeti`;
@@ -502,6 +513,18 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
         }
 
         console.log(`[Conversational Pipeline] Manual reel compiled successfully: ${publicUrl}`);
+
+        // Update database with video_url so it persists
+        try {
+            await (supabase as any)
+                .from('pm_interviews')
+                .update({ video_url: publicUrl })
+                .eq('id', interviewId);
+            console.log(`[Conversational Pipeline] Saved video_url to pm_interviews for ID: ${interviewId}`);
+        } catch (dbErr: any) {
+            console.warn(`[Conversational Pipeline] ⚠️ Failed to save video_url to database: ${dbErr.message}`);
+        }
+
         return publicUrl;
 
     } finally {

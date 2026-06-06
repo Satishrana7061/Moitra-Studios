@@ -49,26 +49,30 @@ ${newsEvents.map((e, idx) => `[${idx}] DATE: ${e.news_date} | TITLE: ${e.ticker_
 TASK:
 1. Select the index of the most critical national-level news event from the list above.
 2. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
-3. Write a 4-turn sarcastic, extremely brief, and sharp dialogue (conversation) between a news journalist/reporter and PM Narendra Modi:
-   - Turn 1 (Reporter): A sharp, accountable question in Hindi (with common Hinglish vocabulary) demanding details on the selected national problem. (Keep it to exactly 1 short sentence, max 12-15 words).
-   - Turn 2 (PM Modi): PM Modi's initial response in Hindi (with common Hinglish vocabulary), speaking in his characteristic style (using first person plural 'hum', referring to government efforts, etc.). (Keep it to exactly 1-2 short sentences, max 20-25 words).
-   - Turn 3 (Reporter): A short, sharp, slightly sarcastic follow-up question or counter-argument in Hindi based on the PM's response. (Keep it to exactly 1 short sentence, max 10-12 words).
-   - Turn 4 (PM Modi): PM Modi's second response in Hindi, addressing the follow-up question with a quick verified data point. (Keep it to exactly 1-2 short sentences, max 20-25 words).
-   Ensure every sentence is extremely concise and short. Long sentences must be avoided. The total dialogue should be fast-paced and fit for a quick social media reel.
-4. Write a 1-2 sentence background context summarizing the audited facts or statistics used in Hindi.
+3. Write a 4-turn highly satirical, comedic, extremely brief, and sharp dialogue (conversation) between a news journalist/reporter and PM Narendra Modi in Hinglish (Hindi written using English/Latin alphabet, e.g. "Sarkar is system breakdown ko kaise theek kar rahi hai?").
+   - Tone: The tone must be heavily inspired by internet sarcasm, irony, and comedy. Poking fun at the situation while remaining witty and entertaining.
+   - Dialogue Structure:
+     - Turn 1 (Reporter): A sharp, accountable question in Hinglish demanding details on the selected national problem. (Keep it to exactly 1 short sentence, max 12-15 words).
+     - Turn 2 (PM Modi): PM Modi's initial response in Hinglish. He should use a highly comedic, sarcastic, or spiritual excuse/justification in his characteristic style (e.g. framing a falling rupee as bowing down out of cultural respect 'Atithi Devo Bhava', paper leaks as 'exclusive early access', rising petrol prices as a 'national fitness scheme', or inflation as 'teaching minimalism and detachment'). (Keep it to exactly 1-2 short sentences, max 20-25 words).
+     - Turn 3 (Reporter): A short, sharp, highly sarcastic follow-up question or counter-argument in Hinglish based on the PM's response. (Keep it to exactly 1 short sentence, max 10-12 words).
+     - Turn 4 (PM Modi): PM Modi's second response in Hinglish, wrapping up with a sharp comedic punchline that still incorporates a verified fact or data point. (Keep it to exactly 1-2 short sentences, max 20-25 words).
+   Ensure every sentence is extremely concise and short. Long sentences must be avoided. The total dialogue should be fast-paced, highly humorous, and fit for a quick social media reel.
+4. Write a 1-2 sentence background context summarizing the audited facts or statistics used in Hinglish.
 
-CRITICAL DATA CONSTRAINT:
-PM Modi's replies must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures. Highlight official resource allocations or policy audits objectively.
+CRITICAL DATA & LANGUAGE CONSTRAINT:
+- PM Modi's replies must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures.
+- Use Hinglish (Hindi text in Latin script) for the questions, answers, and context so it can be cleanly spoken by the ElevenLabs multilingual voice model and read on-screen.
+- Important: Spell out all numbers and years as English words (e.g., use "twenty fourteen" or "twenty twenty four" or "five" or "ten" instead of "2014", "2024", "5", "10") inside the dialogues to guarantee proper English pronunciation by the TTS voice.
 
 OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences):
 {
    "selected_index": <number>,
    "title": "Short English Title",
-   "reporter_q1": "Hindi first question from reporter...",
-   "modi_a1": "Hindi first answer from PM Modi...",
-   "reporter_q2": "Hindi short follow-up question from reporter...",
-   "modi_a2": "Hindi second answer from PM Modi...",
-   "news_context": "Brief factual background context in Hindi..."
+   "reporter_q1": "Hinglish first question from reporter...",
+   "modi_a1": "Hinglish first answer from PM Modi...",
+   "reporter_q2": "Hinglish short follow-up question from reporter...",
+   "modi_a2": "Hinglish second answer from PM Modi...",
+   "news_context": "Brief factual background context in Hinglish..."
 }
 `.trim();
 
@@ -148,8 +152,131 @@ OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences)
 }
 
 /**
- * Runs the automated conversational reels & PM Daily Interview pipeline.
+ * Compiles a video reel for an existing PM Interview entry and posts it to social media.
  */
+async function compileAndPublishExistingInterview(interview: any): Promise<void> {
+    const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
+    const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
+
+    // Parse Q&A turns
+    const qParts = (interview.question || '').split('\n\n').map((s: string) => s.replace(/^(1\.|2\.|Q1:|Q2:)\s*/i, '').trim());
+    const aParts = (interview.answer || '').split('\n\n').map((s: string) => s.replace(/^(1\.|2\.|A1:|A2:)\s*/i, '').trim());
+    
+    const q1 = qParts[0] || '';
+    const q2 = qParts[1] || '';
+    const a1 = aParts[0] || '';
+    const a2 = aParts[1] || '';
+
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'conv-auto-compile-'));
+
+    try {
+        const synthesizeTurn = async (text: string, voiceId: string, filename: string, defaultDuration: number) => {
+            const filePath = path.join(tmpDir, filename);
+            let audioBuffer: Buffer;
+            let wordTimings: { word: string; start: number; end: number }[];
+            let duration = defaultDuration;
+            
+            try {
+                const result = await generateAudioWithTimestamps(text, voiceId);
+                audioBuffer = result.audioBuffer;
+                wordTimings = result.wordTimings;
+                fs.writeFileSync(filePath, audioBuffer);
+                duration = parseFloat(
+                    execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${filePath}"`)
+                        .toString()
+                        .trim()
+                );
+            } catch (err: any) {
+                console.warn(`[Conversational Pipeline] ElevenLabs failed for turn. Using fallback silence: ${err.message}`);
+                execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=stereo -t ${defaultDuration} -q:a 9 "${filePath}"`, { stdio: 'ignore' });
+                audioBuffer = fs.readFileSync(filePath);
+                duration = defaultDuration;
+                wordTimings = estimateWordTimings(text, duration);
+            }
+            return { text, audioBuffer, wordTimings, duration, filePath };
+        };
+
+        console.log(`[Conversational Pipeline] Synthesizing audio for Q&A...`);
+        const turnsToGenerate = [
+            { text: q1, voiceId: reporterVoiceId, file: 'q1.mp3', dur: 5.0, speaker: 'reporter' as const },
+            { text: a1, voiceId: MODI_VOICE_ID, file: 'a1.mp3', dur: 10.0, speaker: 'modi' as const }
+        ];
+
+        if (q2) {
+            turnsToGenerate.push(
+                { text: q2, voiceId: reporterVoiceId, file: 'q2.mp3', dur: 4.0, speaker: 'reporter' as const },
+                { text: a2, voiceId: MODI_VOICE_ID, file: 'a2.mp3', dur: 10.0, speaker: 'modi' as const }
+            );
+        }
+
+        const generatedTurns = [];
+        for (const t of turnsToGenerate) {
+            const gen = await synthesizeTurn(t.text, t.voiceId, t.file, t.dur);
+            generatedTurns.push({
+                speaker: t.speaker,
+                text: gen.text,
+                audioBuffer: gen.audioBuffer,
+                wordTimings: gen.wordTimings,
+                duration: gen.duration,
+                filePath: gen.filePath
+            });
+        }
+
+        console.log(`[Conversational Pipeline] Stitching audios...`);
+        const inputsStr = generatedTurns.map(t => `-i "${t.filePath}"`).join(' ');
+        const concatStr = generatedTurns.map((_, idx) => `[${idx}:a]`).join('') + `concat=n=${generatedTurns.length}:v=0:a=1[a]`;
+        const stitchedPath = path.join(tmpDir, 'stitched.mp3');
+
+        execSync(`ffmpeg -y ${inputsStr} -filter_complex "${concatStr}" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
+        const videoBuffer = await generateSubtitleReel(
+            generatedTurns,
+            {
+                title: interview.title,
+                reporterName: interview.reporter_name || 'Kanika',
+                newsContext: interview.news_context,
+            }
+        );
+
+        // Upload to Supabase Storage
+        console.log('[Conversational Pipeline] Uploading MP4 to Supabase Storage...');
+        const targetSlug = createSlug(interview.title) || 'pm-briefing';
+        const fileName = `pm-interview-${targetSlug}-${Date.now()}.mp4`;
+        const publicUrl = await SupabaseStorageService.uploadVideo(videoBuffer, fileName);
+
+        if (!publicUrl) {
+            throw new Error('Supabase Storage video upload failed.');
+        }
+        console.log(`[Conversational Pipeline] Video stored at: ${publicUrl}`);
+
+        // Update database with video_url so it persists
+        await (supabase as any)
+            .from('pm_interviews')
+            .update({ video_url: publicUrl })
+            .eq('id', interview.id);
+        console.log(`[Conversational Pipeline] Saved video_url to pm_interviews for ID: ${interview.id}`);
+
+        // Publish to Social Media
+        console.log('[Conversational Pipeline] Publishing to social platforms...');
+        const reporterName = interview.reporter_name || 'Kanika';
+        const igCaption = `PM Daily accountability: ${interview.title} 🎤\n\nReporter ${reporterName} questions PM Narendra Modi.\n\n#IndianPolitics #PMModi #FactCheck #NewsIndia #MoitraStudios #Rajneeti`;
+        const ytTitle = `PM Modi Interview: ${interview.title.slice(0, 50)} #Shorts #News`;
+        const ytDescription = `Daily direct interview briefing with Prime Minister Narendra Modi. Reporter ${reporterName} audits latest national developments.`;
+        const ytTags = ['PM Modi', 'Narendra Modi', 'Indian Politics', 'News', 'Fact Check', 'Rajneeti', 'Moitra Studios'];
+
+        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
+        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
+        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytTags);
+
+        console.log(`[Conversational Pipeline] Social posts: IG=${igSuccess} FB=${fbSuccess} YT=${ytSuccess}`);
+
+    } catch (err: any) {
+        console.error(`[Conversational Pipeline] Failed to compile and publish existing interview:`, err.message);
+        throw err;
+    } finally {
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    }
+}
+
 /**
  * Runs the automated conversational reels & PM Daily Interview pipeline.
  */
@@ -162,6 +289,22 @@ export async function runConversationalReelPipeline() {
     console.log('\n=== STARTING AUTOMATED CONVERSATIONAL REEL PIPELINE ===');
 
     try {
+        // Check if there are any pre-existing/seeded interviews that do not have a generated video yet
+        console.log('\n📋 Step 0: Checking for pending (pre-seeded) interviews with no video...');
+        const { data: pendingInterviews, error: pendingErr } = await (supabase as any)
+            .from('pm_interviews')
+            .select('*')
+            .is('video_url', null)
+            .order('news_date', { ascending: true })
+            .limit(1);
+
+        if (!pendingErr && pendingInterviews && pendingInterviews.length > 0) {
+            const pending = pendingInterviews[0];
+            console.log(`[Conversational Pipeline] Found pending pre-seeded interview: "${pending.title}" for date ${pending.news_date}. Processing this first.`);
+            await compileAndPublishExistingInterview(pending);
+            return;
+        }
+
         // 1. Fetch news events that haven't had a PM Interview created yet
         console.log('\n📋 Step 1: Querying news events...');
         const { data: interviews, error: intError } = await (supabase as any)

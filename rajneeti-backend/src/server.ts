@@ -528,9 +528,9 @@ app.post("/api/admin/seed-satirical", async (_req, res) => {
                 news_date: "2026-06-02",
                 reporter_name: "Sia",
                 reporter_voice_id: "YJpPt0sBEgMzYwcMkF5o",
-                question: "1. NTA ne paper leak ke baad NEET exam cancel kiya. Is system breakdown ko sarkar kaise theek kar rahi hai?\n\n2. Lekin exam cancel hone se laakhon bacchon ka nuksaan ho raha hai. Telegram block karne se kya hoga?",
-                answer: "1. Dekhiye, pehle toh \"leak\" jaise negative shabd mat boliye. Yeh premium candidates ke liye Exclusive Early Access Program tha.\n\n2. NTA ne zero error policy ka vaada kiya tha—WhatsApp leak paper aur actual exam match hone mein koi error nahi tha! Telegram block kar diya, ab mirror todne se pimple toh gayab ho hi jayega.",
-                news_context: "NTA cancels May 3 NEET-UG exam for 2.2 million students over WhatsApp paper leak; blocks 120 Telegram channels in response.",
+                question: "1. NTA ne paper leak ke baad May third ka NEET-UG exam cancel kar diya. Sarkar is system breakdown ko kaise theek kar rahi hai?\n\n2. Lekin is cancellation se twenty two lakh bacchon ka nuksaan ho raha hai. Telegram channels block karne se kya hoga?",
+                answer: "1. Dekhiye, sabse pehle toh negative shabdon ka istemal band kijiye. Yeh leak nahi, premium candidates ke liye Exclusive Early Access Program tha.\n\n2. NTA ne Zero Error exam policy ka vaada kiya tha. Guess paper WhatsApp leak se one hundred percent match hua, toh zero error hi hua na! Aur Telegram block kar diya, kyunki mirror todne se pimple dikhna band ho jata hai! Baar-baar exam cancel karke sarkar ensure kar rahi hai ki koi fail hi na ho!",
+                news_context: "NTA cancels May third NEET-UG exam for twenty two lakh students over WhatsApp paper leak; blocks one hundred and twenty Telegram channels in response.",
                 source_url: "https://moitrastudios.com"
             },
             {
@@ -538,9 +538,9 @@ app.post("/api/admin/seed-satirical", async (_req, res) => {
                 news_date: "2026-06-03",
                 reporter_name: "Amit Gupta",
                 reporter_voice_id: "ltvR0942IpmQjl5QbXL1",
-                question: "1. Rupee dollar ke khilaaf lagatar girte hue 95.83 tak pahunch gaya hai. Hamari currency itni kamzor kyun ho rahi hai?\n\n2. Lekin imports mehnge ho rahe hain aur aam janta par bojh badh raha hai.",
-                answer: "1. Aap ise anti-national lens se dekh rahe hain. Rupee gir nahi raha, balki cultural respect mein Dollar ke aage jhuk raha hai—Atithi Devo Bhava!\n\n2. NRIs jab das dollar bhejenge toh aap sudden millionaire feel karenge. Hum toh bas Rupee ke hundred hit karne ka wait kar rahe hain taaki desh mein sweets baant sakein!",
-                news_context: "Indian Rupee reaches historical low, approaching 95.83 against the US Dollar amid global currency adjustments.",
+                question: "1. Indian Rupee dollar ke khilaaf lagatar girte hue ninety five point eighty three tak pahunch gaya hai. Hamari currency itni kamzor kyun ho rahi hai?\n\n2. Lekin isse imports mehnge ho rahe hain aur aam janta par bojh badh raha hai.",
+                answer: "1. Aap ise anti-national lens se dekh rahe hain. Rupee gir nahi raha, dollar ke aage cultural respect mein jhuk raha hai—Atithi Devo Bhava!\n\n2. NRIs jab New Jersey se ten dollars birthday gift bhejenge, toh aap sudden millionaire feel karenge! Hum toh wait kar rahe hain kab Rupee hundred hit kare aur hum bat raise karke pure desh mein sweets baant sakein!",
+                news_context: "Indian Rupee reaches historical low, approaching ninety five point eighty three against the US Dollar amid global currency adjustments.",
                 source_url: "https://moitrastudios.com"
             },
             {
@@ -548,9 +548,9 @@ app.post("/api/admin/seed-satirical", async (_req, res) => {
                 news_date: "2026-06-04",
                 reporter_name: "Mitali",
                 reporter_voice_id: "onQAwbsky3pmzMu2uapN",
-                question: "1. RBI ne inflation par warning di hai aur aam janta ki savings khatam ho rahi hain. Log kaise survive karenge?\n\n2. Lekin GST aur mehangai se aam insaan ki kamai ka bada hissa chala jata hai.",
-                answer: "1. RBI ka \"cautious approach\" toh bas middle class se poochne ka ek tareeqa hai ki: \"Bhai, kya abhi bhi paise bache hain tumhare paas?\".\n\n2. Hum middle class ko minimalism seekha rahe hain. Har cheez par 18% GST lagakar hum unhe material wealth se detached kar rahe hain.",
-                news_context: "RBI warns of inflation pressures and low household savings as 18% GST on health/life insurance premiums faces public debate.",
+                question: "1. RBI ne inflation par cautious stance liya hai aur aam janta ki savings khatam ho rahi hain. Log kaise survive karenge?\n\n2. Lekin savings ke bina common man ka future kaise chalega?",
+                answer: "1. RBI ka cautious approach toh bas middle class se poochne ka ek highly educated tareeqa hai ki: 'Wait, kya sach mein abhi bhi tum logo ke paas paise bache hain?'.\n\n2. Hum middle class ko ancient art of minimalism aur detachment seekha rahe hain. Jab life insurance se lekar saans lene par eighteen percent GST lag raha ho, toh savings account ki kya zaroorat hai!",
+                news_context: "RBI warns of inflation pressures and low household savings as eighteen percent GST on health and life insurance premiums faces public debate.",
                 source_url: "https://moitrastudios.com"
             },
             {
@@ -558,8 +558,8 @@ app.post("/api/admin/seed-satirical", async (_req, res) => {
                 news_date: "2026-06-05",
                 reporter_name: "Kanika",
                 reporter_voice_id: "y2H4TwIU5I2L0JXOdBeX",
-                question: "1. Global market ke baad bhi India mein petrol ki कीमतें itni high kyun hain?\n\n2. Lekin log taxes bhar rahe hain aur badle mein unhe bas kharab roads aur potholes milte hain.",
-                answer: "1. Yeh petrol prices high nahi hain, balki hamari National Health and Fitness Scheme hai. Mehnge petrol se aap walk karenge aur desh fit hoga!\n\n2. Taxes se hi toh hum har election se pehle ek hi pothole ko cheh baar theek karne ka world-class infrastructure fund karte hain. Keep paying taxes!",
+                question: "1. Global crude prices girne ke baad bhi India mein petrol ke daam itne painfully high kyun hain?\n\n2. Lekin log heavy taxes de rahe hain aur badle mein unhe bas potholes milte hain.",
+                answer: "1. Petrol ke daam high bolna galat hai. Yeh sarkar ki flagship National Health and Fitness Scheme hai—daam mehnge honge toh aap walk karenge aur India fit hoga!\n\n2. Arey, unhi taxes se toh hum election se pehle ek hi pothole ko six times patch karne ka world-class infrastructure fund karte hain! Yeh petrol nahi, premium liquid nationalism hai!",
                 news_context: "Fuel and petrol prices remain elevated in India despite global crude price drops, drawing focus before state elections.",
                 source_url: "https://moitrastudios.com"
             }

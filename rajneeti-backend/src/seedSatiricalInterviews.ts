@@ -18,9 +18,9 @@ const satiricalInterviews = [
         news_date: "2026-06-02",
         reporter_name: "Sia",
         reporter_voice_id: "YJpPt0sBEgMzYwcMkF5o",
-        question: "The NTA recently had to cancel the May 3rd NEET-UG exam for over 22 lakh students after the question paper was leaked on WhatsApp. How is the system fixing this?",
-        answer: "First of all, let’s stop using negative words like \"leak.\" It wasn't a leak; it was an Exclusive Early Access Program for premium candidates. The NTA proudly assured students of a \"Zero Error\" exam policy. And to be fair, they delivered—there was absolutely zero error in how perfectly the leaked WhatsApp guess papers matched the actual exam. The government’s masterstroke to fix this crisis was to bravely block 120 Telegram channels. Because as we all know, if you break the mirror, the pimple magically disappears! By continuously cancelling exams, the government is ensuring one great thing: nobody can ever fail.",
-        news_context: "NTA cancels May 3 NEET-UG exam for 2.2 million students over WhatsApp paper leak; blocks 120 Telegram channels in response.",
+        question: "1. NTA ne paper leak ke baad May third ka NEET-UG exam cancel kar diya. Sarkar is system breakdown ko kaise theek kar rahi hai?\n\n2. Lekin is cancellation se twenty two lakh bacchon ka nuksaan ho raha hai. Telegram channels block karne se kya hoga?",
+        answer: "1. Dekhiye, sabse pehle toh negative shabdon ka istemal band kijiye. Yeh leak nahi, premium candidates ke liye Exclusive Early Access Program tha.\n\n2. NTA ne Zero Error exam policy ka vaada kiya tha. Guess paper WhatsApp leak se one hundred percent match hua, toh zero error hi hua na! Aur Telegram block kar diya, kyunki mirror todne se pimple dikhna band ho jata hai! Baar-baar exam cancel karke sarkar ensure kar rahi hai ki koi fail hi na ho!",
+        news_context: "NTA cancels May third NEET-UG exam for twenty two lakh students over WhatsApp paper leak; blocks one hundred and twenty Telegram channels in response.",
         source_url: "https://moitrastudios.com"
     },
     {
@@ -28,9 +28,9 @@ const satiricalInterviews = [
         news_date: "2026-06-03",
         reporter_name: "Amit Gupta",
         reporter_voice_id: "ltvR0942IpmQjl5QbXL1",
-        question: "The Indian Rupee recently fell to around 95.83 against the US Dollar. Why is our currency getting weaker?",
-        answer: "You are looking at this through an anti-national lens. The Rupee isn't \"falling\". It is merely bowing down to the Dollar out of deep-rooted cultural respect—Atithi Devo Bhava (The guest is God). In fact, pushing the Rupee to 95.83 against the U.S. dollar is a visionary move. It ensures that when your NRI cousin from New Jersey sends $10 back home for your birthday, you feel like a sudden millionaire. The government is just patiently waiting for the Rupee to hit 100 so they can officially declare a century, raise the bat, and distribute sweets across the nation.",
-        news_context: "Indian Rupee reaches historical low, approaching 95.83 against the US Dollar amid global currency adjustments.",
+        question: "1. Indian Rupee dollar ke khilaaf lagatar girte hue ninety five point eighty three tak pahunch gaya hai. Hamari currency itni kamzor kyun ho rahi hai?\n\n2. Lekin isse imports mehnge ho rahe hain aur aam janta par bojh badh raha hai.",
+        answer: "1. Aap ise anti-national lens se dekh rahe hain. Rupee gir nahi raha, dollar ke aage cultural respect mein jhuk raha hai—Atithi Devo Bhava!\n\n2. NRIs jab New Jersey se ten dollars birthday gift bhejenge, toh aap sudden millionaire feel karenge! Hum toh wait kar rahe hain kab Rupee hundred hit kare aur hum bat raise karke pure desh mein sweets baant sakein!",
+        news_context: "Indian Rupee reaches historical low, approaching ninety five point eighty three against the US Dollar amid global currency adjustments.",
         source_url: "https://moitrastudios.com"
     },
     {
@@ -38,9 +38,9 @@ const satiricalInterviews = [
         news_date: "2026-06-04",
         reporter_name: "Mitali",
         reporter_voice_id: "onQAwbsky3pmzMu2uapN",
-        question: "The RBI has taken a cautious stance on inflation, and people are struggling to save. How is the common man supposed to survive?",
-        answer: "The RBI’s \"cautious approach toward inflation\" is basically a highly educated, diplomatic way of asking the middle class: \"Wait, you guys still have money left?\". The government’s financial policy is deeply spiritual. By making everyday items insanely expensive, they are forcibly teaching the middle class the ancient art of minimalism and detachment from material wealth. You don't need a savings account when the government is generously acting as your piggy bank by collecting your money via 18% GST on everything from life insurance to the air you breathe.",
-        news_context: "RBI warns of inflation pressures and low household savings as 18% GST on health/life insurance premiums faces public debate.",
+        question: "1. RBI ne inflation par cautious stance liya hai aur aam janta ki savings khatam ho rahi hain. Log kaise survive karenge?\n\n2. Lekin savings ke bina common man ka future kaise chalega?",
+        answer: "1. RBI ka cautious approach toh bas middle class se poochne ka ek highly educated tareeqa hai ki: 'Wait, kya sach mein abhi bhi tum logo ke paas paise bache hain?'.\n\n2. Hum middle class ko ancient art of minimalism aur detachment seekha rahe hain. Jab life insurance se lekar saans lene par eighteen percent GST lag raha ho, toh savings account ki kya zaroorat hai!",
+        news_context: "RBI warns of inflation pressures and low household savings as eighteen percent GST on health and life insurance premiums faces public debate.",
         source_url: "https://moitrastudios.com"
     },
     {
@@ -48,8 +48,8 @@ const satiricalInterviews = [
         news_date: "2026-06-05",
         reporter_name: "Kanika",
         reporter_voice_id: "y2H4TwIU5I2L0JXOdBeX",
-        question: "Despite global fluctuations, why do oil and petrol prices in India remain so painfully high?",
-        answer: "Calling fuel prices \"painfully high\" shows a lack of visionary thinking. The current petrol pricing strategy is actually the government's flagship National Health & Fitness Scheme. If it costs half your monthly salary to fill up your fuel tank, you will naturally choose to walk or cycle to work. Boom—reduced carbon footprint and a fitter, leaner India! Furthermore, the middle class has to do its part. How else will the government fund the world-class infrastructure required to patch the exact same pothole six times a year before every state election? Keep paying those taxes, and remember: you aren't buying petrol; you are buying premium liquid nationalism.",
+        question: "1. Global crude prices girne ke baad bhi India mein petrol ke daam itne painfully high kyun hain?\n\n2. Lekin log heavy taxes de rahe hain aur badle mein unhe bas potholes milte hain.",
+        answer: "1. Petrol ke daam high bolna galat hai. Yeh sarkar ki flagship National Health and Fitness Scheme hai—daam mehnge honge toh aap walk karenge aur India fit hoga!\n\n2. Arey, unhi taxes se toh hum election se pehle ek hi pothole ko six times patch karne ka world-class infrastructure fund karte hain! Yeh petrol nahi, premium liquid nationalism hai!",
         news_context: "Fuel and petrol prices remain elevated in India despite global crude price drops, drawing focus before state elections.",
         source_url: "https://moitrastudios.com"
     }

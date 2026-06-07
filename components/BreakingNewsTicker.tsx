@@ -2,7 +2,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { fetchBreakingNews, BreakingNewsEvent } from "../services/newsService";
 import { ChevronUp, ChevronDown, RefreshCw, Newspaper } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getLeaderAvatar } from "../lib/utils";
 import { getBaseApprovalRating } from "../lib/approvalRatings";
 
 import { MapPin } from "lucide-react";
@@ -153,9 +152,6 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                 onClick={(e) => handleCardClick(e, ev)}
                                 className={`w-full text-left py-2 px-3 rounded-none transition-all duration-300 bg-transparent flex gap-3 items-start group relative cursor-pointer ${isSelected ? 'translate-x-1' : ''}`}
                             >
-                                <div className={`w-11 h-11 rounded-full overflow-hidden flex-shrink-0 opacity-70 group-hover:opacity-100 transition-opacity`}>
-                                    <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
-                                </div>
                                 <div className="flex-1 min-w-0 font-rajdhani">
                                     <h4 className="text-[13px] font-bold text-slate-50 leading-snug mb-1.5 line-clamp-3">{ev.blogTitle || ev.summary}</h4>
                                     <div className="flex items-center justify-between">
@@ -257,9 +253,6 @@ const BreakingNewsTicker: React.FC<Props> = ({ onSelectState, events: propsEvent
                                                 : 'border-white/5 bg-white/[0.02]'
                                                 } flex gap-4 items-center relative cursor-pointer`}
                                         >
-                                            <div className={`w-12 h-12 rounded-full overflow-hidden flex-shrink-0 border-2 ${isSelected ? 'border-emerald-500' : 'border-white/10'}`}>
-                                                <img src={getLeaderAvatar(ev.politicianName, ev.stateName)} className="w-full h-full object-cover" alt="" />
-                                            </div>
                                             <div className="flex-1 min-w-0">
                                                 <h4 className="text-[14px] font-bold text-white leading-tight line-clamp-2 mb-1.5">{ev.blogTitle || ev.summary}</h4>
                                                 <div className="flex items-center justify-between mt-2">

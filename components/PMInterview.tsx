@@ -30,22 +30,22 @@ const MODI_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Narendr
 const getThumbnailForInterview = (title: string): string => {
     const t = title.toLowerCase();
     if (t.includes('neet') || t.includes('exam')) {
-        return '/modi_neet_cartoon.png';
+        return '/leaders/modi_neet_cartoon.png';
     }
     if (t.includes('rupee') || t.includes('century') || t.includes('dollar')) {
-        return '/modi_rupee_cartoon.png';
+        return '/leaders/modi_rupee_cartoon.png';
     }
     if (t.includes('rbi') || t.includes('inflation') || t.includes('saving')) {
-        return '/modi_rbi_cartoon.png';
+        return '/leaders/modi_rbi_cartoon.png';
     }
     if (t.includes('fuel') || t.includes('petrol') || t.includes('fitness')) {
-        return '/modi_fuel_cartoon.png';
+        return '/leaders/modi_fuel_cartoon.png';
     }
     // Fallback/Default thumbnails
     if (title.charCodeAt(0) % 2 === 0) {
-        return '/modi_thumbnail_one.png';
+        return '/leaders/modi_thumbnail_one.png';
     }
-    return '/modi_thumbnail_two.png';
+    return '/leaders/modi_thumbnail_two.png';
 };
 
 const PMInterview: React.FC = () => {
@@ -198,9 +198,6 @@ const PMInterview: React.FC = () => {
                                                     : 'bg-slate-950/40 border-white/5 hover:border-white/10 hover:bg-slate-900/40 text-slate-400'
                                             }`}
                                         >
-                                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-slate-950 shrink-0 shadow-inner">
-                                                <img src={thumbnail} alt="PM Modi Cartoon" className="w-full h-full object-cover" />
-                                            </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Calendar size={10} className="text-gameOrange" />

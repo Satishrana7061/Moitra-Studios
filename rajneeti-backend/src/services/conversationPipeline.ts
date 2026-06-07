@@ -40,19 +40,19 @@ function buildViralCaptions(title: string, reporterName: string, context: string
 
     if (tLower.includes('neet') || tLower.includes('exam')) {
         clickbaitTitle = `Modi Ji's "Early Access" Scheme for NEET paper leak? 🤫😂`;
-        hookLine = `Did NTA launch a premium "Exclusive Early Access Program" for exam papers? 🤯 Reporter ${reporterName} grills PM Modi on the NEET UG exam breakdown. Watch the ultimate political sarcasm! 🤣`;
+        hookLine = `Did NTA launch a premium "Exclusive Early Access Program" for exam papers? 🤯 Reporter ${reporterName} grills PM Modi on the NEET UG exam breakdown. Watch the ultimate political sarcasm! 🤣\n\nDo you think NTA should charge GST on paper leaks? Let us know in the comments! 👇`;
         extraHashtags = ' #NEETUG #PaperLeak #ExamScam #NTA';
     } else if (tLower.includes('rupee') || tLower.includes('century') || tLower.includes('dollar')) {
         clickbaitTitle = `Rupee scoring a century against Dollar? Modiji celebrates! 🏏🤣`;
-        hookLine = `Rupee is not falling, it is just bowing down in respect! 🇮🇳 Reporter ${reporterName} audits the falling Indian Rupee, and PM Modi raises his bat for a century! 😭🏏`;
+        hookLine = `Rupee is not falling, it is just bowing down in respect! 🇮🇳 Reporter ${reporterName} audits the falling Indian Rupee, and PM Modi raises his bat for a century! 😭🏏\n\nIs Rupee scoring a century before Virat Kohli? Let us know in the comments! 👇`;
         extraHashtags = ' #RupeeVsDollar #IndianRupee #EconomyMemes #Century';
     } else if (tLower.includes('rbi') || tLower.includes('inflation') || tLower.includes('saving')) {
         clickbaitTitle = `Middle Class Zero Savings? Modiji's Yoga solution! 🧘‍♂️💸`;
-        hookLine = `No savings account? No problem! PM Modi teaches the ancient art of detachment and minimalism under 18% GST. 🤯 Reporter ${reporterName} gets a reality check! 🤣`;
+        hookLine = `No savings account? No problem! PM Modi teaches the ancient art of detachment and minimalism under 18% GST. 🤯 Reporter ${reporterName} gets a reality check! 🤣\n\nHow much savings do you have left after paying GST? Let us know in the comments! 👇`;
         extraHashtags = ' #MiddleClass #GST #Inflation #RBIBriefing';
     } else if (tLower.includes('fuel') || tLower.includes('petrol') || tLower.includes('fitness')) {
         clickbaitTitle = `Petrol price high? Walk to save India! 🚶‍♂️⛽😂`;
-        hookLine = `High fuel prices? That's just the National Fitness Scheme! 🚶‍♂️ Reporter ${reporterName} gets schooled by PM Modi on why premium liquid nationalism is good for your health. 🤣`;
+        hookLine = `High fuel prices? That's just the National Fitness Scheme! 🚶‍♂️ Reporter ${reporterName} gets schooled by PM Modi on why premium liquid nationalism is good for your health. 🤣\n\nWho is going to jog tomorrow to bring petrol prices down? Tag them in the comments! 🚶‍♂️⛽`;
         extraHashtags = ' #FuelPrices #PetrolPrice #FitIndia #InflationMemes';
     }
 
@@ -109,6 +109,11 @@ TASK:
      - Turn 4 (PM Modi): PM Modi's second response in Hinglish, wrapping up with a sharp comedic punchline that still incorporates a verified fact or data point. (Keep it to exactly 1-2 short sentences, max 20-25 words).
    Ensure every sentence is extremely concise and short. Long sentences must be avoided. The total dialogue should be fast-paced, highly humorous, and fit for a quick social media reel.
 4. Write a 1-2 sentence background context summarizing the audited facts or statistics used in Hinglish.
+
+CRITICAL SAFETY & CONTENT CONSTRAINT:
+- Select only major, famous, and prominent national news events (such as national exams, economics, currency, tax policies, infrastructure, space programs, or major governance initiatives). Ignore minor, local, or regional events.
+- Strictly AVOID any news events related to violence, physical harm, crime, rape, assault, murder, deaths, natural disasters, personal tragedies, or anything that could harm religious sentiments, community beliefs, or personal faith.
+- Keep the comedic tone light-hearted, satirical, and focused on policy, administration, and public audits.
 
 CRITICAL DATA & LANGUAGE CONSTRAINT:
 - PM Modi's replies must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures.

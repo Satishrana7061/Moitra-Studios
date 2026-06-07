@@ -27,6 +27,27 @@ const ANCHOR_AVATARS: Record<string, string> = {
 };
 const MODI_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Narendra_Damodardas_Modi.jpg';
 
+const getThumbnailForInterview = (title: string): string => {
+    const t = title.toLowerCase();
+    if (t.includes('neet') || t.includes('exam')) {
+        return '/modi_neet_cartoon.png';
+    }
+    if (t.includes('rupee') || t.includes('century') || t.includes('dollar')) {
+        return '/modi_rupee_cartoon.png';
+    }
+    if (t.includes('rbi') || t.includes('inflation') || t.includes('saving')) {
+        return '/modi_rbi_cartoon.png';
+    }
+    if (t.includes('fuel') || t.includes('petrol') || t.includes('fitness')) {
+        return '/modi_fuel_cartoon.png';
+    }
+    // Fallback/Default thumbnails
+    if (title.charCodeAt(0) % 2 === 0) {
+        return '/modi_thumbnail_one.png';
+    }
+    return '/modi_thumbnail_two.png';
+};
+
 const PMInterview: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
@@ -35,6 +56,7 @@ const PMInterview: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [generatingReel, setGeneratingReel] = useState(false);
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
 
     // Mock data for fallback
     const mockInterview: Interview = {
@@ -94,6 +116,7 @@ const PMInterview: React.FC = () => {
 
     useEffect(() => {
         setGeneratedVideoUrl(null);
+        setIsPlaying(false);
     }, [activeInterview?.id]);
 
     const handleGenerateReel = async (interviewId: string) => {
@@ -164,23 +187,29 @@ const PMInterview: React.FC = () => {
                                 {interviews.map(item => {
                                     const isActive = activeInterview?.id === item.id;
                                     const linkSlug = item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+                                    const thumbnail = getThumbnailForInterview(item.title);
                                     return (
                                         <div
                                             key={item.id}
                                             onClick={() => navigate(`/pm-interview/${linkSlug}`)}
-                                            className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                                            className={`p-4 rounded-xl border cursor-pointer transition-all flex gap-3 items-center ${
                                                 isActive 
                                                     ? 'bg-gameOrange/15 border-gameOrange text-white shadow-[0_0_15px_rgba(249,115,22,0.15)]' 
                                                     : 'bg-slate-950/40 border-white/5 hover:border-white/10 hover:bg-slate-900/40 text-slate-400'
                                             }`}
                                         >
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <Calendar size={12} className="text-gameOrange" />
-                                                <span className="text-[10px] font-bold uppercase tracking-wider">{item.news_date}</span>
+                                            <div className="w-16 h-16 rounded-lg overflow-hidden border border-white/10 bg-slate-950 shrink-0 shadow-inner">
+                                                <img src={thumbnail} alt="PM Modi Cartoon" className="w-full h-full object-cover" />
                                             </div>
-                                            <h4 className={`text-sm font-bold leading-snug line-clamp-2 ${isActive ? 'text-white' : 'text-slate-300'}`}>
-                                                {item.title}
-                                            </h4>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Calendar size={10} className="text-gameOrange" />
+                                                    <span className="text-[9px] font-bold uppercase tracking-wider">{item.news_date}</span>
+                                                </div>
+                                                <h4 className={`text-xs font-bold leading-snug line-clamp-2 ${isActive ? 'text-white' : 'text-slate-300'}`}>
+                                                    {item.title}
+                                                </h4>
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -296,11 +325,64 @@ const PMInterview: React.FC = () => {
                                             📺 Compiled Press Conference Reel
                                         </h3>
                                         <div className="max-w-md mx-auto aspect-[9/16] rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative bg-black">
+                                            {!isPlaying ? (
+                                                <div 
+                                                    className="absolute inset-0 z-20 cursor-pointer flex flex-col justify-between p-6 bg-cover bg-center transition-all duration-300 hover:scale-[1.02]"
+                                                    style={{ backgroundImage: `url(${getThumbnailForInterview(activeInterview.title)})` }}
+                                                    onClick={() => {
+                                                        setIsPlaying(true);
+                                                        const videoEl = document.getElementById('pm-reel-video') as HTMLVideoElement;
+                                                        if (videoEl) videoEl.play().catch(err => console.log("Video play error:", err));
+                                                    }}
+                                                >
+                                                    {/* Dark gradient overlay for text legibility */}
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-black/75 via-black/10 to-black/90 z-0 pointer-events-none" />
+                                                    
+                                                    {/* Top Header Branding */}
+                                                    <div className="relative z-10 flex justify-between items-start pointer-events-none">
+                                                        <div className="bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded tracking-widest uppercase shadow-md shadow-red-600/30">
+                                                            LIVE
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-[10px] font-black text-gameOrange tracking-wider uppercase">
+                                                                RAJNEETI TV
+                                                            </div>
+                                                            <div className="text-[8px] font-bold text-slate-400">
+                                                                {activeInterview.news_date}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Center Play Button */}
+                                                    <div className="relative z-10 my-auto mx-auto w-20 h-20 bg-white/15 backdrop-blur-md rounded-full border border-white/30 flex items-center justify-center shadow-2xl hover:scale-115 active:scale-95 transition-all duration-300 group">
+                                                        <div className="w-16 h-16 bg-gradient-to-r from-gameOrange to-amber-500 rounded-full flex items-center justify-center shadow-lg group-hover:from-orange-600 group-hover:to-amber-600 transition-all">
+                                                            <svg className="w-6 h-6 text-white fill-current translate-x-0.5" viewBox="0 0 24 24">
+                                                                <path d="M8 5v14l11-7z" />
+                                                            </svg>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Bottom Title Text Overlay */}
+                                                    <div className="relative z-10 pointer-events-none text-left">
+                                                        <span className="text-[9px] font-black text-gameOrange uppercase tracking-widest block mb-1">
+                                                            PM OPEN PRESS CONFERENCE
+                                                        </span>
+                                                        <h4 className="text-2xl font-black text-white leading-tight font-rajdhani uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] border-l-4 border-gameOrange pl-3">
+                                                            {activeInterview.title}
+                                                        </h4>
+                                                    </div>
+                                                </div>
+                                            ) : null}
+
                                             <video 
+                                                id="pm-reel-video"
                                                 src={activeInterview.video_url || generatedVideoUrl || ''} 
                                                 controls 
                                                 className="w-full h-full object-cover"
-                                                poster="/modi_thumbnail_one.png"
+                                                poster={getThumbnailForInterview(activeInterview.title)}
+                                                onPlay={() => setIsPlaying(true)}
+                                                onPause={() => setIsPlaying(false)}
+                                                onEnded={() => setIsPlaying(false)}
                                             />
                                         </div>
                                     </div>

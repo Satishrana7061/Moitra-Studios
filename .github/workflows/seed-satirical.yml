@@ -1,0 +1,30 @@
+name: Seed Satirical Interviews
+
+on:
+  workflow_dispatch:
+
+jobs:
+  seed-interviews:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'rajneeti-backend/package-lock.json'
+
+      - name: Install Dependencies
+        working-directory: ./rajneeti-backend
+        run: npm ci
+
+      - name: Run Satirical Seeding Script
+        working-directory: ./rajneeti-backend
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx src/seedSatiricalInterviews.ts

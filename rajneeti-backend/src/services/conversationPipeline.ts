@@ -31,6 +31,57 @@ const REPORTERS = [
 ];
 const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
+function buildViralCaptions(title: string, reporterName: string, context: string) {
+    const tLower = title.toLowerCase();
+    
+    let clickbaitTitle = `PM Modi on ${title} 🤯`;
+    let hookLine = `Reporter ${reporterName} asks PM Modi about the latest updates. Watch his hilarious response!`;
+    let extraHashtags = '';
+
+    if (tLower.includes('neet') || tLower.includes('exam')) {
+        clickbaitTitle = `Modi Ji's "Early Access" Scheme for NEET paper leak? 🤫😂`;
+        hookLine = `Did NTA launch a premium "Exclusive Early Access Program" for exam papers? 🤯 Reporter ${reporterName} grills PM Modi on the NEET UG exam breakdown. Watch the ultimate political sarcasm! 🤣`;
+        extraHashtags = ' #NEETUG #PaperLeak #ExamScam #NTA';
+    } else if (tLower.includes('rupee') || tLower.includes('century') || tLower.includes('dollar')) {
+        clickbaitTitle = `Rupee scoring a century against Dollar? Modiji celebrates! 🏏🤣`;
+        hookLine = `Rupee is not falling, it is just bowing down in respect! 🇮🇳 Reporter ${reporterName} audits the falling Indian Rupee, and PM Modi raises his bat for a century! 😭🏏`;
+        extraHashtags = ' #RupeeVsDollar #IndianRupee #EconomyMemes #Century';
+    } else if (tLower.includes('rbi') || tLower.includes('inflation') || tLower.includes('saving')) {
+        clickbaitTitle = `Middle Class Zero Savings? Modiji's Yoga solution! 🧘‍♂️💸`;
+        hookLine = `No savings account? No problem! PM Modi teaches the ancient art of detachment and minimalism under 18% GST. 🤯 Reporter ${reporterName} gets a reality check! 🤣`;
+        extraHashtags = ' #MiddleClass #GST #Inflation #RBIBriefing';
+    } else if (tLower.includes('fuel') || tLower.includes('petrol') || tLower.includes('fitness')) {
+        clickbaitTitle = `Petrol price high? Walk to save India! 🚶‍♂️⛽😂`;
+        hookLine = `High fuel prices? That's just the National Fitness Scheme! 🚶‍♂️ Reporter ${reporterName} gets schooled by PM Modi on why premium liquid nationalism is good for your health. 🤣`;
+        extraHashtags = ' #FuelPrices #PetrolPrice #FitIndia #InflationMemes';
+    }
+
+    // YouTube Title: max 100 chars, clickbait + #Shorts
+    const ytTitle = `${clickbaitTitle.slice(0, 80)} #Shorts #Comedy`;
+    
+    // YouTube Description
+    const ytDescription = `Warning: Satirical Press Conference! 🤫\n\n${hookLine}\n\nContext: ${context}\n\n#PMModi #Sarcasm #PoliticalComedy #DesiMemes #Hinglish #RajneetiTV #Trending #Parody${extraHashtags}`;
+    
+    // Instagram Caption
+    const igCaption = `Wait for the end! 😂 PM Modi answers about ${title} 🎤\n\n${hookLine}\n\nDisclaimer: This is an AI-generated satirical comedy press conference for entertainment purposes only.\n\n#PMModi #Sarcasm #DesiMemes #Hinglish #RajneetiTV #PoliticalSatire #ReelsIndia #ComedyReels #Explore${extraHashtags}`;
+
+    // Tags
+    const ytTags = [
+        'PM Modi', 
+        'Narendra Modi', 
+        'Sarcasm', 
+        'Political Comedy', 
+        'Desi Memes', 
+        'Hinglish', 
+        'Rajneeti TV', 
+        'Parody',
+        'Satire',
+        'Funny Reels'
+    ];
+
+    return { ytTitle, ytDescription, igCaption, ytTags };
+}
+
 /**
  * AI completion call to generate the dialogue script using OpenAI/Gemini
  * Passes a list of news events and asks the AI to pick the most important national issue.
@@ -258,10 +309,11 @@ async function compileAndPublishExistingInterview(interview: any): Promise<void>
         // Publish to Social Media
         console.log('[Conversational Pipeline] Publishing to social platforms...');
         const reporterName = interview.reporter_name || 'Kanika';
-        const igCaption = `PM Daily accountability: ${interview.title} 🎤\n\nReporter ${reporterName} questions PM Narendra Modi.\n\n#IndianPolitics #PMModi #FactCheck #NewsIndia #MoitraStudios #Rajneeti`;
-        const ytTitle = `PM Modi Interview: ${interview.title.slice(0, 50)} #Shorts #News`;
-        const ytDescription = `Daily direct interview briefing with Prime Minister Narendra Modi. Reporter ${reporterName} audits latest national developments.`;
-        const ytTags = ['PM Modi', 'Narendra Modi', 'Indian Politics', 'News', 'Fact Check', 'Rajneeti', 'Moitra Studios'];
+        const { ytTitle, ytDescription, igCaption, ytTags } = buildViralCaptions(
+            interview.title,
+            reporterName,
+            interview.news_context || ''
+        );
 
         const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
         const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
@@ -519,10 +571,11 @@ export async function runConversationalReelPipeline() {
 
         // 9. Publish to Social Media
         console.log('\n📱 Step 9: Publishing to social platforms...');
-        const igCaption = `PM Daily accountability: ${script.title} 🎤\n\nReporter ${selectedReporter.name} questions PM Narendra Modi.\n\n#IndianPolitics #PMModi #FactCheck #NewsIndia #MoitraStudios #Rajneeti`;
-        const ytTitle = `PM Modi Interview: ${script.title.slice(0, 50)} #Shorts #News`;
-        const ytDescription = `Daily direct interview briefing with Prime Minister Narendra Modi. Reporter ${selectedReporter.name} audits latest national developments.`;
-        const ytTags = ['PM Modi', 'Narendra Modi', 'Indian Politics', 'News', 'Fact Check', 'Rajneeti', 'Moitra Studios'];
+        const { ytTitle, ytDescription, igCaption, ytTags } = buildViralCaptions(
+            script.title,
+            selectedReporter.name,
+            script.news_context || ''
+        );
 
         const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
         const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);

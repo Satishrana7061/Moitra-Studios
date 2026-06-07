@@ -569,7 +569,7 @@ app.post("/api/admin/seed-satirical", async (_req, res) => {
             }
         ];
 
-        const { data: inserted, error } = await supabase
+        const { data: inserted, error } = await (supabase as any)
             .from('pm_interviews')
             .upsert(satiricalInterviews, { onConflict: 'news_date' })
             .select();

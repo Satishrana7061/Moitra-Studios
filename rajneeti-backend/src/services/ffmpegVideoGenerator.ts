@@ -319,14 +319,54 @@ function buildSubtitleASS(
     ass += `[V4+ Styles]\n`;
     ass += `Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n`;
 
-    // Reporter phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 108 (Significantly bigger size, thicker outline/shadow for readability)
+    const titleLower = (metadata?.title || '').toLowerCase();
+    
+    // Dynamic caption theme colors based on reel title
+    let modiPrimary = '&H00FFFFFF';       // White text
+    let modiOutline = '&H00102040';       // Dark navy outline
+    let badgeReporterBg = '&H00F6823B';  // Blue box
+    let badgeModiBg = '&H0000B8FF';      // Saffron box
+    let contextPrimary = '&H0081B910';   // Green text
+    let contextBadgeBg = '&H0081B910';   // Green box
+    
+    if (titleLower.includes('neet') || titleLower.includes('exam')) {
+        // NEET Exam Theme: Red Accent for emergency/breakdown
+        modiPrimary = '&H00FFFFFF';      // White text
+        modiOutline = '&H000000C8';      // Dark Red outline
+        badgeModiBg = '&H000000FF';      // Red badge
+        contextPrimary = '&H000000FF';   // Red text
+        contextBadgeBg = '&H000000FF';   // Red badge
+    } else if (titleLower.includes('rupee') || titleLower.includes('century') || titleLower.includes('dollar')) {
+        // Rupee Century Theme: Gold text with dark green outline
+        modiPrimary = '&H0000D8FF';      // Gold text
+        modiOutline = '&H00105000';      // Dark Green outline
+        badgeModiBg = '&H0010B000';      // Green badge
+        contextPrimary = '&H0000D8FF';   // Gold text
+        contextBadgeBg = '&H0010B000';   // Green badge
+    } else if (titleLower.includes('rbi') || titleLower.includes('inflation') || titleLower.includes('saving')) {
+        // RBI Inflation/Savings Theme: Saffron and Gold accents
+        modiPrimary = '&H00FFFFFF';      // White text
+        modiOutline = '&H000060A0';      // Bronze/Gold outline
+        badgeModiBg = '&H0000B8FF';      // Saffron badge
+        contextPrimary = '&H0000B8FF';   // Saffron text
+        contextBadgeBg = '&H0000B8FF';   // Saffron badge
+    } else if (titleLower.includes('fuel') || titleLower.includes('petrol') || titleLower.includes('fitness')) {
+        // Fuel Fitness Theme: Active Cyan / Lime Green
+        modiPrimary = '&H00FFFF00';      // Cyan text
+        modiOutline = '&H00004000';      // Forest Green outline
+        badgeModiBg = '&H0000C000';      // Lime Green badge
+        contextPrimary = '&H00FFFF00';   // Cyan text
+        contextBadgeBg = '&H0000C000';   // Lime Green badge
+    }
+
+    // Reporter phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 108
     ass += `Style: Reporter,${hf},108,&H00FFFFFF,&H80FFFFFF,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,6.0,2.5,8,80,80,330,1\n`;
 
-    // Modi phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 108 (Significantly bigger size, thicker outline/shadow for readability)
-    ass += `Style: Modi,${hf},108,&H00FFFFFF,&H80FFFFFF,&H00102040,&H80000000,1,0,0,0,100,100,0,0,1,6.0,2.5,8,80,80,330,1\n`;
+    // Modi phrase text — Alignment 8 (Top Center), MarginV 330, Fontsize 108 (Dynamic Theme Outline)
+    ass += `Style: Modi,${hf},108,${modiPrimary},&H80FFFFFF,${modiOutline},&H80000000,1,0,0,0,100,100,0,0,1,6.0,2.5,8,80,80,330,1\n`;
 
-    // Context/verdict text — Alignment 8 (Top Center), MarginV 450, Fontsize 56
-    ass += `Style: Context,${hf},56,&H0081B910,&H0081B910,&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,1.5,8,80,80,450,1\n`;
+    // Context/verdict text — Alignment 8 (Top Center), MarginV 450, Fontsize 56 (Dynamic Theme contextPrimary)
+    ass += `Style: Context,${hf},56,${contextPrimary},${contextPrimary},&H00000000,&H80000000,1,0,0,0,100,100,0,0,1,4,1.5,8,80,80,450,1\n`;
 
     // PM OPEN PRESS CONFERENCE header (enlarged)
     ass += `Style: Header,${ef},64,&H0000B8FF,&H0000B8FF,&H50000000,&H40000000,1,0,0,0,100,100,2,0,1,2.5,1,7,60,0,0,1\n`;
@@ -341,13 +381,13 @@ function buildSubtitleASS(
     ass += `Style: Network,${ef},48,&H0000B8FF,&H0000B8FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,2.0,0.0,9,0,60,0,1\n`;
 
     // Speaker badge — Reporter (blue, opaque box, white text, bottom center)
-    ass += `Style: BadgeReporter,${ef},28,&H00FFFFFF,&H00FFFFFF,&H00F6823B,&H00F6823B,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
+    ass += `Style: BadgeReporter,${ef},28,&H00FFFFFF,&H00FFFFFF,${badgeReporterBg},${badgeReporterBg},1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
     // Speaker badge — Modi (saffron, opaque box, white text, bottom center)
-    ass += `Style: BadgeModi,${ef},28,&H00FFFFFF,&H00FFFFFF,&H0000B8FF,&H0000B8FF,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
+    ass += `Style: BadgeModi,${ef},28,&H00FFFFFF,&H00FFFFFF,${badgeModiBg},${badgeModiBg},1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
     // Speaker badge — Fact Check (green, opaque box, white text, bottom center)
-    ass += `Style: BadgeContext,${ef},28,&H00FFFFFF,&H00FFFFFF,&H0081B910,&H0081B910,1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
+    ass += `Style: BadgeContext,${ef},28,&H00FFFFFF,&H00FFFFFF,${contextBadgeBg},${contextBadgeBg},1,0,0,0,100,100,0,0,3,6,0,2,0,0,180,1\n`;
 
     // Footer (Opaque Orange, Bold, Size 56, positioned at MarginV 100)
     ass += `Style: Footer,${ef},56,&H0000B8FF,&H0000B8FF,&H00000000,&H00000000,1,0,0,0,100,100,0,0,1,1.5,0.0,1,0,0,100,1\n`;
@@ -737,6 +777,39 @@ export async function generateSubtitleReel(
 
         console.log(`[ffmpeg-subtitle] Starting video generation with ${turns.length} turns.`);
 
+        // Dynamic meme audio resolution based on title
+        const titleLower = (metadata?.title || '').toLowerCase();
+        let selectedMemeFile = '';
+        if (titleLower.includes('neet') || titleLower.includes('exam')) {
+            selectedMemeFile = 'Modi_hypocracy.wav';
+        } else if (titleLower.includes('rupee') || titleLower.includes('century') || titleLower.includes('dollar')) {
+            selectedMemeFile = 'Modiji_Wah.wav';
+        } else if (titleLower.includes('rbi') || titleLower.includes('inflation') || titleLower.includes('saving')) {
+            selectedMemeFile = 'Hum_Bole_to_Bole_Kya.wav';
+        } else if (titleLower.includes('fuel') || titleLower.includes('petrol') || titleLower.includes('fitness')) {
+            selectedMemeFile = 'Modi_wah_kya_scene_hai.wav';
+        }
+
+        if (selectedMemeFile) {
+            const memePath = path.join(process.cwd(), 'Meme Audio', selectedMemeFile);
+            if (fs.existsSync(memePath)) {
+                // Find the last 'modi' turn and attach the meme sound to it
+                let lastModiTurnIdx = -1;
+                for (let i = turns.length - 1; i >= 0; i--) {
+                    if (turns[i].speaker === 'modi') {
+                        lastModiTurnIdx = i;
+                        break;
+                    }
+                }
+                if (lastModiTurnIdx !== -1) {
+                    (turns[lastModiTurnIdx] as any).memeAudioPath = memePath;
+                    console.log(`[ffmpeg-subtitle] Attached meme audio "${selectedMemeFile}" to turn ${lastModiTurnIdx}`);
+                }
+            } else {
+                console.warn(`[ffmpeg-subtitle] Meme audio file not found at: ${memePath}`);
+            }
+        }
+
         // 1. Process audio files and find durations
         const turnStartTimes: number[] = [];
         const turnEndTimes: number[] = [];
@@ -764,12 +837,38 @@ export async function generateSubtitleReel(
                 }
             }
 
+            let finalAudioPath = audioPath;
+            const memeAudioPath = (turn as any).memeAudioPath;
+            if (memeAudioPath && fs.existsSync(memeAudioPath)) {
+                console.log(`[ffmpeg-subtitle] Mixing meme sound for turn ${i}: ${memeAudioPath}`);
+                let memeDuration = 2.0;
+                try {
+                    memeDuration = parseFloat(
+                        execSync(`ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "${memeAudioPath}"`)
+                            .toString().trim()
+                    );
+                } catch {
+                    console.warn(`[ffmpeg-subtitle] ffprobe failed for meme sound: ${memeAudioPath}`);
+                }
+
+                // Concatenate turn speech and meme sound
+                const combinedPath = path.join(tmpDir, `turn_${i}_combined.mp3`);
+                try {
+                    execSync(`ffmpeg -y -i "${audioPath}" -i "${memeAudioPath}" -filter_complex "[0:a][1:a]concat=n=2:v=0:a=1[a]" -map "[a]" "${combinedPath}"`, { stdio: 'ignore' });
+                    finalAudioPath = combinedPath;
+                    duration = duration + memeDuration;
+                    console.log(`[ffmpeg-subtitle] Combined turn ${i} audio: total duration is now ${duration.toFixed(2)}s`);
+                } catch (concatErr: any) {
+                    console.error(`[ffmpeg-subtitle] Failed to concat meme audio: ${concatErr.message}`);
+                }
+            }
+
             turnStartTimes.push(accumulatedTime);
             accumulatedTime += duration;
             turnEndTimes.push(accumulatedTime);
             
             turn.duration = duration;
-            turn.filePath = audioPath;
+            turn.filePath = finalAudioPath;
         }
 
         const totalDuration = accumulatedTime;

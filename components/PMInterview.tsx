@@ -300,7 +300,7 @@ const PMInterview: React.FC = () => {
                                                 src={activeInterview.video_url || generatedVideoUrl || ''} 
                                                 controls 
                                                 className="w-full h-full object-cover"
-                                                poster="https://upload.wikimedia.org/wikipedia/commons/e/ec/Narendra_Modi_delivering_his_address_to_the_Nation.jpg"
+                                                poster="/modi_thumbnail_one.png"
                                             />
                                         </div>
                                     </div>

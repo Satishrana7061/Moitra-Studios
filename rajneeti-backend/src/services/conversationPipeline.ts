@@ -29,7 +29,7 @@ const REPORTERS = [
     { name: 'Sia', voiceId: 'YJpPt0sBEgMzYwcMkF5o' },
     { name: 'Mitali', voiceId: 'onQAwbsky3pmzMu2uapN' }
 ];
-const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
+const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
 /**
  * AI completion call to generate the dialogue script using OpenAI/Gemini
@@ -156,7 +156,7 @@ OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences)
  */
 async function compileAndPublishExistingInterview(interview: any): Promise<void> {
     const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
-    const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
+    const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
     // Parse Q&A turns
     const qParts = (interview.question || '').split('\n\n').map((s: string) => s.replace(/^(1\.|2\.|Q1:|Q2:)\s*/i, '').trim());
@@ -563,7 +563,7 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
     console.log(`[Conversational Pipeline] Loaded interview: "${interview.title}"`);
 
     const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
-    const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'TM3DRXe9gqZUKdw8qnXA';
+    const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
     // Parse Q&A turns
     const qParts = (interview.question || '').split('\n\n').map((s: string) => s.replace(/^(1\.|2\.|Q1:|Q2:)\s*/i, '').trim());

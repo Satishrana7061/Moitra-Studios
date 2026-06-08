@@ -895,7 +895,12 @@ export async function generateSubtitleReel(
 
         // 5. Setup dynamic cartoon character overlays
         const avatarsDir = path.resolve(__dirname, '..', '..', 'assets', 'avatars');
-        const reporterAvatar = path.join(avatarsDir, 'reporter.png');
+        const reporterNameClean = (metadata?.reporterName || 'reporter').toLowerCase().replace(/[^a-z0-9]/g, '');
+        let reporterAvatar = path.join(avatarsDir, `${reporterNameClean}.png`);
+        if (!fs.existsSync(reporterAvatar)) {
+            const isMale = ['amit', 'sudhir', 'arnab', 'amish'].some(m => reporterNameClean.includes(m));
+            reporterAvatar = path.join(avatarsDir, isMale ? 'reporter_male.png' : 'reporter.png');
+        }
         const modi1 = path.join(avatarsDir, 'modi_1.png');
         const modi2 = path.join(avatarsDir, 'modi_2.png');
         const modi3 = path.join(avatarsDir, 'modi_3.png');
@@ -939,6 +944,26 @@ export async function generateSubtitleReel(
         if (fs.existsSync(modi3)) {
             cmd.push('-i', modi3);
             modi3Idx = nextInputIdx++;
+        }
+
+        // Load cover/thumbnail image if exists for reel preview
+        const getThumbnailFilename = (title: string): string => {
+            const t = title.toLowerCase();
+            if (t.includes('neet') || t.includes('exam')) return 'modi_neet_cartoon.png';
+            if (t.includes('rupee') || t.includes('century') || t.includes('dollar')) return 'modi_rupee_cartoon.png';
+            if (t.includes('rbi') || t.includes('inflation') || t.includes('saving')) return 'modi_rbi_cartoon.png';
+            if (t.includes('fuel') || t.includes('petrol') || t.includes('fitness')) return 'modi_fuel_cartoon.png';
+            return 'modi_thumbnail_one.png';
+        };
+        const titleText = metadata?.title || 'PM Interview';
+        const coverFilename = getThumbnailFilename(titleText);
+        const publicLeadersDir = path.resolve(__dirname, '..', '..', '..', 'public', 'leaders');
+        const coverPath = path.join(publicLeadersDir, coverFilename);
+        let coverInputIdx = -1;
+        if (fs.existsSync(coverPath)) {
+            cmd.push('-i', coverPath);
+            coverInputIdx = nextInputIdx++;
+            console.log(`[ffmpeg-subtitle] Loaded cover/thumbnail image for visual hook: ${coverPath}`);
         }
 
         const getModiAvatarName = (turnIdx: number) => {
@@ -1041,11 +1066,49 @@ export async function generateSubtitleReel(
 
         currentPad = currentPad;
 
-        // Build background and overlay subtitle chain starting on currentPad (disable vignette/top-bottom gradients)
-        const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);
-        overlayFilters.push(videoFilters);
+        if (coverInputIdx !== -1) {
+            // Scale the cover image input
+            overlayFilters.push(`[${coverInputIdx}:v] scale=1080:1920 [cover_scaled]`);
 
-        let filterComplex = overlayFilters.join(';\n') + '\n[v]';
+            // Escaped font path and Outfit font
+            const fontPath = path.join(FONTS_DIR, 'Outfit-Bold.ttf');
+            const escapedFontPath = escapeFilterPath(fontPath);
+
+            // Wrap title text at 15 chars for vertical layout
+            const wrapText = (text: string, maxLen: number) => {
+                const words = text.split(' ');
+                let lines = [];
+                let currentLine = '';
+                for (const w of words) {
+                    if ((currentLine + ' ' + w).trim().length > maxLen) {
+                        lines.push(currentLine);
+                        currentLine = w;
+                    } else {
+                        currentLine = (currentLine + ' ' + w).trim();
+                    }
+                }
+                if (currentLine) lines.push(currentLine);
+                return lines.join('\n');
+            };
+            const coverTitleRaw = (metadata?.title || 'PM Interview').toUpperCase();
+            const coverTitle = wrapText(coverTitleRaw, 15).replace(/'/g, "'\\\\''").replace(/:/g, '\\:');
+
+            // Draw bold gold title on cover frame
+            overlayFilters.push(`[cover_scaled] drawtext=fontfile='${escapedFontPath}':text='${coverTitle}':fontcolor=0xFFD700:fontsize=96:borderw=8:bordercolor=black:line_spacing=15:x=(w-text_w)/2:y=(h-text_h)/2 [cover_text]`);
+
+            // Apply video subtitle filter chain outputting to [v_subtitles]
+            const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);
+            overlayFilters.push(`${videoFilters} [v_subtitles]`);
+
+            // Overlay cover image over video for first 0.8 seconds and output to [v]
+            overlayFilters.push(`[v_subtitles][cover_text] overlay=x=0:y=0:enable='between(t,0,0.8)' [v]`);
+        } else {
+            // Fallback (no cover image available): build filter chain directly outputting to [v]
+            const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);
+            overlayFilters.push(`${videoFilters} [v]`);
+        }
+
+        let filterComplex = overlayFilters.join(';\n');
 
         if (hasBgAudio) {
             filterComplex += `;\n[1:a]volume=1.0[voice];[2:a]volume=0.12[bg];[voice][bg]amix=inputs=2:duration=first:dropout_transition=0[a]`;

@@ -24,10 +24,10 @@ const createSlug = (text: string): string => {
 
 // Anchor voice rotation mapping
 const REPORTERS = [
-    { name: 'Kanika', voiceId: 'y2H4TwIU5I2L0JXOdBeX' },
-    { name: 'Amit Gupta', voiceId: 'ltvR0942IpmQjl5QbXL1' },
-    { name: 'Sia', voiceId: 'YJpPt0sBEgMzYwcMkF5o' },
-    { name: 'Mitali', voiceId: 'onQAwbsky3pmzMu2uapN' }
+    { name: 'Kanika', voiceId: '21m00Tcm4TlvDq8ikWAM' },
+    { name: 'Pooja', voiceId: 'XB0fDUncoFtcwTr3yv1t' },
+    { name: 'Sia', voiceId: 'EXAVITQu4vr4xnSDxMaL' },
+    { name: 'Mitali', voiceId: 'LcfcDJNbiZ5tF4bI2hDG' }
 ];
 const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 

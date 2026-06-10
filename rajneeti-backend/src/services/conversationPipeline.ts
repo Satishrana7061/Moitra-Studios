@@ -22,13 +22,26 @@ const createSlug = (text: string): string => {
     return (text || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 };
 
-// Anchor voice rotation mapping
+// Anchor voice rotation mapping with pre-validated voice IDs
 const REPORTERS = [
-    { name: 'Kanika', voiceId: '21m00Tcm4TlvDq8ikWAM' },
-    { name: 'Pooja', voiceId: 'XB0fDUncoFtcwTr3yv1t' },
-    { name: 'Sia', voiceId: 'EXAVITQu4vr4xnSDxMaL' },
-    { name: 'Mitali', voiceId: 'LcfcDJNbiZ5tF4bI2hDG' }
+    { name: 'Kanika', voiceId: '21m00Tcm4TlvDq8ikWAM' }, // Rachel (female)
+    { name: 'Pooja', voiceId: 'XB0fDUncoFtcwTr3yv1t' },  // Charlotte (female)
+    { name: 'Sia', voiceId: 'EXAVITQu4vr4xnSDxMaL' },    // Sarah (female)
+    { name: 'Mitali', voiceId: 'LcfcDJNbiZ5tF4bI2hDG' }  // Emily (female)
 ];
+
+// Helper to resolve voice IDs by reporter name to guarantee correct gender matching
+export function getReporterVoiceId(name: string): string {
+    const cleanName = (name || '').toLowerCase().trim();
+    if (cleanName.includes('kanika')) return '21m00Tcm4TlvDq8ikWAM';
+    if (cleanName.includes('pooja')) return 'XB0fDUncoFtcwTr3yv1t';
+    if (cleanName.includes('sia')) return 'EXAVITQu4vr4xnSDxMaL';
+    if (cleanName.includes('mitali')) return 'LcfcDJNbiZ5tF4bI2hDG';
+    
+    // Fallback default female reporter voice ID
+    return '21m00Tcm4TlvDq8ikWAM';
+}
+
 const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
 function buildViralCaptions(title: string, reporterName: string, context: string) {
@@ -211,7 +224,7 @@ OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences)
  * Compiles a video reel for an existing PM Interview entry and posts it to social media.
  */
 async function compileAndPublishExistingInterview(interview: any): Promise<void> {
-    const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
+    const reporterVoiceId = getReporterVoiceId(interview.reporter_name);
     const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
     // Parse Q&A turns
@@ -620,7 +633,7 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
 
     console.log(`[Conversational Pipeline] Loaded interview: "${interview.title}"`);
 
-    const reporterVoiceId = interview.reporter_voice_id || REPORTERS[0].voiceId;
+    const reporterVoiceId = getReporterVoiceId(interview.reporter_name);
     const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';
 
     // Parse Q&A turns

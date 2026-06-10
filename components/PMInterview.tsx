@@ -20,12 +20,19 @@ interface Interview {
 
 // Map anchor avatars
 const ANCHOR_AVATARS: Record<string, string> = {
-    'Kanika': 'https://upload.wikimedia.org/wikipedia/commons/b/b3/Kamala_Gurung_Nepali_Female_Journalist.jpg',
-    'Amit Gupta': 'https://upload.wikimedia.org/wikipedia/commons/0/08/Tarun_J_Tejpal_2007.jpg',
-    'Sia': 'https://upload.wikimedia.org/wikipedia/commons/b/be/Juhi_Smita_Indian_Journalist_with_Padmashree.jpg',
-    'Mitali': 'https://upload.wikimedia.org/wikipedia/commons/b/be/Juhi_Smita_Indian_Journalist_with_Padmashree.jpg'
+    'Kanika': '/leaders/kanika.png',
+    'Sia': '/leaders/sia.png',
+    'Mitali': '/leaders/mitali.png',
+    'Pooja': '/leaders/pooja.png',
+    'Anjana': '/leaders/anjana.png',
+    'Sudhir': '/leaders/sudhir.png',
+    'Arnab': '/leaders/arnab.png',
+    'Rubika': '/leaders/rubika.png',
+    'Chitra': '/leaders/chitra.png',
+    'Amish': '/leaders/amish.png',
+    'Amit Gupta': 'https://upload.wikimedia.org/wikipedia/commons/0/08/Tarun_J_Tejpal_2007.jpg'
 };
-const MODI_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/d/d9/Narendra_Damodardas_Modi.jpg';
+const MODI_AVATAR = '/leaders/modi_thumbnail_one.png';
 
 const getThumbnailForInterview = (title: string): string => {
     const t = title.toLowerCase();
@@ -155,7 +162,17 @@ const PMInterview: React.FC = () => {
         );
     }
 
-    const reporterAvatar = activeInterview ? (ANCHOR_AVATARS[activeInterview.reporter_name] || ANCHOR_AVATARS['Kanika']) : ANCHOR_AVATARS['Kanika'];
+    const getReporterAvatar = (name: string): string => {
+        const mapped = ANCHOR_AVATARS[name];
+        if (mapped) return mapped;
+        // Fallback for female / general anchors
+        const isMale = ['amit', 'sudhir', 'arnab', 'amish'].some(m => name.toLowerCase().includes(m));
+        return isMale 
+            ? 'https://upload.wikimedia.org/wikipedia/commons/0/08/Tarun_J_Tejpal_2007.jpg' 
+            : 'https://upload.wikimedia.org/wikipedia/commons/b/b3/Kamala_Gurung_Nepali_Female_Journalist.jpg';
+    };
+
+    const reporterAvatar = activeInterview ? getReporterAvatar(activeInterview.reporter_name) : ANCHOR_AVATARS['Kanika'];
 
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 font-sans flex flex-col overflow-x-hidden pt-12 md:pt-16">

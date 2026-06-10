@@ -791,7 +791,8 @@ export async function generateSubtitleReel(
         }
 
         if (selectedMemeFile) {
-            const memePath = path.join(process.cwd(), 'Meme Audio', selectedMemeFile);
+            const workspaceRoot = path.resolve(__dirname, '..', '..', '..');
+            const memePath = path.join(workspaceRoot, 'Meme Audio', selectedMemeFile);
             if (fs.existsSync(memePath)) {
                 // Find the last 'modi' turn and attach the meme sound to it
                 let lastModiTurnIdx = -1;
@@ -899,7 +900,13 @@ export async function generateSubtitleReel(
         let reporterAvatar = path.join(avatarsDir, `${reporterNameClean}.png`);
         if (!fs.existsSync(reporterAvatar)) {
             const isMale = ['amit', 'sudhir', 'arnab', 'amish'].some(m => reporterNameClean.includes(m));
-            reporterAvatar = path.join(avatarsDir, isMale ? 'reporter_male.png' : 'reporter.png');
+            const primaryFallback = path.join(avatarsDir, isMale ? 'reporter_male.png' : 'reporter.png');
+            if (fs.existsSync(primaryFallback)) {
+                reporterAvatar = primaryFallback;
+            } else {
+                // Final hard fallback to first available image or reporter.png
+                reporterAvatar = path.join(avatarsDir, 'reporter.png');
+            }
         }
         const modi1 = path.join(avatarsDir, 'modi_1.png');
         const modi2 = path.join(avatarsDir, 'modi_2.png');
@@ -1100,8 +1107,8 @@ export async function generateSubtitleReel(
             const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);
             overlayFilters.push(`${videoFilters} [v_subtitles]`);
 
-            // Overlay cover image over video for first 0.8 seconds and output to [v]
-            overlayFilters.push(`[v_subtitles][cover_text] overlay=x=0:y=0:enable='between(t,0,0.8)' [v]`);
+            // Overlay cover image over video for first 2.0 seconds and output to [v]
+            overlayFilters.push(`[v_subtitles][cover_text] overlay=x=0:y=0:enable='between(t,0,2.0)' [v]`);
         } else {
             // Fallback (no cover image available): build filter chain directly outputting to [v]
             const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);

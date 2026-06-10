@@ -15,17 +15,25 @@ if (!supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
-    console.log("Querying pm_interviews structure...");
+    console.log("Querying all rows in pm_interviews...");
     const { data, error } = await supabase
         .from('pm_interviews')
         .select('*')
-        .limit(1);
+        .order('news_date', { ascending: false });
 
     if (error) {
         console.error("Error querying:", error);
     } else {
-        console.log("Columns in pm_interviews:", data.length > 0 ? Object.keys(data[0]) : "No rows found");
-        console.log("Sample Row:", data[0]);
+        console.log(`Found ${data.length} rows:`);
+        for (const row of data) {
+            console.log(`\nID: ${row.id}`);
+            console.log(`Title: ${row.title}`);
+            console.log(`Date: ${row.news_date}`);
+            console.log(`Reporter: ${row.reporter_name} (Voice: ${row.reporter_voice_id})`);
+            console.log(`Question:\n${row.question}`);
+            console.log(`Answer:\n${row.answer}`);
+            console.log(`Video URL: ${row.video_url}`);
+        }
     }
 }
 

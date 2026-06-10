@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { RAJNEETI_EVENTS } from "./RajneetiMockData";
-import { RajneetiEvent } from "../types/rajneeti";
+import { RajneetiEvent } from "./rajneeti";
 import { MockIndiaMap } from "./MockIndiaMap";
 import { RajneetiImpactPopup } from "./RajneetiImpactPopup";
 

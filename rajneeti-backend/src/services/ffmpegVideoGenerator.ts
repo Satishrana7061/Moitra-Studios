@@ -997,9 +997,12 @@ export async function generateSubtitleReel(
         const mouthClosedPath = path.join(mouthsDir, 'mouth_closed.png');
         const mouthHalfPath   = path.join(mouthsDir, 'mouth_half.png');
         const mouthOpenPath   = path.join(mouthsDir, 'mouth_open.png');
+        const eyesClosedPath  = path.join(mouthsDir, 'eyes_closed.png');
 
         let mouthClosedIdx = -1, mouthHalfIdx = -1, mouthOpenIdx = -1;
+        let eyesClosedIdx = -1;
         const hasMouthAssets = fs.existsSync(mouthClosedPath) && fs.existsSync(mouthHalfPath) && fs.existsSync(mouthOpenPath);
+        const hasEyeAssets = fs.existsSync(eyesClosedPath);
 
         if (hasMouthAssets) {
             cmd.push('-i', mouthClosedPath);
@@ -1011,6 +1014,14 @@ export async function generateSubtitleReel(
             console.log('[ffmpeg-subtitle] ✅ Loaded mouth overlay assets for lip-sync animation');
         } else {
             console.log('[ffmpeg-subtitle] ⚠️  No mouth assets found — lip-sync disabled. Run: npx tsx src/generateMouthAssets.ts');
+        }
+
+        if (hasEyeAssets) {
+            cmd.push('-i', eyesClosedPath);
+            eyesClosedIdx = nextInputIdx++;
+            console.log('[ffmpeg-subtitle] ✅ Loaded eye-blink overlay asset for blink animation');
+        } else {
+            console.log('[ffmpeg-subtitle] ⚠️  No eye-blink asset found — blinking disabled. Run: npx tsx src/generateMouthAssets.ts');
         }
 
         const getModiAvatarName = (turnIdx: number) => {
@@ -1118,20 +1129,32 @@ export async function generateSubtitleReel(
         // Mouth positions are approximate and may need tuning per-character.
         // These coordinates are in the final 1080×1920 video space.
         // ────────────────────────────────────────────────────────────
+        // ── CHARACTER FACE ANIMATION CONFIG ─────────────────────────
+        // Coordinates are in the final 1080×1920 video space.
+        // Characters are scaled to 1800px wide and placed at overlay (-360, 310).
+        // The 3D CGI caricatures have oversized heads, so mouth and eyes are larger.
+        // ────────────────────────────────────────────────────────────
+        const FACE_CONFIG: Record<string, {
+            mouthX: number; mouthY: number;
+            mouthScaleNormal: number; mouthScaleOpen: number;
+            eyeX: number; eyeY: number; eyeScale: number;
+        }> = {
+            // Anchor/Reporter: face centered ~x=540, mouth at ~65% down face
+            reporter: {
+                mouthX: 380, mouthY: 1280,
+                mouthScaleNormal: 320, mouthScaleOpen: 360,
+                eyeX: 350, eyeY: 1060, eyeScale: 340,
+            },
+            // PM Modi: face centered ~x=540, mouth at ~60% down face
+            modi: {
+                mouthX: 380, mouthY: 1120,
+                mouthScaleNormal: 320, mouthScaleOpen: 360,
+                eyeX: 350, eyeY: 900, eyeScale: 340,
+            },
+        };
+
+        // ── LIP-SYNC MOUTH OVERLAYS ──────────────────────────────────
         if (hasMouthAssets && lipSyncData.length > 0) {
-            // Mouth (x, y) position in 1080×1920 video space
-            // Characters are scaled to 1800px and placed at overlay (-360, 310)
-            // Reporter face mouth ≈ center of image, ~35% down from top
-            // Modi face mouth ≈ center of image, ~28% down from top (full body → head higher)
-            const MOUTH_POS: Record<string, { x: number; y: number }> = {
-                reporter: { x: 495, y: 1350 },
-                modi:     { x: 495, y: 1180 },
-            };
-
-            // Mouth overlay scale: closed/half = 90px wide, open = 100px wide
-            const MOUTH_SCALE_NORMAL = 90;
-            const MOUTH_SCALE_OPEN   = 100;
-
             // Helper: collect all time ranges for a given speaker + mouth state
             const buildEnableExpr = (speaker: string, state: 'closed' | 'half' | 'open'): string => {
                 const ranges: string[] = [];
@@ -1148,12 +1171,7 @@ export async function generateSubtitleReel(
 
             const states: ('closed' | 'half' | 'open')[] = ['closed', 'half', 'open'];
             const mouthIndices = [mouthClosedIdx, mouthHalfIdx, mouthOpenIdx];
-            const mouthScales  = [MOUTH_SCALE_NORMAL, MOUTH_SCALE_NORMAL, MOUTH_SCALE_OPEN];
-            const basePads = ['mc_base', 'mh_base', 'mo_base'];
-            const repPads  = ['mc_rep', 'mh_rep', 'mo_rep'];
-            const modiPads = ['mc_modi', 'mh_modi', 'mo_modi'];
 
-            // We pre-calculate enable expressions for each speaker and state to check usage
             const enableExprs: Record<string, Record<'closed' | 'half' | 'open', string>> = {
                 reporter: {
                     closed: buildEnableExpr('reporter', 'closed'),
@@ -1167,42 +1185,26 @@ export async function generateSubtitleReel(
                 }
             };
 
-            for (let s = 0; s < states.length; s++) {
-                const state = states[s];
-                const hasRep = !!enableExprs.reporter[state];
-                const hasModi = !!enableExprs.modi[state];
-
-                if (hasRep || hasModi) {
-                    // Only scale and define basePad if it's actually used!
-                    overlayFilters.push(`[${mouthIndices[s]}:v] scale=${mouthScales[s]}:-1,format=rgba [${basePads[s]}]`);
-
-                    if (hasRep && hasModi) {
-                        overlayFilters.push(`[${basePads[s]}] split=2 [${repPads[s]}][${modiPads[s]}]`);
-                    } else if (hasRep) {
-                        overlayFilters.push(`[${basePads[s]}] copy [${repPads[s]}]`);
-                    } else if (hasModi) {
-                        overlayFilters.push(`[${basePads[s]}] copy [${modiPads[s]}]`);
-                    }
-                }
-            }
-
             let mouthOverlayCount = 0;
 
-            // Apply mouth overlays for a speaker
-            const applyMouthOverlays = (speaker: string, suffix: string) => {
-                const pos = MOUTH_POS[speaker] || MOUTH_POS['reporter'];
-                const padNames = [`mc_${suffix}`, `mh_${suffix}`, `mo_${suffix}`];
-                const xOffsets  = [0, 0, -5]; // open mouth slightly wider, shift left to center
+            const applyMouthOverlays = (speaker: string) => {
+                const conf = FACE_CONFIG[speaker] || FACE_CONFIG['reporter'];
+                const xOffsets = [0, 0, -Math.round((conf.mouthScaleOpen - conf.mouthScaleNormal) / 2)];
+                const scales = [conf.mouthScaleNormal, conf.mouthScaleNormal, conf.mouthScaleOpen];
 
                 for (let s = 0; s < states.length; s++) {
                     const enableExpr = enableExprs[speaker][states[s]];
                     if (!enableExpr) continue;
 
-                    const mx = pos.x + xOffsets[s];
-                    const my = pos.y;
+                    const mouthInputIdx = mouthIndices[s];
+                    const scaledMouthPad = `scaled_mouth_${speaker}_${states[s]}`;
+                    overlayFilters.push(`[${mouthInputIdx}:v] scale=${scales[s]}:-1,format=rgba [${scaledMouthPad}]`);
+
+                    const mx = conf.mouthX + xOffsets[s];
+                    const my = conf.mouthY;
                     const nextPad = `[v_mouth_${mouthOverlayCount++}]`;
                     overlayFilters.push(
-                        `${currentPad}[${padNames[s]}] overlay=x=${mx}:y=${my}:enable='${enableExpr}' ${nextPad}`
+                        `${currentPad}[${scaledMouthPad}] overlay=x=${mx}:y=${my}:enable='${enableExpr}' ${nextPad}`
                     );
                     currentPad = nextPad;
                 }
@@ -1210,10 +1212,68 @@ export async function generateSubtitleReel(
 
             const hasReporterTurns = lipSyncData.some(d => d.speaker === 'reporter');
             const hasModiTurns     = lipSyncData.some(d => d.speaker === 'modi');
-            if (hasReporterTurns) applyMouthOverlays('reporter', 'rep');
-            if (hasModiTurns)     applyMouthOverlays('modi', 'modi');
+            if (hasReporterTurns) applyMouthOverlays('reporter');
+            if (hasModiTurns)     applyMouthOverlays('modi');
 
             console.log(`[ffmpeg-subtitle] Added ${mouthOverlayCount} mouth overlay filters for lip-sync`);
+        }
+
+        // ── EYE-BLINK ANIMATION ──────────────────────────────────────
+        // Natural eye blinking: overlay closed-eye patches at pseudo-random
+        // intervals on the active speaker. Blinks last ~150ms (4 frames @ 30fps).
+        // We generate blinks every 2.5–4.5 seconds using a deterministic pattern
+        // derived from the video duration so it's reproducible.
+        // ────────────────────────────────────────────────────────────
+        if (hasEyeAssets && eyesClosedIdx !== -1) {
+            // Build blink time ranges for the full video duration
+            const BLINK_DURATION = 0.15; // 150ms blink
+            const blinkTimes: number[] = [];
+            let nextBlink = 1.5; // first blink at 1.5s
+            while (nextBlink < fullDuration - 0.5) {
+                blinkTimes.push(nextBlink);
+                // Vary interval: 2.5s, 3.5s, 4.0s, 2.8s, 3.2s pattern
+                const intervalPattern = [2.5, 3.5, 4.0, 2.8, 3.2];
+                nextBlink += intervalPattern[blinkTimes.length % intervalPattern.length];
+            }
+
+            // Determine which speaker is active at each blink time
+            const getActiveSpeaker = (t: number): string | null => {
+                for (let i = 0; i < turns.length; i++) {
+                    if (t >= turnStartTimes[i] && t <= turnEndTimes[i]) {
+                        return turns[i].speaker;
+                    }
+                }
+                return null;
+            };
+
+            // Group blinks by speaker
+            const speakerBlinks: Record<string, string[]> = {};
+            for (const bt of blinkTimes) {
+                const speaker = getActiveSpeaker(bt);
+                if (!speaker) continue;
+                const key = speaker === 'reporter' ? 'reporter' : 'modi';
+                if (!speakerBlinks[key]) speakerBlinks[key] = [];
+                speakerBlinks[key].push(`between(t,${bt.toFixed(3)},${(bt + BLINK_DURATION).toFixed(3)})`);
+            }
+
+            let blinkOverlayCount = 0;
+            for (const [speaker, blinkExprs] of Object.entries(speakerBlinks)) {
+                if (blinkExprs.length === 0) continue;
+
+                const conf = FACE_CONFIG[speaker] || FACE_CONFIG['reporter'];
+                const enableExpr = blinkExprs.join('+');
+                const scaledEyePad = `scaled_eyes_${speaker}`;
+
+                overlayFilters.push(`[${eyesClosedIdx}:v] scale=${conf.eyeScale}:-1,format=rgba [${scaledEyePad}]`);
+
+                const nextPad = `[v_blink_${blinkOverlayCount++}]`;
+                overlayFilters.push(
+                    `${currentPad}[${scaledEyePad}] overlay=x=${conf.eyeX}:y=${conf.eyeY}:enable='${enableExpr}' ${nextPad}`
+                );
+                currentPad = nextPad;
+            }
+
+            console.log(`[ffmpeg-subtitle] Added ${blinkOverlayCount} eye-blink overlay filters (${blinkTimes.length} blinks total)`);
         }
 
         currentPad = currentPad;

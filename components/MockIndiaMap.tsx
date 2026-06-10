@@ -1,5 +1,5 @@
 import React from "react";
-import { RajneetiEvent } from "../types/rajneeti";
+import { RajneetiEvent } from "./rajneeti";
 
 type Props = {
     activeEvents: RajneetiEvent[];

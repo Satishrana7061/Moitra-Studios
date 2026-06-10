@@ -1,10 +1,13 @@
 /**
- * generateMouthAssets.ts — Creates cartoon mouth overlay PNGs for lip-sync
+ * generateMouthAssets.ts — Creates cartoon mouth + eye-blink overlay PNGs
  * 
- * Generates 3 transparent PNG files using FFmpeg's geq (generic equation) filter:
- *   1. mouth_closed.png  — thin curved lips pressed together
- *   2. mouth_half.png    — small oval with teeth hint + pink tongue
- *   3. mouth_open.png    — large oval with teeth row + prominent tongue
+ * Generates transparent PNG files using FFmpeg's geq (generic equation) filter:
+ *   Mouth overlays (480px wide — sized for 3D CGI caricature faces):
+ *     1. mouth_closed.png  — thin curved lips pressed together
+ *     2. mouth_half.png    — small oval with teeth hint + pink tongue
+ *     3. mouth_open.png    — large oval with teeth row + prominent tongue
+ *   Eye-blink overlays (skin-colored eyelid patches):
+ *     4. eyes_closed.png   — pair of closed eyelids for blink animation
  * 
  * Output: rajneeti-backend/assets/avatars/mouths/
  * 
@@ -22,14 +25,14 @@ const __dirname = path.dirname(__filename);
 const mouthsDir = path.resolve(__dirname, '..', 'assets', 'avatars', 'mouths');
 fs.mkdirSync(mouthsDir, { recursive: true });
 
-console.log('🎨 Generating cartoon mouth assets...\n');
+console.log('🎨 Generating cartoon mouth & eye-blink assets...\n');
 
 /**
  * Create a transparent PNG using FFmpeg's geq filter.
  * The geq expression is written to a temp filter script file
  * to avoid shell quoting issues on Windows.
  */
-function createMouthPNG(
+function createOverlayPNG(
     filename: string,
     width: number,
     height: number,
@@ -60,41 +63,48 @@ function createMouthPNG(
     } catch (err: any) {
         const stderr = err.stderr?.toString() || '';
         console.error(`  ❌ Failed: ${filename}`);
-        console.error(`     ${stderr.slice(0, 200)}`);
+        console.error(`     ${stderr.slice(0, 300)}`);
     }
 
     try { fs.unlinkSync(filterPath); } catch {}
 }
 
+// ════════════════════════════════════════════════════════════
+// MOUTH OVERLAYS — 480px wide canvases for 3D CGI faces
+// ════════════════════════════════════════════════════════════
+
+console.log('── Mouth Overlays ──');
+
 // ────────────────────────────────────────────────────────────
 // 1. MOUTH CLOSED — thin dark-brown ellipse (lips pressed shut)
-//    Ellipse center: (60, 30), radii: rx=35, ry=5
-//    Condition: (X-60)²/35² + (Y-30)²/5² < 1
-//    Multiply through: (X-60)²×25 + (Y-30)²×1225 < 30625
+//    Canvas: 480×200. Center: (240, 100), rx=140, ry=18
+//    Condition: (X-240)²/140² + (Y-100)²/18² < 1
+//    → (X-240)²×324 + (Y-100)²×19600 < 6350400
 // ────────────────────────────────────────────────────────────
-const closedCond = 'lt((X-60)*(X-60)*25+(Y-30)*(Y-30)*1225,30625)';
+const closedCond = 'lt((X-240)*(X-240)*324+(Y-100)*(Y-100)*19600,6350400)';
 
-createMouthPNG('mouth_closed.png', 120, 60,
+createOverlayPNG('mouth_closed.png', 480, 200,
     `if(${closedCond},107,0)`,   // R: dark brown
     `if(${closedCond},58,0)`,    // G
     `if(${closedCond},42,0)`,    // B
-    `if(${closedCond},255,0)`    // A: opaque inside, transparent outside
+    `if(${closedCond},255,0)`    // A
 );
 
 // ────────────────────────────────────────────────────────────
 // 2. MOUTH HALF-OPEN — dark oval cavity + white teeth strip + pink tongue
-//    Outer cavity: center (60,32), rx=32, ry=16
-//    Condition: (X-60)²×256 + (Y-32)²×1024 < 262144
-//    Teeth zone: Y ∈ [18, 26] inside cavity → white
-//    Tongue: center (60,42), rx=20, ry=8
-//    Condition: (X-60)²×64 + (Y-42)²×400 < 25600 → pink
+//    Canvas: 480×240.
+//    Outer cavity: center (240,120), rx=125, ry=60
+//    Condition: (X-240)²×3600 + (Y-120)²×15625 < 56250000
+//    Teeth zone: Y ∈ [68, 98] inside cavity → white
+//    Tongue: center (240,160), rx=80, ry=30
+//    Condition: (X-240)²×900 + (Y-160)²×6400 < 5760000 → pink
 //    Rest of cavity: very dark (#1A0808) 
 // ────────────────────────────────────────────────────────────
-const halfCavity  = 'lt((X-60)*(X-60)*256+(Y-32)*(Y-32)*1024,262144)';
-const halfTeeth   = 'gt(Y,18)*lt(Y,26)';
-const halfTongue  = 'lt((X-60)*(X-60)*64+(Y-42)*(Y-42)*400,25600)';
+const halfCavity  = 'lt((X-240)*(X-240)*3600+(Y-120)*(Y-120)*15625,56250000)';
+const halfTeeth   = 'gt(Y,68)*lt(Y,98)';
+const halfTongue  = 'lt((X-240)*(X-240)*900+(Y-160)*(Y-160)*6400,5760000)';
 
-createMouthPNG('mouth_half.png', 120, 60,
+createOverlayPNG('mouth_half.png', 480, 240,
     `if(${halfCavity},if(${halfTeeth},240,if(${halfTongue},216,26)),0)`,
     `if(${halfCavity},if(${halfTeeth},240,if(${halfTongue},64,8)),0)`,
     `if(${halfCavity},if(${halfTeeth},245,if(${halfTongue},112,8)),0)`,
@@ -103,23 +113,57 @@ createMouthPNG('mouth_half.png', 120, 60,
 
 // ────────────────────────────────────────────────────────────
 // 3. MOUTH WIDE-OPEN — larger cavity + prominent teeth + big tongue
-//    Outer cavity: center (60,42), rx=42, ry=28
-//    Condition: (X-60)²×784 + (Y-42)²×1764 < 1382976
-//    Teeth zone: Y ∈ [16, 28] inside cavity → white
-//    Tongue: center (60,56), rx=28, ry=14
-//    Condition: (X-60)²×196 + (Y-56)²×784 < 153664 → pink
+//    Canvas: 480×320.
+//    Outer cavity: center (240,168), rx=160, ry=110
+//    Condition: (X-240)²×12100 + (Y-168)²×25600 < 309760000
+//    Teeth zone: Y ∈ [64, 110] inside cavity → white
+//    Tongue: center (240,224), rx=110, ry=55
+//    Condition: (X-240)²×3025 + (Y-224)²×12100 < 36602500 → pink
 //    Rest of cavity: very dark (#1A0808)
 // ────────────────────────────────────────────────────────────
-const openCavity  = 'lt((X-60)*(X-60)*784+(Y-42)*(Y-42)*1764,1382976)';
-const openTeeth   = 'gt(Y,16)*lt(Y,28)';
-const openTongue  = 'lt((X-60)*(X-60)*196+(Y-56)*(Y-56)*784,153664)';
+const openCavity  = 'lt((X-240)*(X-240)*12100+(Y-168)*(Y-168)*25600,309760000)';
+const openTeeth   = 'gt(Y,64)*lt(Y,110)';
+const openTongue  = 'lt((X-240)*(X-240)*3025+(Y-224)*(Y-224)*12100,36602500)';
 
-createMouthPNG('mouth_open.png', 120, 80,
+createOverlayPNG('mouth_open.png', 480, 320,
     `if(${openCavity},if(${openTeeth},240,if(${openTongue},216,26)),0)`,
     `if(${openCavity},if(${openTeeth},240,if(${openTongue},64,8)),0)`,
     `if(${openCavity},if(${openTeeth},245,if(${openTongue},112,8)),0)`,
     `if(${openCavity},255,0)`
 );
 
-console.log(`\n🎉 All mouth assets saved to: ${mouthsDir}`);
-console.log('   Files: mouth_closed.png, mouth_half.png, mouth_open.png');
+// ════════════════════════════════════════════════════════════
+// EYE-BLINK OVERLAYS — skin-toned eyelid patches
+// ════════════════════════════════════════════════════════════
+
+console.log('\n── Eye-Blink Overlays ──');
+
+// ────────────────────────────────────────────────────────────
+// 4. EYES CLOSED — Two horizontal ellipses (left & right eyelid)
+//    representing closed eyes with subtle lash lines.
+//    Canvas: 480×160
+//    Left eye: center (150, 80), rx=70, ry=35
+//    Right eye: center (330, 80), rx=70, ry=35
+//    Lash line (darker): Y ∈ [78, 84] inside each ellipse
+//    Eyelid (skin tone): rest of ellipse
+//    Skin tone: ~#E8B08D (warm Indian skin), Lash: ~#2D1810 (dark brown)
+// ────────────────────────────────────────────────────────────
+const leftEye  = 'lt((X-150)*(X-150)*1225+(Y-80)*(Y-80)*4900,6002500)';
+const rightEye = 'lt((X-330)*(X-330)*1225+(Y-80)*(Y-80)*4900,6002500)';
+const eyeArea  = `(${leftEye}+${rightEye})`;
+const lashZone = 'gt(Y,76)*lt(Y,86)';
+
+createOverlayPNG('eyes_closed.png', 480, 160,
+    // R: lash=45, skin=232
+    `if(${eyeArea},if(${lashZone},45,232),0)`,
+    // G: lash=24, skin=176
+    `if(${eyeArea},if(${lashZone},24,176),0)`,
+    // B: lash=16, skin=141
+    `if(${eyeArea},if(${lashZone},16,141),0)`,
+    // A: visible inside eye ellipses, transparent outside
+    `if(${eyeArea},255,0)`
+);
+
+console.log(`\n🎉 All assets saved to: ${mouthsDir}`);
+console.log('   Mouth: mouth_closed.png, mouth_half.png, mouth_open.png');
+console.log('   Eyes:  eyes_closed.png');

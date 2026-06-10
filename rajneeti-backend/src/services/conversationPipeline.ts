@@ -271,7 +271,7 @@ async function compileAndPublishExistingInterview(interview: any): Promise<void>
             { text: a1, voiceId: MODI_VOICE_ID, file: 'a1.mp3', dur: 10.0, speaker: 'modi' as const }
         ];
 
-        if (q2) {
+        if (q2 && process.env.SHORT_TEST_REEL !== 'true') {
             turnsToGenerate.push(
                 { text: q2, voiceId: reporterVoiceId, file: 'q2.mp3', dur: 4.0, speaker: 'reporter' as const },
                 { text: a2, voiceId: MODI_VOICE_ID, file: 'a2.mp3', dur: 10.0, speaker: 'modi' as const }
@@ -325,17 +325,25 @@ async function compileAndPublishExistingInterview(interview: any): Promise<void>
         console.log(`[Conversational Pipeline] Saved video_url to pm_interviews for ID: ${interview.id}`);
 
         // Publish to Social Media
-        console.log('[Conversational Pipeline] Publishing to social platforms...');
-        const reporterName = interview.reporter_name || 'Kanika';
-        const { ytTitle, ytDescription, igCaption, ytTags } = buildViralCaptions(
-            interview.title,
-            reporterName,
-            interview.news_context || ''
-        );
+        let igSuccess = false;
+        let fbSuccess = false;
+        let ytSuccess = false;
 
-        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
-        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytTags);
+        if (process.env.SKIP_SOCIAL_PUBLISH === 'true') {
+            console.log('[Conversational Pipeline] ⏭️ SKIP_SOCIAL_PUBLISH is true. Skipping Instagram, Facebook, and YouTube uploads.');
+        } else {
+            console.log('[Conversational Pipeline] Publishing to social platforms...');
+            const reporterName = interview.reporter_name || 'Kanika';
+            const { ytTitle, ytDescription, igCaption, ytTags } = buildViralCaptions(
+                interview.title,
+                reporterName,
+                interview.news_context || ''
+            );
+
+            igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
+            fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
+            ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytTags);
+        }
 
         console.log(`[Conversational Pipeline] Social posts: IG=${igSuccess} FB=${fbSuccess} YT=${ytSuccess}`);
 
@@ -492,7 +500,7 @@ export async function runConversationalReelPipeline() {
             { text: a1, voiceId: MODI_VOICE_ID, file: 'a1.mp3', dur: 10.0, speaker: 'modi' as const }
         ];
 
-        if (q2) {
+        if (q2 && process.env.SHORT_TEST_REEL !== 'true') {
             turnsToGenerate.push(
                 { text: q2, voiceId: selectedReporter.voiceId, file: 'q2.mp3', dur: 4.0, speaker: 'reporter' as const },
                 { text: a2, voiceId: MODI_VOICE_ID, file: 'a2.mp3', dur: 10.0, speaker: 'modi' as const }
@@ -588,16 +596,24 @@ export async function runConversationalReelPipeline() {
         }
 
         // 9. Publish to Social Media
-        console.log('\n📱 Step 9: Publishing to social platforms...');
-        const { ytTitle, ytDescription, igCaption, ytTags } = buildViralCaptions(
-            script.title,
-            selectedReporter.name,
-            script.news_context || ''
-        );
+        let igSuccess = false;
+        let fbSuccess = false;
+        let ytSuccess = false;
 
-        const igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
-        const fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
-        const ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytTags);
+        if (process.env.SKIP_SOCIAL_PUBLISH === 'true') {
+            console.log('[Conversational Pipeline] ⏭️ SKIP_SOCIAL_PUBLISH is true. Skipping Instagram, Facebook, and YouTube uploads.');
+        } else {
+            console.log('\n📱 Step 9: Publishing to social platforms...');
+            const { ytTitle, ytDescription, igCaption, ytTags } = buildViralCaptions(
+                script.title,
+                selectedReporter.name,
+                script.news_context || ''
+            );
+
+            igSuccess = await SocialUploadService.uploadToInstagram(publicUrl, igCaption);
+            fbSuccess = await SocialUploadService.uploadToFacebook(publicUrl, igCaption);
+            ytSuccess = await SocialUploadService.uploadToYouTube(videoBuffer, ytTitle, ytDescription, ytTags);
+        }
 
         // Cleanup temp files
         try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
@@ -680,7 +696,7 @@ export async function generateReelForInterviewId(interviewId: string): Promise<s
             { text: a1, voiceId: MODI_VOICE_ID, file: 'a1.mp3', dur: 10.0, speaker: 'modi' as const }
         ];
 
-        if (q2) {
+        if (q2 && process.env.SHORT_TEST_REEL !== 'true') {
             turnsToGenerate.push(
                 { text: q2, voiceId: reporterVoiceId, file: 'q2.mp3', dur: 4.0, speaker: 'reporter' as const },
                 { text: a2, voiceId: MODI_VOICE_ID, file: 'a2.mp3', dur: 10.0, speaker: 'modi' as const }

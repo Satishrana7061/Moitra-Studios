@@ -1146,28 +1146,44 @@ export async function generateSubtitleReel(
                 return ranges.join('+');
             };
 
-            // Scale mouth images once, then split for reporter + modi channels
-            overlayFilters.push(`[${mouthClosedIdx}:v] scale=${MOUTH_SCALE_NORMAL}:-1,format=rgba [mc_base]`);
-            overlayFilters.push(`[${mouthHalfIdx}:v] scale=${MOUTH_SCALE_NORMAL}:-1,format=rgba [mh_base]`);
-            overlayFilters.push(`[${mouthOpenIdx}:v] scale=${MOUTH_SCALE_OPEN}:-1,format=rgba [mo_base]`);
+            const states: ('closed' | 'half' | 'open')[] = ['closed', 'half', 'open'];
+            const mouthIndices = [mouthClosedIdx, mouthHalfIdx, mouthOpenIdx];
+            const mouthScales  = [MOUTH_SCALE_NORMAL, MOUTH_SCALE_NORMAL, MOUTH_SCALE_OPEN];
+            const basePads = ['mc_base', 'mh_base', 'mo_base'];
+            const repPads  = ['mc_rep', 'mh_rep', 'mo_rep'];
+            const modiPads = ['mc_modi', 'mh_modi', 'mo_modi'];
 
-            // Check which speakers are present
-            const hasReporterTurns = lipSyncData.some(d => d.speaker === 'reporter');
-            const hasModiTurns     = lipSyncData.some(d => d.speaker === 'modi');
-            const splitCount = (hasReporterTurns ? 1 : 0) + (hasModiTurns ? 1 : 0);
+            // We pre-calculate enable expressions for each speaker and state to check usage
+            const enableExprs: Record<string, Record<'closed' | 'half' | 'open', string>> = {
+                reporter: {
+                    closed: buildEnableExpr('reporter', 'closed'),
+                    half: buildEnableExpr('reporter', 'half'),
+                    open: buildEnableExpr('reporter', 'open'),
+                },
+                modi: {
+                    closed: buildEnableExpr('modi', 'closed'),
+                    half: buildEnableExpr('modi', 'half'),
+                    open: buildEnableExpr('modi', 'open'),
+                }
+            };
 
-            if (splitCount === 2) {
-                overlayFilters.push('[mc_base] split=2 [mc_rep][mc_modi]');
-                overlayFilters.push('[mh_base] split=2 [mh_rep][mh_modi]');
-                overlayFilters.push('[mo_base] split=2 [mo_rep][mo_modi]');
-            } else if (hasReporterTurns) {
-                overlayFilters.push('[mc_base] copy [mc_rep]');
-                overlayFilters.push('[mh_base] copy [mh_rep]');
-                overlayFilters.push('[mo_base] copy [mo_rep]');
-            } else if (hasModiTurns) {
-                overlayFilters.push('[mc_base] copy [mc_modi]');
-                overlayFilters.push('[mh_base] copy [mh_modi]');
-                overlayFilters.push('[mo_base] copy [mo_modi]');
+            for (let s = 0; s < states.length; s++) {
+                const state = states[s];
+                const hasRep = !!enableExprs.reporter[state];
+                const hasModi = !!enableExprs.modi[state];
+
+                if (hasRep || hasModi) {
+                    // Only scale and define basePad if it's actually used!
+                    overlayFilters.push(`[${mouthIndices[s]}:v] scale=${mouthScales[s]}:-1,format=rgba [${basePads[s]}]`);
+
+                    if (hasRep && hasModi) {
+                        overlayFilters.push(`[${basePads[s]}] split=2 [${repPads[s]}][${modiPads[s]}]`);
+                    } else if (hasRep) {
+                        overlayFilters.push(`[${basePads[s]}] copy [${repPads[s]}]`);
+                    } else if (hasModi) {
+                        overlayFilters.push(`[${basePads[s]}] copy [${modiPads[s]}]`);
+                    }
+                }
             }
 
             let mouthOverlayCount = 0;
@@ -1175,12 +1191,11 @@ export async function generateSubtitleReel(
             // Apply mouth overlays for a speaker
             const applyMouthOverlays = (speaker: string, suffix: string) => {
                 const pos = MOUTH_POS[speaker] || MOUTH_POS['reporter'];
-                const states: ('closed' | 'half' | 'open')[] = ['closed', 'half', 'open'];
                 const padNames = [`mc_${suffix}`, `mh_${suffix}`, `mo_${suffix}`];
                 const xOffsets  = [0, 0, -5]; // open mouth slightly wider, shift left to center
 
                 for (let s = 0; s < states.length; s++) {
-                    const enableExpr = buildEnableExpr(speaker, states[s]);
+                    const enableExpr = enableExprs[speaker][states[s]];
                     if (!enableExpr) continue;
 
                     const mx = pos.x + xOffsets[s];
@@ -1193,6 +1208,8 @@ export async function generateSubtitleReel(
                 }
             };
 
+            const hasReporterTurns = lipSyncData.some(d => d.speaker === 'reporter');
+            const hasModiTurns     = lipSyncData.some(d => d.speaker === 'modi');
             if (hasReporterTurns) applyMouthOverlays('reporter', 'rep');
             if (hasModiTurns)     applyMouthOverlays('modi', 'modi');
 

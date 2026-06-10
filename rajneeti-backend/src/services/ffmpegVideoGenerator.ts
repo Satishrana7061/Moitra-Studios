@@ -20,6 +20,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { analyzeLipSync, MouthFrame } from './lipSyncAnalyzer.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -884,6 +885,24 @@ export async function generateSubtitleReel(
         const concatStr = turns.map((_, idx) => `[${idx}:a]`).join('') + `concat=n=${turns.length}:v=0:a=1[a]`;
         execSync(`ffmpeg -y ${inputsStr} -filter_complex "${concatStr}" -map "[a]" "${stitchedPath}"`, { stdio: 'pipe' });
 
+        // 2.5. Analyze lip sync for each turn's audio
+        console.log('[ffmpeg-subtitle] Analyzing lip sync for mouth animation...');
+        const lipSyncData: { speaker: string; frames: MouthFrame[] }[] = [];
+        for (let i = 0; i < turns.length; i++) {
+            const turnAudioPath = turns[i].filePath || path.join(tmpDir, `turn_${i}.mp3`);
+            const rawFrames = analyzeLipSync(turnAudioPath);
+            const offset = turnStartTimes[i];
+            lipSyncData.push({
+                speaker: turns[i].speaker,
+                frames: rawFrames.map(f => ({
+                    start: f.start + offset,
+                    end: f.end + offset,
+                    state: f.state,
+                })),
+            });
+        }
+        console.log(`[ffmpeg-subtitle] Lip sync analysis complete: ${lipSyncData.length} turns processed`);
+
         // 3. Build ASS subtitle file
         const assContent = buildSubtitleASS(turns, turnStartTimes, metadata, totalDuration, fullDuration);
         const assPath = path.join(tmpDir, 'subtitle.ass');
@@ -971,6 +990,27 @@ export async function generateSubtitleReel(
             cmd.push('-i', coverPath);
             coverInputIdx = nextInputIdx++;
             console.log(`[ffmpeg-subtitle] Loaded cover/thumbnail image for visual hook: ${coverPath}`);
+        }
+
+        // Load mouth overlay PNGs for lip-sync animation
+        const mouthsDir = path.join(avatarsDir, 'mouths');
+        const mouthClosedPath = path.join(mouthsDir, 'mouth_closed.png');
+        const mouthHalfPath   = path.join(mouthsDir, 'mouth_half.png');
+        const mouthOpenPath   = path.join(mouthsDir, 'mouth_open.png');
+
+        let mouthClosedIdx = -1, mouthHalfIdx = -1, mouthOpenIdx = -1;
+        const hasMouthAssets = fs.existsSync(mouthClosedPath) && fs.existsSync(mouthHalfPath) && fs.existsSync(mouthOpenPath);
+
+        if (hasMouthAssets) {
+            cmd.push('-i', mouthClosedPath);
+            mouthClosedIdx = nextInputIdx++;
+            cmd.push('-i', mouthHalfPath);
+            mouthHalfIdx = nextInputIdx++;
+            cmd.push('-i', mouthOpenPath);
+            mouthOpenIdx = nextInputIdx++;
+            console.log('[ffmpeg-subtitle] ✅ Loaded mouth overlay assets for lip-sync animation');
+        } else {
+            console.log('[ffmpeg-subtitle] ⚠️  No mouth assets found — lip-sync disabled. Run: npx tsx src/generateMouthAssets.ts');
         }
 
         const getModiAvatarName = (turnIdx: number) => {
@@ -1070,6 +1110,94 @@ export async function generateSubtitleReel(
         applyOverlay('modi1', -360, 310);
         applyOverlay('modi2', -360, 310);
         applyOverlay('modi3', -360, 310);
+
+        // ── Lip-Sync Mouth Overlays ──────────────────────────────────
+        // Overlay mouth PNG shapes (closed/half/open) on the active speaker's
+        // face, driven by audio volume analysis from lipSyncAnalyzer.
+        //
+        // Mouth positions are approximate and may need tuning per-character.
+        // These coordinates are in the final 1080×1920 video space.
+        // ────────────────────────────────────────────────────────────
+        if (hasMouthAssets && lipSyncData.length > 0) {
+            // Mouth (x, y) position in 1080×1920 video space
+            // Characters are scaled to 1800px and placed at overlay (-360, 310)
+            // Reporter face mouth ≈ center of image, ~35% down from top
+            // Modi face mouth ≈ center of image, ~28% down from top (full body → head higher)
+            const MOUTH_POS: Record<string, { x: number; y: number }> = {
+                reporter: { x: 495, y: 1350 },
+                modi:     { x: 495, y: 1180 },
+            };
+
+            // Mouth overlay scale: closed/half = 90px wide, open = 100px wide
+            const MOUTH_SCALE_NORMAL = 90;
+            const MOUTH_SCALE_OPEN   = 100;
+
+            // Helper: collect all time ranges for a given speaker + mouth state
+            const buildEnableExpr = (speaker: string, state: 'closed' | 'half' | 'open'): string => {
+                const ranges: string[] = [];
+                for (const turnData of lipSyncData) {
+                    if (turnData.speaker !== speaker) continue;
+                    for (const frame of turnData.frames) {
+                        if (frame.state === state) {
+                            ranges.push(`between(t,${frame.start.toFixed(3)},${frame.end.toFixed(3)})`);
+                        }
+                    }
+                }
+                return ranges.join('+');
+            };
+
+            // Scale mouth images once, then split for reporter + modi channels
+            overlayFilters.push(`[${mouthClosedIdx}:v] scale=${MOUTH_SCALE_NORMAL}:-1,format=rgba [mc_base]`);
+            overlayFilters.push(`[${mouthHalfIdx}:v] scale=${MOUTH_SCALE_NORMAL}:-1,format=rgba [mh_base]`);
+            overlayFilters.push(`[${mouthOpenIdx}:v] scale=${MOUTH_SCALE_OPEN}:-1,format=rgba [mo_base]`);
+
+            // Check which speakers are present
+            const hasReporterTurns = lipSyncData.some(d => d.speaker === 'reporter');
+            const hasModiTurns     = lipSyncData.some(d => d.speaker === 'modi');
+            const splitCount = (hasReporterTurns ? 1 : 0) + (hasModiTurns ? 1 : 0);
+
+            if (splitCount === 2) {
+                overlayFilters.push('[mc_base] split=2 [mc_rep][mc_modi]');
+                overlayFilters.push('[mh_base] split=2 [mh_rep][mh_modi]');
+                overlayFilters.push('[mo_base] split=2 [mo_rep][mo_modi]');
+            } else if (hasReporterTurns) {
+                overlayFilters.push('[mc_base] copy [mc_rep]');
+                overlayFilters.push('[mh_base] copy [mh_rep]');
+                overlayFilters.push('[mo_base] copy [mo_rep]');
+            } else if (hasModiTurns) {
+                overlayFilters.push('[mc_base] copy [mc_modi]');
+                overlayFilters.push('[mh_base] copy [mh_modi]');
+                overlayFilters.push('[mo_base] copy [mo_modi]');
+            }
+
+            let mouthOverlayCount = 0;
+
+            // Apply mouth overlays for a speaker
+            const applyMouthOverlays = (speaker: string, suffix: string) => {
+                const pos = MOUTH_POS[speaker] || MOUTH_POS['reporter'];
+                const states: ('closed' | 'half' | 'open')[] = ['closed', 'half', 'open'];
+                const padNames = [`mc_${suffix}`, `mh_${suffix}`, `mo_${suffix}`];
+                const xOffsets  = [0, 0, -5]; // open mouth slightly wider, shift left to center
+
+                for (let s = 0; s < states.length; s++) {
+                    const enableExpr = buildEnableExpr(speaker, states[s]);
+                    if (!enableExpr) continue;
+
+                    const mx = pos.x + xOffsets[s];
+                    const my = pos.y;
+                    const nextPad = `[v_mouth_${mouthOverlayCount++}]`;
+                    overlayFilters.push(
+                        `${currentPad}[${padNames[s]}] overlay=x=${mx}:y=${my}:enable='${enableExpr}' ${nextPad}`
+                    );
+                    currentPad = nextPad;
+                }
+            };
+
+            if (hasReporterTurns) applyMouthOverlays('reporter', 'rep');
+            if (hasModiTurns)     applyMouthOverlays('modi', 'modi');
+
+            console.log(`[ffmpeg-subtitle] Added ${mouthOverlayCount} mouth overlay filters for lip-sync`);
+        }
 
         currentPad = currentPad;
 

@@ -21,7 +21,7 @@ on:
         description: 'Generate a short 2-turn reel (Q1/A1) to save ElevenLabs credits'
         type: boolean
         required: false
-        default: false
+        default: true
   repository_dispatch:
     types: [daily-reels-manual]
 
@@ -96,7 +96,7 @@ jobs:
           NEWS_TITLE: ${{ github.event.inputs.news_title || github.event.client_payload.title }}
           NEWS_SUMMARY: ${{ github.event.client_payload.summary }}
           SKIP_SOCIAL_PUBLISH: ${{ github.event.inputs.skip_social_publish || 'false' }}
-          SHORT_TEST_REEL: ${{ github.event.inputs.short_test_reel || 'false' }}
+          SHORT_TEST_REEL: ${{ github.event.inputs.short_test_reel != 'false' }}
 
 
         run: npx tsx src/runPipeline.ts

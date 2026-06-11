@@ -27,7 +27,8 @@ const REPORTERS = [
     { name: 'Kanika', voiceId: '21m00Tcm4TlvDq8ikWAM' }, // Rachel (female)
     { name: 'Pooja', voiceId: 'XB0fDUncoFtcwTr3yv1t' },  // Charlotte (female)
     { name: 'Sia', voiceId: 'EXAVITQu4vr4xnSDxMaL' },    // Sarah (female)
-    { name: 'Mitali', voiceId: '21m00Tcm4TlvDq8ikWAM' }  // Rachel (female) fallback
+    { name: 'Vidya', voiceId: 'HSdLdxNgP1KF3yQK3IkB' },    // Vidya (female)
+    { name: 'Mitali', voiceId: 'HSdLdxNgP1KF3yQK3IkB' }  // Mitali / Vidya fallback
 ];
 
 // Helper to resolve voice IDs by reporter name to guarantee correct gender matching
@@ -36,10 +37,11 @@ export function getReporterVoiceId(name: string): string {
     if (cleanName.includes('kanika')) return '21m00Tcm4TlvDq8ikWAM';
     if (cleanName.includes('pooja')) return 'XB0fDUncoFtcwTr3yv1t';
     if (cleanName.includes('sia')) return 'EXAVITQu4vr4xnSDxMaL';
-    if (cleanName.includes('mitali')) return '21m00Tcm4TlvDq8ikWAM';
+    if (cleanName.includes('vidya')) return 'HSdLdxNgP1KF3yQK3IkB';
+    if (cleanName.includes('mitali')) return 'HSdLdxNgP1KF3yQK3IkB';
     
     // Fallback default female reporter voice ID
-    return '21m00Tcm4TlvDq8ikWAM';
+    return 'HSdLdxNgP1KF3yQK3IkB';
 }
 
 const MODI_VOICE_ID = process.env.ELEVENLABS_MODI_VOICE_ID || 'i8poXNEuNSxv1iFNrrq3';

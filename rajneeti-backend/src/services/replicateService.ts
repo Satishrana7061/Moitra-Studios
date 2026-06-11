@@ -29,6 +29,35 @@ export async function testReplicateConnection(): Promise<boolean> {
 }
 
 /**
+ * Helper to extract the actual URL string from the Replicate prediction output.
+ * Deals with strings, arrays, and Replicate SDK v1.0+ FileOutput objects.
+ */
+function extractUrl(output: any): string {
+    if (!output) return '';
+    if (typeof output === 'string') return output;
+    
+    // If it is an array, extract the first element recursively
+    if (Array.isArray(output)) {
+        return extractUrl(output[0]);
+    }
+    
+    // In SDK v1.0+, output of file-generating models is a FileOutput object with a .url() method
+    if (output && typeof output.url === 'function') {
+        try {
+            return output.url();
+        } catch (err: any) {
+            console.warn(`[Replicate] Failed calling output.url(): ${err.message}`);
+        }
+    }
+    
+    // Fallback to .url property or string conversion
+    if (output && typeof output.url === 'string') {
+        return output.url;
+    }
+    return String(output);
+}
+
+/**
  * Calls Replicate SadTalker to generate a talking head video from a single
  * avatar image + a single turn's audio buffer.
  *
@@ -97,7 +126,7 @@ export async function generateTalkingHead(
                         }
                     }
                 ) as any;
-                outputUrl = typeof output === 'string' ? output : (output?.url || output?.[0] || String(output));
+                outputUrl = extractUrl(output);
             } else {
                 // SadTalker — use pinned version hash to avoid 404
                 const modelVersion = "cjwbw/sadtalker:a519cc0cfebaaeade068b23899165a11ec76aaa1d2b313d40d214f204ec957a3";
@@ -115,7 +144,7 @@ export async function generateTalkingHead(
                         }
                     }
                 ) as any;
-                outputUrl = typeof output === 'string' ? output : (output?.url || output?.[0] || String(output));
+                outputUrl = extractUrl(output);
             }
 
             const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);

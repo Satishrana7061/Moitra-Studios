@@ -549,7 +549,7 @@ app.post("/api/admin/seed-satirical", async (_req, res) => {
                 title: "RBI Inflation Warnings",
                 news_date: "2026-06-04",
                 reporter_name: "Mitali",
-                reporter_voice_id: "LcfcDJNbiZ5tF4bI2hDG",
+                reporter_voice_id: "21m00Tcm4TlvDq8ikWAM",
                 question: "1. RBI ne inflation par cautious stance liya hai aur aam janta ki savings khatam ho rahi hain. Log kaise survive karenge?\n\n2. Lekin savings ke bina common man ka future kaise chalega?",
                 answer: "1. RBI ka cautious approach toh bas middle class se poochne ka ek highly educated tareeqa hai ki: 'Wait, kya sach mein abhi bhi tum logo ke paas paise bache hain?'.\n\n2. Hum middle class ko ancient art of minimalism aur detachment seekha rahe hain. Jab life insurance se lekar saans lene par eighteen percent GST lag raha ho, toh savings account ki kya zaroorat hai!",
                 news_context: "RBI warns of inflation pressures and low household savings as eighteen percent GST on health and life insurance premiums faces public debate.",

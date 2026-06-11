@@ -48,7 +48,7 @@ export async function generateTalkingHead(
         
         console.log(`[Replicate] Rendering green-screen canvas for avatar overlay (size: ${dims})...`);
         execSync(
-            `ffmpeg -y -f lavfi -i color=c=0x00ff00:s=${dims} -i "${imagePath}" -filter_complex "[0:v][1:v]overlay=format=auto" "${tmpGreenImagePath}"`,
+            `ffmpeg -y -f lavfi -i color=c=0x00ff00:s=${dims} -i "${imagePath}" -filter_complex "[0:v][1:v]overlay=format=auto" -frames:v 1 -update 1 "${tmpGreenImagePath}"`,
             { stdio: 'ignore', timeout: 15000 }
         );
         

@@ -27,7 +27,7 @@ const REPORTERS = [
     { name: 'Kanika', voiceId: '21m00Tcm4TlvDq8ikWAM' }, // Rachel (female)
     { name: 'Pooja', voiceId: 'XB0fDUncoFtcwTr3yv1t' },  // Charlotte (female)
     { name: 'Sia', voiceId: 'EXAVITQu4vr4xnSDxMaL' },    // Sarah (female)
-    { name: 'Mitali', voiceId: 'LcfcDJNbiZ5tF4bI2hDG' }  // Emily (female)
+    { name: 'Mitali', voiceId: '21m00Tcm4TlvDq8ikWAM' }  // Rachel (female) fallback
 ];
 
 // Helper to resolve voice IDs by reporter name to guarantee correct gender matching
@@ -36,7 +36,7 @@ export function getReporterVoiceId(name: string): string {
     if (cleanName.includes('kanika')) return '21m00Tcm4TlvDq8ikWAM';
     if (cleanName.includes('pooja')) return 'XB0fDUncoFtcwTr3yv1t';
     if (cleanName.includes('sia')) return 'EXAVITQu4vr4xnSDxMaL';
-    if (cleanName.includes('mitali')) return 'LcfcDJNbiZ5tF4bI2hDG';
+    if (cleanName.includes('mitali')) return '21m00Tcm4TlvDq8ikWAM';
     
     // Fallback default female reporter voice ID
     return '21m00Tcm4TlvDq8ikWAM';

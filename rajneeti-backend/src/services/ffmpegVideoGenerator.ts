@@ -1046,15 +1046,12 @@ export async function generateSubtitleReel(
             if (t.includes('fuel') || t.includes('petrol') || t.includes('fitness')) return 'modi_fuel_cartoon.png';
             return 'modi_thumbnail_one.png';
         };
-        const titleText = metadata?.title || 'PM Interview';
-        const coverFilename = getThumbnailFilename(titleText);
-        const publicLeadersDir = path.resolve(__dirname, '..', '..', '..', 'public', 'leaders');
-        const coverPath = path.join(publicLeadersDir, coverFilename);
+        const coverPath = reporterAvatar;
         let coverInputIdx = -1;
         if (fs.existsSync(coverPath)) {
             cmd.push('-i', coverPath);
             coverInputIdx = nextInputIdx++;
-            console.log(`[ffmpeg-subtitle] Loaded cover/thumbnail image for visual hook: ${coverPath}`);
+            console.log(`[ffmpeg-subtitle] Loaded cover/thumbnail image from reporter avatar: ${coverPath}`);
         }
 
         // ── BUILD OVERLAY FILTERS ─────────────────────────────────────
@@ -1205,15 +1202,15 @@ export async function generateSubtitleReel(
             const coverTitleRaw = (metadata?.title || 'PM Interview').toUpperCase();
             const coverTitle = wrapText(coverTitleRaw, 15).replace(/'/g, "'\\\\''").replace(/:/g, '\\:');
 
-            // Draw bold gold title on cover frame
-            overlayFilters.push(`[cover_scaled] drawtext=fontfile='${escapedFontPath}':text='${coverTitle}':fontcolor=0xFFD700:fontsize=96:borderw=8:bordercolor=black:line_spacing=15:x=(w-text_w)/2:y=(h-text_h)/2 [cover_text]`);
+            // Draw bold gold title with black background box on cover frame (positioned at top-middle)
+            overlayFilters.push(`[cover_scaled] drawtext=fontfile='${escapedFontPath}':text='${coverTitle}':fontcolor=0xFFD700:fontsize=90:borderw=4:bordercolor=black:box=1:boxcolor=0x000000A0:boxborderw=20:line_spacing=15:x=(w-text_w)/2:y=280 [cover_text]`);
 
             // Apply video subtitle filter chain outputting to [v_subtitles]
             const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);
             overlayFilters.push(`${videoFilters} [v_subtitles]`);
 
-            // Overlay cover image over video for first 2.0 seconds and output to [v]
-            overlayFilters.push(`[v_subtitles][cover_text] overlay=x=0:y=0:enable='between(t,0,2.0)' [v]`);
+            // Overlay cover image over video for first 1.5 seconds and output to [v]
+            overlayFilters.push(`[v_subtitles][cover_text] overlay=x=0:y=0:enable='between(t,0,1.5)' [v]`);
         } else {
             // Fallback (no cover image available): build filter chain directly outputting to [v]
             const videoFilters = buildVideoFilterChain(fullDuration, assPath, FONTS_DIR, currentPad, 1720, false, false);

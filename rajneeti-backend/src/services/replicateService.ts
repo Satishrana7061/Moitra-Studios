@@ -67,14 +67,12 @@ export async function generateTalkingHead(
     const tmpAudioPath = path.join(os.tmpdir(), `${speakerName}_voice_${Date.now()}.mp3`);
     fs.writeFileSync(tmpAudioPath, audioBuffer);
 
-    const maxRetries = 1;
+    const maxRetries = 2;
     let lastError: Error | null = null;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         if (attempt > 0) {
             console.log(`[Replicate] Retry attempt ${attempt}/${maxRetries} for ${speakerName}...`);
-            // Wait 3 seconds before retrying
-            await new Promise(resolve => setTimeout(resolve, 3000));
         }
 
         try {
@@ -101,10 +99,11 @@ export async function generateTalkingHead(
                 ) as any;
                 outputUrl = typeof output === 'string' ? output : (output?.url || output?.[0] || String(output));
             } else {
-                // SadTalker — use model name without pinned version hash for latest
-                console.log(`[Replicate] Triggering cjwbw/sadtalker (enhancer=${useEnhancer}, size=${imageSize})...`);
+                // SadTalker — use pinned version hash to avoid 404
+                const modelVersion = "cjwbw/sadtalker:a519cc0cfebaaeade068b23899165a11ec76aaa1d2b313d40d214f204ec957a3";
+                console.log(`[Replicate] Triggering cjwbw/sadtalker version ${modelVersion.split(':')[1].slice(0, 8)}...`);
                 const output = await replicate.run(
-                    "cjwbw/sadtalker" as any,
+                    modelVersion as any,
                     {
                         input: {
                             source_image: imageFile,
@@ -160,6 +159,25 @@ export async function generateTalkingHead(
             }
             if (err.stack) {
                 console.error(`[Replicate]   Stack: ${err.stack.split('\n').slice(0, 3).join('\n')}`);
+            }
+
+            // Sleep dynamically if we have retries left
+            if (attempt < maxRetries) {
+                let retryDelay = 3000; // default 3s
+                const isThrottled = err.message?.includes('429') || err.status === 429 || (err.response && err.response.status === 429);
+                if (isThrottled) {
+                    const match = err.message?.match(/"retry_after":\s*(\d+)/) || err.message?.match(/resets in ~(\d+)s/);
+                    if (match && match[1]) {
+                        const secs = parseInt(match[1], 10);
+                        retryDelay = (secs + 3) * 1000;
+                    } else {
+                        retryDelay = 15000; // wait 15 seconds fallback for 429
+                    }
+                    console.log(`[Replicate] Rate limit throttled (429). Sleeping for ${(retryDelay / 1000).toFixed(1)}s before retry...`);
+                } else {
+                    console.log(`[Replicate] Non-429 error. Sleeping for 3.0s before retry...`);
+                }
+                await new Promise(resolve => setTimeout(resolve, retryDelay));
             }
         }
     }

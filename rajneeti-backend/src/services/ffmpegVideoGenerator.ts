@@ -943,30 +943,21 @@ export async function generateSubtitleReel(
                 console.log('[ffmpeg-subtitle] Continuing with static avatars (no lip-sync).');
             } else {
                 try {
-                    console.log(`[ffmpeg-subtitle] Generating ${turns.length} per-turn talking head videos...`);
+                    console.log(`[ffmpeg-subtitle] Generating ${turns.length} per-turn talking head videos sequentially...`);
                     const startTime = Date.now();
 
-                    // Generate talking head for each turn in parallel (max 2 concurrent)
-                    const BATCH_SIZE = 2;
-                    for (let batchStart = 0; batchStart < turns.length; batchStart += BATCH_SIZE) {
-                        const batchEnd = Math.min(batchStart + BATCH_SIZE, turns.length);
-                        const batchPromises: Promise<string>[] = [];
-
-                        for (let i = batchStart; i < batchEnd; i++) {
-                            const turn = turns[i];
-                            const avatarImage = turn.speaker === 'reporter' ? reporterAvatar : modi1;
-                            const audioData = turn.filePath ? fs.readFileSync(turn.filePath) : turn.audioBuffer;
-
-                            console.log(`[ffmpeg-subtitle]   Turn ${i}: ${turn.speaker} (${(turn.duration || 0).toFixed(1)}s)`);
-                            batchPromises.push(
-                                generateTalkingHead(avatarImage, audioData, `${turn.speaker}_turn${i}`)
-                            );
+                    for (let i = 0; i < turns.length; i++) {
+                        if (i > 0) {
+                            const delayMs = parseInt(process.env.REPLICATE_DELAY_MS || '10000', 10);
+                            console.log(`[ffmpeg-subtitle] Waiting ${delayMs / 1000}s before Turn ${i} to respect Replicate rate limits...`);
+                            await new Promise(resolve => setTimeout(resolve, delayMs));
                         }
+                        const turn = turns[i];
+                        const avatarImage = turn.speaker === 'reporter' ? reporterAvatar : modi1;
+                        const audioData = turn.filePath ? fs.readFileSync(turn.filePath) : turn.audioBuffer;
 
-                        const results = await Promise.all(batchPromises);
-                        for (let j = 0; j < results.length; j++) {
-                            perTurnVideoPaths[batchStart + j] = results[j];
-                        }
+                        console.log(`[ffmpeg-subtitle]   Turn ${i}: ${turn.speaker} (${(turn.duration || 0).toFixed(1)}s)`);
+                        perTurnVideoPaths[i] = await generateTalkingHead(avatarImage, audioData, `${turn.speaker}_turn${i}`);
                     }
 
                     isUsingReplicate = true;

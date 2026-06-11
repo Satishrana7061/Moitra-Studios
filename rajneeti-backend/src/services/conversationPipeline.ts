@@ -101,11 +101,46 @@ function buildViralCaptions(title: string, reporterName: string, context: string
  * AI completion call to generate the dialogue script using OpenAI/Gemini
  * Passes a list of news events and asks the AI to pick the most important national issue.
  */
-async function generateDialogueScript(newsEvents: any[]): Promise<any> {
+async function generateDialogueScript(newsEvents: any[], isShortTestReel: boolean = false): Promise<any> {
     const apiKey = OPENAI_API_KEY || process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY || '';
 
-    const prompt = `
+    const prompt = isShortTestReel ? `
+You are an AI political analyst writing a daily PM Open Press Conference script for Rajneeti TV Network.
+You are given a list of recent news events. Your FIRST task is to select the most important NATIONAL level problem (e.g., NEET/CBSE paper leaks, inflation, market crashes, national infrastructure) and ignore state-level or regional news.
+
+NEWS EVENTS:
+${newsEvents.map((e, idx) => `[${idx}] DATE: ${e.news_date} | TITLE: ${e.ticker_headline || e.blog_title} | STATE: ${e.state || 'National'} | SUMMARY: ${e.blog_content || 'N/A'}`).join('\n\n')}
+
+TASK:
+1. Select the index of the most critical national-level news event from the list above.
+2. Formulate a short, punchy title (max 5 words) for this press conference briefing in English.
+3. Write a 2-turn dialogue (exactly one question and one answer) between a news journalist/reporter and PM Narendra Modi in Hinglish (Hindi written using English/Latin alphabet, e.g. "Sarkar is system breakdown ko kaise theek kar rahi hai?").
+   - Tone: Satirical, ironical, and comedic, poking fun at the situation while remaining witty and entertaining.
+   - Dialogue Structure:
+     - Turn 1 (Reporter): A sharp, detailed, accountable question in Hinglish demanding details on the selected national problem. (It must be a complete, detailed question of around 20-25 words to last 6-8 seconds when spoken).
+     - Turn 2 (PM Modi): PM Modi's comprehensive response in Hinglish. He should use a highly comedic, sarcastic, or spiritual excuse/justification in his characteristic style, and MUST incorporate a verified fact, budget allocation, date, or legislative act. (It must be a complete, detailed answer of around 40-50 words to last 15-18 seconds when spoken).
+4. Write a 1-2 sentence background context summarizing the audited facts or statistics used in Hinglish.
+
+CRITICAL SAFETY & CONTENT CONSTRAINT:
+- Select only major, famous, and prominent national news events (such as national exams, economics, currency, tax policies, infrastructure, space programs, or major governance initiatives). Ignore minor, local, or regional events.
+- Strictly AVOID any news events related to violence, physical harm, crime, rape, assault, murder, deaths, natural disasters, personal tragedies, or anything that could harm religious sentiments, community beliefs, or personal faith.
+- Keep the comedic tone light-hearted, satirical, and focused on policy, administration, and public audits.
+
+CRITICAL DATA & LANGUAGE CONSTRAINT:
+- PM Modi's replies must be strictly backed by genuine and authentic data, referring to official budgets, ministry reports, verified dates, or actual legislative acts. DO NOT make up statistics or figures.
+- Use Hinglish (Hindi text in Latin script) for the questions, answers, and context so it can be cleanly spoken by the ElevenLabs multilingual voice model and read on-screen.
+- Important: Spell out all numbers and years as English words (e.g., use "twenty fourteen" or "twenty twenty four" or "five" or "ten" instead of "2014", "2024", "5", "10") inside the dialogues to guarantee proper English pronunciation by the TTS voice.
+
+OUTPUT FORMAT (Respond with STRICT JSON ONLY, no extra text, no markdown fences):
+{
+   "selected_index": <number>,
+   "title": "Short English Title",
+   "reporter_q1": "Hinglish detailed first question from reporter...",
+   "modi_a1": "Hinglish detailed first answer from PM Modi...",
+   "news_context": "Brief factual background context in Hinglish..."
+}
+`.trim() : `
 You are an AI political analyst writing a daily PM Open Press Conference script for Rajneeti TV Network.
 You are given a list of recent news events. Your FIRST task is to select the most important NATIONAL level problem (e.g., NEET/CBSE paper leaks, inflation, market crashes, national infrastructure) and ignore state-level or regional news.
 
@@ -433,7 +468,8 @@ export async function runConversationalReelPipeline() {
 
         // 2. Generate Dialogue Script using AI (AI will pick the most important national news event)
         console.log('\n📝 Step 2: Generating Q&A dialogue script and selecting top national issue...');
-        const script = await generateDialogueScript(newsEvents);
+        const isShort = process.env.SHORT_TEST_REEL === 'true';
+        const script = await generateDialogueScript(newsEvents, isShort);
         
         const selectedIndex = typeof script.selected_index === 'number' ? script.selected_index : 0;
         const newsEvent = newsEvents[selectedIndex] || newsEvents[0];

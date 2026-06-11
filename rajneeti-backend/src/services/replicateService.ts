@@ -9,12 +9,38 @@ const replicate = new Replicate({
 });
 
 /**
- * Calls Replicate to generate a talking head video from an image and audio buffer.
- * Automatically saves audio to a temporary file for the upload, polls for completion,
- * and downloads the finished video to a temporary path.
- * 
+ * Quick connection test — verifies the Replicate API token is valid.
+ * Returns true if the token works, false otherwise.
+ */
+export async function testReplicateConnection(): Promise<boolean> {
+    if (!process.env.REPLICATE_API_TOKEN) {
+        console.error('[Replicate] No REPLICATE_API_TOKEN set.');
+        return false;
+    }
+    try {
+        // A lightweight API call to validate the token
+        const models = await replicate.models.list();
+        console.log(`[Replicate] ✅ Connection OK — token is valid (found ${models.results?.length ?? 0} models in listing).`);
+        return true;
+    } catch (err: any) {
+        console.error(`[Replicate] ❌ Connection test FAILED: ${err.message}`);
+        return false;
+    }
+}
+
+/**
+ * Calls Replicate SadTalker to generate a talking head video from a single
+ * avatar image + a single turn's audio buffer.
+ *
+ * Changes from previous version:
+ *  - Uses fs.readFileSync + new File() for SDK v1.4+ compatibility (not ReadStream)
+ *  - Disables face enhancer by default (saves cost, better for CGI/cartoon avatars)
+ *  - Adds retry logic (1 retry on failure)
+ *  - Adds detailed error logging with full error objects
+ *  - Removes green-screen compositing (not needed for per-turn approach)
+ *
  * @param imagePath - Absolute path to the source avatar image
- * @param audioBuffer - Buffer containing the speaker's voice audio
+ * @param audioBuffer - Buffer containing the speaker's voice audio for ONE turn
  * @param speakerName - Name of the speaker (for logging/tmp files)
  * @returns Path to the downloaded talking head .mp4 file
  */
@@ -28,117 +54,118 @@ export async function generateTalkingHead(
     }
 
     const provider = (process.env.LIP_SYNC_PROVIDER || 'sadtalker').toLowerCase();
+    // Disable enhancer by default — GFPGAN degrades CGI/cartoon faces and doubles cost
     const useEnhancer = process.env.SADTALKER_USE_ENHANCER === 'true';
     const imageSize = parseInt(process.env.SADTALKER_IMAGE_SIZE || '256', 10);
 
-    console.log(`[Replicate] Starting lip-sync for ${speakerName} using ${provider}...`);
-    console.log(`[Replicate] Source image: ${path.basename(imagePath)} (${(fs.statSync(imagePath).size / 1024 / 1024).toFixed(2)} MB)`);
-    console.log(`[Replicate] Audio length: ${(audioBuffer.length / 1024).toFixed(2)} KB`);
+    console.log(`[Replicate] Starting lip-sync for "${speakerName}" using ${provider}...`);
+    console.log(`[Replicate]   Source image: ${path.basename(imagePath)} (${(fs.statSync(imagePath).size / 1024).toFixed(1)} KB)`);
+    console.log(`[Replicate]   Audio length: ${(audioBuffer.length / 1024).toFixed(1)} KB`);
+    console.log(`[Replicate]   Enhancer: ${useEnhancer}, Image size: ${imageSize}`);
 
-    // 1. Prepare green-screen image (composites transparent PNG onto solid green #00FF00)
-    const tmpGreenImagePath = path.join(os.tmpdir(), `${speakerName}_green_${Date.now()}.png`);
-    let activeSourceImagePath = imagePath;
-    
-    try {
-        console.log(`[Replicate] Getting avatar dimensions...`);
-        const dims = execSync(
-            `ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "${imagePath}"`,
-            { timeout: 10000 }
-        ).toString().trim();
-        
-        console.log(`[Replicate] Rendering green-screen canvas for avatar overlay (size: ${dims})...`);
-        execSync(
-            `ffmpeg -y -f lavfi -i color=c=0x00ff00:s=${dims} -i "${imagePath}" -filter_complex "[0:v][1:v]overlay=format=auto" -frames:v 1 -update 1 "${tmpGreenImagePath}"`,
-            { stdio: 'ignore', timeout: 15000 }
-        );
-        
-        activeSourceImagePath = tmpGreenImagePath;
-        console.log(`[Replicate] Green-screen render successful: ${path.basename(tmpGreenImagePath)}`);
-    } catch (err: any) {
-        console.warn(`[Replicate] Warning: Failed to generate green screen image, fallback to raw PNG: ${err.message}`);
-    }
-
-    // 2. Write the audio buffer to a temporary file
+    // Write the audio buffer to a temporary file
     const tmpAudioPath = path.join(os.tmpdir(), `${speakerName}_voice_${Date.now()}.mp3`);
     fs.writeFileSync(tmpAudioPath, audioBuffer);
 
-    // 3. Prepare inputs as streams
-    const imageStream = fs.createReadStream(activeSourceImagePath);
-    const audioStream = fs.createReadStream(tmpAudioPath);
+    const maxRetries = 1;
+    let lastError: Error | null = null;
 
-    let outputUrl: string;
-
-    try {
-        if (provider === 'wav2lip') {
-            // devxpy/cog-wav2lip model version ID
-            const modelVersion = "devxpy/cog-wav2lip:cd532e0c0617300c14457e5e33d0277df6063e00cf7cd7be40854746fefefefb";
-            console.log(`[Replicate] Triggering devxpy/cog-wav2lip model run...`);
-            
-            const output = await replicate.run(modelVersion, {
-                input: {
-                    face: imageStream,
-                    audio: audioStream,
-                }
-            }) as any;
-
-            outputUrl = typeof output === 'string' ? output : output[0];
-        } else {
-            // cjwbw/sadtalker model version ID
-            const modelVersion = "cjwbw/sadtalker:2b4d7c04e2ad2d55c3270b76e8e750170a4843b0d70f074d221804b40742f1f5";
-            console.log(`[Replicate] Triggering cjwbw/sadtalker model run (enhancer=${useEnhancer}, size=${imageSize})...`);
-
-            const output = await replicate.run(modelVersion, {
-                input: {
-                    source_image: imageStream,
-                    driven_audio: audioStream,
-                    still_mode: true,
-                    preprocess: "full",
-                    use_enhancer: useEnhancer,
-                    size_of_image: imageSize,
-                }
-            }) as any;
-
-            outputUrl = typeof output === 'string' ? output : output[0];
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        if (attempt > 0) {
+            console.log(`[Replicate] Retry attempt ${attempt}/${maxRetries} for ${speakerName}...`);
+            // Wait 3 seconds before retrying
+            await new Promise(resolve => setTimeout(resolve, 3000));
         }
 
-        if (!outputUrl) {
-            throw new Error("Replicate returned an empty output URL.");
-        }
-
-        console.log(`[Replicate] Model finished successfully! Output URL: ${outputUrl}`);
-
-        // 3. Download the generated video to a temporary path
-        const downloadPath = path.join(os.tmpdir(), `${speakerName}_talking_${Date.now()}.mp4`);
-        console.log(`[Replicate] Downloading speaking video to: ${downloadPath}`);
-        
-        const response = await fetch(outputUrl);
-        if (!response.ok) {
-            throw new Error(`Failed to download Replicate output video: ${response.statusText}`);
-        }
-        
-        const fileStream = fs.createWriteStream(downloadPath);
-        const arrayBuffer = await response.arrayBuffer();
-        fs.writeFileSync(downloadPath, Buffer.from(arrayBuffer));
-        
-        console.log(`[Replicate] Download complete. File size: ${(fs.statSync(downloadPath).size / 1024).toFixed(2)} KB`);
-        return downloadPath;
-
-    } finally {
-        // Cleanup local temporary audio file
         try {
-            if (fs.existsSync(tmpAudioPath)) {
-                fs.unlinkSync(tmpAudioPath);
+            // Read files as Buffers and create File objects (SDK v1.4+ compatible)
+            const imageData = fs.readFileSync(imagePath);
+            const audioData = fs.readFileSync(tmpAudioPath);
+
+            const imageFile = new File([imageData], path.basename(imagePath), { type: 'image/png' });
+            const audioFile = new File([audioData], path.basename(tmpAudioPath), { type: 'audio/mpeg' });
+
+            let outputUrl: string;
+            const startTime = Date.now();
+
+            if (provider === 'wav2lip') {
+                console.log(`[Replicate] Triggering devxpy/cog-wav2lip...`);
+                const output = await replicate.run(
+                    "devxpy/cog-wav2lip:cd532e0c0617300c14457e5e33d0277df6063e00cf7cd7be40854746fefefefb",
+                    {
+                        input: {
+                            face: imageFile,
+                            audio: audioFile,
+                        }
+                    }
+                ) as any;
+                outputUrl = typeof output === 'string' ? output : (output?.url || output?.[0] || String(output));
+            } else {
+                // SadTalker — use model name without pinned version hash for latest
+                console.log(`[Replicate] Triggering cjwbw/sadtalker (enhancer=${useEnhancer}, size=${imageSize})...`);
+                const output = await replicate.run(
+                    "cjwbw/sadtalker" as any,
+                    {
+                        input: {
+                            source_image: imageFile,
+                            driven_audio: audioFile,
+                            still_mode: true,
+                            preprocess: "full",
+                            use_enhancer: useEnhancer,
+                            size_of_image: imageSize,
+                        }
+                    }
+                ) as any;
+                outputUrl = typeof output === 'string' ? output : (output?.url || output?.[0] || String(output));
             }
-        } catch (err) {
-            console.warn(`[Replicate] Warning: Failed to delete temp audio file: ${tmpAudioPath}`);
-        }
-        // Cleanup local temporary green screen image
-        try {
-            if (fs.existsSync(tmpGreenImagePath)) {
-                fs.unlinkSync(tmpGreenImagePath);
+
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            console.log(`[Replicate] Model finished in ${elapsed}s! Output URL: ${outputUrl}`);
+
+            if (!outputUrl || outputUrl === 'undefined' || outputUrl === 'null') {
+                throw new Error(`Replicate returned empty/invalid output: ${JSON.stringify(outputUrl)}`);
             }
-        } catch (err) {
-            console.warn(`[Replicate] Warning: Failed to delete temp green image file: ${tmpGreenImagePath}`);
+
+            // Download the generated video to a temporary path
+            const downloadPath = path.join(os.tmpdir(), `${speakerName}_talking_${Date.now()}.mp4`);
+            console.log(`[Replicate] Downloading result video...`);
+
+            const response = await fetch(outputUrl);
+            if (!response.ok) {
+                throw new Error(`Download failed (${response.status}): ${response.statusText}`);
+            }
+
+            const arrayBuffer = await response.arrayBuffer();
+            fs.writeFileSync(downloadPath, Buffer.from(arrayBuffer));
+
+            const fileSizeKB = (fs.statSync(downloadPath).size / 1024).toFixed(1);
+            console.log(`[Replicate] ✅ ${speakerName} talking head ready: ${fileSizeKB} KB (took ${elapsed}s)`);
+
+            // Cleanup temp audio
+            try { if (fs.existsSync(tmpAudioPath)) fs.unlinkSync(tmpAudioPath); } catch {}
+
+            return downloadPath;
+
+        } catch (err: any) {
+            lastError = err;
+            console.error(`[Replicate] ❌ Attempt ${attempt + 1} failed for ${speakerName}:`);
+            console.error(`[Replicate]   Error type: ${err.constructor?.name}`);
+            console.error(`[Replicate]   Message: ${err.message}`);
+            if (err.response) {
+                console.error(`[Replicate]   HTTP Status: ${err.response.status}`);
+                try {
+                    const body = await err.response.text?.();
+                    if (body) console.error(`[Replicate]   Response body: ${body.slice(0, 500)}`);
+                } catch {}
+            }
+            if (err.stack) {
+                console.error(`[Replicate]   Stack: ${err.stack.split('\n').slice(0, 3).join('\n')}`);
+            }
         }
     }
+
+    // Cleanup temp audio on final failure
+    try { if (fs.existsSync(tmpAudioPath)) fs.unlinkSync(tmpAudioPath); } catch {}
+
+    throw lastError || new Error(`Replicate generation failed for ${speakerName} after ${maxRetries + 1} attempts`);
 }

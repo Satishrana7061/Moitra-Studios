@@ -21,6 +21,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import { analyzeLipSync, MouthFrame } from './lipSyncAnalyzer.js';
+import { generateTalkingHead } from './replicateService.js';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -760,6 +761,11 @@ export async function generateSubtitleReel(
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'subtitle-'));
     const outputPath = path.join(tmpDir, 'output.mp4');
 
+    // Declared here so they are accessible in the finally block for cleanup
+    let reporterTalkingVideoPath: string | null = null;
+    let modiTalkingVideoPath: string | null = null;
+    let isUsingReplicate = false;
+
     try {
         let turns: DialogueTurn[] = [];
         let metadata: { title: string; reporterName: string; newsContext: string };
@@ -931,6 +937,90 @@ export async function generateSubtitleReel(
         const modi2 = path.join(avatarsDir, 'modi_2.png');
         const modi3 = path.join(avatarsDir, 'modi_3.png');
 
+        // ── GENERATE AI TALKING HEADS (REPLICATE) ─────────────────────
+        reporterTalkingVideoPath = null;
+        modiTalkingVideoPath = null;
+        isUsingReplicate = false;
+
+        if (process.env.REPLICATE_API_TOKEN) {
+            console.log('[ffmpeg-subtitle] REPLICATE_API_TOKEN is set. Generating talking head audios...');
+            try {
+                // Generate a silent audio helper
+                const generateSilenceFile = (duration: number, outputPath: string) => {
+                    execSync(`ffmpeg -y -f lavfi -i anullsrc=r=44100:cl=mono -t ${duration.toFixed(3)} -acodec libmp3lame "${outputPath}"`, { stdio: 'ignore' });
+                };
+
+                // Helper to build a speaker's single continuous audio file with silences
+                const buildSpeakerAudioFile = (speaker: string, outputPath: string) => {
+                    const inputs: string[] = [];
+                    const filterParts: string[] = [];
+                    const tempSilenceFiles: string[] = [];
+
+                    for (let i = 0; i < turns.length; i++) {
+                        const turn = turns[i];
+                        const isThisSpeaker = (speaker === 'reporter') 
+                            ? (turn.speaker === 'reporter')
+                            : (turn.speaker !== 'reporter');
+
+                        if (isThisSpeaker) {
+                            inputs.push(`-i "${turn.filePath}"`);
+                        } else {
+                            const silenceFile = path.join(tmpDir, `silence_${speaker}_turn_${i}_${Date.now()}.mp3`);
+                            generateSilenceFile(turn.duration || 5.0, silenceFile);
+                            inputs.push(`-i "${silenceFile}"`);
+                            tempSilenceFiles.push(silenceFile);
+                        }
+                        filterParts.push(`[${i}:a]`);
+                    }
+
+                    // Append contextDuration (outro) silence at the end
+                    const outroSilenceIndex = turns.length;
+                    const outroSilenceFile = path.join(tmpDir, `silence_${speaker}_outro_${Date.now()}.mp3`);
+                    generateSilenceFile(contextDuration, outroSilenceFile);
+                    inputs.push(`-i "${outroSilenceFile}"`);
+                    tempSilenceFiles.push(outroSilenceFile);
+                    filterParts.push(`[${outroSilenceIndex}:a]`);
+
+                    const concatFilter = `${filterParts.join('')}concat=n=${turns.length + 1}:v=0:a=1[a]`;
+                    execSync(`ffmpeg -y ${inputs.join(' ')} -filter_complex "${concatFilter}" -map "[a]" "${outputPath}"`, { stdio: 'ignore' });
+
+                    // Clean up temp silences
+                    for (const sf of tempSilenceFiles) {
+                        try { fs.unlinkSync(sf); } catch {}
+                    }
+                };
+
+                const reporterVoicePath = path.join(tmpDir, `reporter_voice_full.mp3`);
+                const modiVoicePath = path.join(tmpDir, `modi_voice_full.mp3`);
+
+                console.log('[ffmpeg-subtitle] Compiling audio tracks with silences for Replicate...');
+                buildSpeakerAudioFile('reporter', reporterVoicePath);
+                buildSpeakerAudioFile('modi', modiVoicePath);
+
+                // Now run Replicate in parallel!
+                console.log('[ffmpeg-subtitle] Calling Replicate API in parallel (SadTalker/Wav2Lip)...');
+                const [repVideo, modiVideo] = await Promise.all([
+                    generateTalkingHead(reporterAvatar, fs.readFileSync(reporterVoicePath), 'reporter'),
+                    generateTalkingHead(modi1, fs.readFileSync(modiVoicePath), 'modi'),
+                ]);
+
+                reporterTalkingVideoPath = repVideo;
+                modiTalkingVideoPath = modiVideo;
+                isUsingReplicate = true;
+                console.log('[ffmpeg-subtitle] ✅ Successfully generated talking head videos from Replicate.');
+
+                // Clean up full voice files
+                try { fs.unlinkSync(reporterVoicePath); } catch {}
+                try { fs.unlinkSync(modiVoicePath); } catch {}
+
+            } catch (err: any) {
+                console.error('[ffmpeg-subtitle] ❌ Replicate talking head generation failed:', err.message);
+                console.log('[ffmpeg-subtitle] Falling back to standard static image overlays + mouth overlays.');
+            }
+        } else {
+            console.log('[ffmpeg-subtitle] REPLICATE_API_TOKEN is not set. Using local mouth overlays.');
+        }
+
         const cmd: string[] = ['ffmpeg', '-y'];
 
         // Input 0: Color background
@@ -955,20 +1045,32 @@ export async function generateSubtitleReel(
 
         let nextInputIdx = hasBgAudio ? 3 : 2;
 
-        if (fs.existsSync(reporterAvatar)) {
-            cmd.push('-i', reporterAvatar);
+        let finalReporterInput = reporterAvatar;
+        let finalModi1Input = modi1;
+        let finalModi2Input = modi2;
+        let finalModi3Input = modi3;
+
+        if (isUsingReplicate && reporterTalkingVideoPath && modiTalkingVideoPath) {
+            finalReporterInput = reporterTalkingVideoPath;
+            finalModi1Input = modiTalkingVideoPath;
+            finalModi2Input = modiTalkingVideoPath;
+            finalModi3Input = modiTalkingVideoPath;
+        }
+
+        if (fs.existsSync(finalReporterInput)) {
+            cmd.push('-i', finalReporterInput);
             repIdx = nextInputIdx++;
         }
-        if (fs.existsSync(modi1)) {
-            cmd.push('-i', modi1);
+        if (fs.existsSync(finalModi1Input)) {
+            cmd.push('-i', finalModi1Input);
             modi1Idx = nextInputIdx++;
         }
-        if (fs.existsSync(modi2)) {
-            cmd.push('-i', modi2);
+        if (fs.existsSync(finalModi2Input)) {
+            cmd.push('-i', finalModi2Input);
             modi2Idx = nextInputIdx++;
         }
-        if (fs.existsSync(modi3)) {
-            cmd.push('-i', modi3);
+        if (fs.existsSync(finalModi3Input)) {
+            cmd.push('-i', finalModi3Input);
             modi3Idx = nextInputIdx++;
         }
 
@@ -1089,7 +1191,12 @@ export async function generateSubtitleReel(
             const hasNormal = usedPads.has(name);
             
             if (hasNormal) {
-                overlayFilters.push(`[${inputIdx}:v] scale=1800:-1,format=rgba [${name}]`);
+                if (isUsingReplicate) {
+                    // Key out solid pure green #00FF00 background
+                    overlayFilters.push(`[${inputIdx}:v] colorkey=0x00ff00:0.05:0.05,scale=1800:-1,format=rgba [${name}]`);
+                } else {
+                    overlayFilters.push(`[${inputIdx}:v] scale=1800:-1,format=rgba [${name}]`);
+                }
             }
         };
 
@@ -1153,127 +1260,129 @@ export async function generateSubtitleReel(
             },
         };
 
-        // ── LIP-SYNC MOUTH OVERLAYS ──────────────────────────────────
-        if (hasMouthAssets && lipSyncData.length > 0) {
-            // Helper: collect all time ranges for a given speaker + mouth state
-            const buildEnableExpr = (speaker: string, state: 'closed' | 'half' | 'open'): string => {
-                const ranges: string[] = [];
-                for (const turnData of lipSyncData) {
-                    if (turnData.speaker !== speaker) continue;
-                    for (const frame of turnData.frames) {
-                        if (frame.state === state) {
-                            ranges.push(`between(t,${frame.start.toFixed(3)},${frame.end.toFixed(3)})`);
+        // ── LIP-SYNC MOUTH OVERLAYS & EYE BLINK OVERLAYS (LOCAL FALLBACK ONLY) ──────
+        if (!isUsingReplicate) {
+            if (hasMouthAssets && lipSyncData.length > 0) {
+                // Helper: collect all time ranges for a given speaker + mouth state
+                const buildEnableExpr = (speaker: string, state: 'closed' | 'half' | 'open'): string => {
+                    const ranges: string[] = [];
+                    for (const turnData of lipSyncData) {
+                        if (turnData.speaker !== speaker) continue;
+                        for (const frame of turnData.frames) {
+                            if (frame.state === state) {
+                                ranges.push(`between(t,${frame.start.toFixed(3)},${frame.end.toFixed(3)})`);
+                            }
                         }
                     }
+                    return ranges.join('+');
+                };
+
+                const states: ('closed' | 'half' | 'open')[] = ['closed', 'half', 'open'];
+                const mouthIndices = [mouthClosedIdx, mouthHalfIdx, mouthOpenIdx];
+
+                const enableExprs: Record<string, Record<'closed' | 'half' | 'open', string>> = {
+                    reporter: {
+                        closed: buildEnableExpr('reporter', 'closed'),
+                        half: buildEnableExpr('reporter', 'half'),
+                        open: buildEnableExpr('reporter', 'open'),
+                    },
+                    modi: {
+                        closed: buildEnableExpr('modi', 'closed'),
+                        half: buildEnableExpr('modi', 'half'),
+                        open: buildEnableExpr('modi', 'open'),
+                    }
+                };
+
+                let mouthOverlayCount = 0;
+
+                const applyMouthOverlays = (speaker: string) => {
+                    const conf = FACE_CONFIG[speaker] || FACE_CONFIG['reporter'];
+                    const xOffsets = [0, 0, -Math.round((conf.mouthScaleOpen - conf.mouthScaleNormal) / 2)];
+                    const scales = [conf.mouthScaleNormal, conf.mouthScaleNormal, conf.mouthScaleOpen];
+
+                    for (let s = 0; s < states.length; s++) {
+                        const enableExpr = enableExprs[speaker][states[s]];
+                        if (!enableExpr) continue;
+
+                        const mouthInputIdx = mouthIndices[s];
+                        const scaledMouthPad = `scaled_mouth_${speaker}_${states[s]}`;
+                        overlayFilters.push(`[${mouthInputIdx}:v] scale=${scales[s]}:-1,format=rgba [${scaledMouthPad}]`);
+
+                        const mx = conf.mouthX + xOffsets[s];
+                        const my = conf.mouthY;
+                        const nextPad = `[v_mouth_${mouthOverlayCount++}]`;
+                        overlayFilters.push(
+                            `${currentPad}[${scaledMouthPad}] overlay=x=${mx}:y=${my}:enable='${enableExpr}' ${nextPad}`
+                        );
+                        currentPad = nextPad;
+                    }
+                };
+
+                const hasReporterTurns = lipSyncData.some(d => d.speaker === 'reporter');
+                const hasModiTurns     = lipSyncData.some(d => d.speaker === 'modi');
+                if (hasReporterTurns) applyMouthOverlays('reporter');
+                if (hasModiTurns)     applyMouthOverlays('modi');
+
+                console.log(`[ffmpeg-subtitle] Added ${mouthOverlayCount} mouth overlay filters for lip-sync`);
+            }
+
+            // ── EYE-BLINK ANIMATION ──────────────────────────────────────
+            // Natural eye blinking: overlay closed-eye patches at pseudo-random
+            // intervals on the active speaker. Blinks last ~150ms (4 frames @ 30fps).
+            // We generate blinks every 2.5–4.5 seconds using a deterministic pattern
+            // derived from the video duration so it's reproducible.
+            // ────────────────────────────────────────────────────────────
+            if (hasEyeAssets && eyesClosedIdx !== -1) {
+                // Build blink time ranges for the full video duration
+                const BLINK_DURATION = 0.15; // 150ms blink
+                const blinkTimes: number[] = [];
+                let nextBlink = 1.5; // first blink at 1.5s
+                while (nextBlink < fullDuration - 0.5) {
+                    blinkTimes.push(nextBlink);
+                    // Vary interval: 2.5s, 3.5s, 4.0s, 2.8s, 3.2s pattern
+                    const intervalPattern = [2.5, 3.5, 4.0, 2.8, 3.2];
+                    nextBlink += intervalPattern[blinkTimes.length % intervalPattern.length];
                 }
-                return ranges.join('+');
-            };
 
-            const states: ('closed' | 'half' | 'open')[] = ['closed', 'half', 'open'];
-            const mouthIndices = [mouthClosedIdx, mouthHalfIdx, mouthOpenIdx];
+                // Determine which speaker is active at each blink time
+                const getActiveSpeaker = (t: number): string | null => {
+                    for (let i = 0; i < turns.length; i++) {
+                        if (t >= turnStartTimes[i] && t <= turnEndTimes[i]) {
+                            return turns[i].speaker;
+                        }
+                    }
+                    return null;
+                };
 
-            const enableExprs: Record<string, Record<'closed' | 'half' | 'open', string>> = {
-                reporter: {
-                    closed: buildEnableExpr('reporter', 'closed'),
-                    half: buildEnableExpr('reporter', 'half'),
-                    open: buildEnableExpr('reporter', 'open'),
-                },
-                modi: {
-                    closed: buildEnableExpr('modi', 'closed'),
-                    half: buildEnableExpr('modi', 'half'),
-                    open: buildEnableExpr('modi', 'open'),
+                // Group blinks by speaker
+                const speakerBlinks: Record<string, string[]> = {};
+                for (const bt of blinkTimes) {
+                    const speaker = getActiveSpeaker(bt);
+                    if (!speaker) continue;
+                    const key = speaker === 'reporter' ? 'reporter' : 'modi';
+                    if (!speakerBlinks[key]) speakerBlinks[key] = [];
+                    speakerBlinks[key].push(`between(t,${bt.toFixed(3)},${(bt + BLINK_DURATION).toFixed(3)})`);
                 }
-            };
 
-            let mouthOverlayCount = 0;
+                let blinkOverlayCount = 0;
+                for (const [speaker, blinkExprs] of Object.entries(speakerBlinks)) {
+                    if (blinkExprs.length === 0) continue;
 
-            const applyMouthOverlays = (speaker: string) => {
-                const conf = FACE_CONFIG[speaker] || FACE_CONFIG['reporter'];
-                const xOffsets = [0, 0, -Math.round((conf.mouthScaleOpen - conf.mouthScaleNormal) / 2)];
-                const scales = [conf.mouthScaleNormal, conf.mouthScaleNormal, conf.mouthScaleOpen];
+                    const conf = FACE_CONFIG[speaker] || FACE_CONFIG['reporter'];
+                    const enableExpr = blinkExprs.join('+');
+                    const scaledEyePad = `scaled_eyes_${speaker}`;
 
-                for (let s = 0; s < states.length; s++) {
-                    const enableExpr = enableExprs[speaker][states[s]];
-                    if (!enableExpr) continue;
+                    overlayFilters.push(`[${eyesClosedIdx}:v] scale=${conf.eyeScale}:-1,format=rgba [${scaledEyePad}]`);
 
-                    const mouthInputIdx = mouthIndices[s];
-                    const scaledMouthPad = `scaled_mouth_${speaker}_${states[s]}`;
-                    overlayFilters.push(`[${mouthInputIdx}:v] scale=${scales[s]}:-1,format=rgba [${scaledMouthPad}]`);
-
-                    const mx = conf.mouthX + xOffsets[s];
-                    const my = conf.mouthY;
-                    const nextPad = `[v_mouth_${mouthOverlayCount++}]`;
+                    const nextPad = `[v_blink_${blinkOverlayCount++}]`;
                     overlayFilters.push(
-                        `${currentPad}[${scaledMouthPad}] overlay=x=${mx}:y=${my}:enable='${enableExpr}' ${nextPad}`
+                        `${currentPad}[${scaledEyePad}] overlay=x=${conf.eyeX}:y=${conf.eyeY}:enable='${enableExpr}' ${nextPad}`
                     );
                     currentPad = nextPad;
                 }
-            };
 
-            const hasReporterTurns = lipSyncData.some(d => d.speaker === 'reporter');
-            const hasModiTurns     = lipSyncData.some(d => d.speaker === 'modi');
-            if (hasReporterTurns) applyMouthOverlays('reporter');
-            if (hasModiTurns)     applyMouthOverlays('modi');
-
-            console.log(`[ffmpeg-subtitle] Added ${mouthOverlayCount} mouth overlay filters for lip-sync`);
-        }
-
-        // ── EYE-BLINK ANIMATION ──────────────────────────────────────
-        // Natural eye blinking: overlay closed-eye patches at pseudo-random
-        // intervals on the active speaker. Blinks last ~150ms (4 frames @ 30fps).
-        // We generate blinks every 2.5–4.5 seconds using a deterministic pattern
-        // derived from the video duration so it's reproducible.
-        // ────────────────────────────────────────────────────────────
-        if (hasEyeAssets && eyesClosedIdx !== -1) {
-            // Build blink time ranges for the full video duration
-            const BLINK_DURATION = 0.15; // 150ms blink
-            const blinkTimes: number[] = [];
-            let nextBlink = 1.5; // first blink at 1.5s
-            while (nextBlink < fullDuration - 0.5) {
-                blinkTimes.push(nextBlink);
-                // Vary interval: 2.5s, 3.5s, 4.0s, 2.8s, 3.2s pattern
-                const intervalPattern = [2.5, 3.5, 4.0, 2.8, 3.2];
-                nextBlink += intervalPattern[blinkTimes.length % intervalPattern.length];
+                console.log(`[ffmpeg-subtitle] Added ${blinkOverlayCount} eye-blink overlay filters (${blinkTimes.length} blinks total)`);
             }
-
-            // Determine which speaker is active at each blink time
-            const getActiveSpeaker = (t: number): string | null => {
-                for (let i = 0; i < turns.length; i++) {
-                    if (t >= turnStartTimes[i] && t <= turnEndTimes[i]) {
-                        return turns[i].speaker;
-                    }
-                }
-                return null;
-            };
-
-            // Group blinks by speaker
-            const speakerBlinks: Record<string, string[]> = {};
-            for (const bt of blinkTimes) {
-                const speaker = getActiveSpeaker(bt);
-                if (!speaker) continue;
-                const key = speaker === 'reporter' ? 'reporter' : 'modi';
-                if (!speakerBlinks[key]) speakerBlinks[key] = [];
-                speakerBlinks[key].push(`between(t,${bt.toFixed(3)},${(bt + BLINK_DURATION).toFixed(3)})`);
-            }
-
-            let blinkOverlayCount = 0;
-            for (const [speaker, blinkExprs] of Object.entries(speakerBlinks)) {
-                if (blinkExprs.length === 0) continue;
-
-                const conf = FACE_CONFIG[speaker] || FACE_CONFIG['reporter'];
-                const enableExpr = blinkExprs.join('+');
-                const scaledEyePad = `scaled_eyes_${speaker}`;
-
-                overlayFilters.push(`[${eyesClosedIdx}:v] scale=${conf.eyeScale}:-1,format=rgba [${scaledEyePad}]`);
-
-                const nextPad = `[v_blink_${blinkOverlayCount++}]`;
-                overlayFilters.push(
-                    `${currentPad}[${scaledEyePad}] overlay=x=${conf.eyeX}:y=${conf.eyeY}:enable='${enableExpr}' ${nextPad}`
-                );
-                currentPad = nextPad;
-            }
-
-            console.log(`[ffmpeg-subtitle] Added ${blinkOverlayCount} eye-blink overlay filters (${blinkTimes.length} blinks total)`);
         }
 
         currentPad = currentPad;
@@ -1385,6 +1494,21 @@ export async function generateSubtitleReel(
         throw err;
     } finally {
         try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+        
+        // Cleanup Replicate temp video files
+        if (isUsingReplicate) {
+            try {
+                if (reporterTalkingVideoPath && fs.existsSync(reporterTalkingVideoPath)) {
+                    fs.unlinkSync(reporterTalkingVideoPath);
+                }
+                if (modiTalkingVideoPath && fs.existsSync(modiTalkingVideoPath)) {
+                    fs.unlinkSync(modiTalkingVideoPath);
+                }
+                console.log('[ffmpeg-subtitle] Cleaned up Replicate temp talking head videos.');
+            } catch (err) {
+                console.warn("[ffmpeg-subtitle] Failed to clean up Replicate temp videos:", err);
+            }
+        }
     }
 }
 

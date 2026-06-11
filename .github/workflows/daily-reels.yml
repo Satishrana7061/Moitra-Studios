@@ -76,6 +76,8 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           ELEVENLABS_VOICE_ID: ${{ secrets.ELEVENLABS_VOICE_ID }}
+          REPLICATE_API_TOKEN: ${{ secrets.REPLICATE_API_TOKEN }}
+          LIP_SYNC_PROVIDER: ${{ secrets.LIP_SYNC_PROVIDER || 'sadtalker' }}
           
           # Supabase Storage
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}

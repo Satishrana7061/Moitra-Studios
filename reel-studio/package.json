@@ -6,7 +6,9 @@
   "description": "Remotion compositions for Rajneeti Challenge reels (1080x1920 vertical).",
   "scripts": {
     "studio": "remotion studio",
+    "build:assets": "node scripts/build-map-paths.mjs && node scripts/build-asset-manifest.mjs",
     "build:map": "node scripts/build-map-paths.mjs",
+    "build:manifest": "node scripts/build-asset-manifest.mjs",
     "render": "remotion render Challenge out/challenge.mp4",
     "typecheck": "tsc --noEmit"
   },

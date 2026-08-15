@@ -1,0 +1,79 @@
+{
+  "$comment": "Built from real curriculum topic s1-04 so the fixture exercises genuine Hindi content and real timings, not lorem ipsum. Captions carry per-word timestamps of the shape ElevenLabs /with-timestamps returns. audio.src is empty here because there is no rendered voiceover in the repo; the composition tolerates that and renders silently.",
+  "episode": 4,
+  "topicId": "s1-04",
+  "stepNumber": 1,
+  "stepTitle": "पहला ₹10,000",
+  "hook": "रोज़ ₹334.",
+  "cta": "रोज़ ₹334 निकाल सकते हैं?",
+  "audio": { "src": "", "durationSec": 31.5 },
+  "beats": [
+    {
+      "onScreen": "एक महीना. एक लक्ष्य.",
+      "visual": { "kind": "bigNumber", "value": "₹10,000", "label": "पहला बफर" },
+      "startSec": 3.0,
+      "endSec": 9.5
+    },
+    {
+      "onScreen": "रोज़ का हिसाब",
+      "visual": { "kind": "bigNumber", "value": "₹334", "label": "हर दिन, 30 दिन" },
+      "startSec": 9.5,
+      "endSec": 16.0
+    },
+    {
+      "onScreen": "कहाँ से आएँगे",
+      "visual": {
+        "kind": "steps",
+        "items": ["बाहर का खाना कम", "एक सब्सक्रिप्शन बंद", "पुराना सामान बेचो"]
+      },
+      "startSec": 16.0,
+      "endSec": 24.0
+    },
+    {
+      "onScreen": "कदम 1 पूरा",
+      "visual": { "kind": "ladder", "highlightStep": 1 },
+      "startSec": 24.0,
+      "endSec": 31.5
+    }
+  ],
+  "captions": [
+    { "word": "बड़ा", "startSec": 0.2, "endSec": 0.55 },
+    { "word": "लक्ष्य", "startSec": 0.55, "endSec": 1.0 },
+    { "word": "डराता", "startSec": 1.0, "endSec": 1.45 },
+    { "word": "है।", "startSec": 1.45, "endSec": 1.8 },
+    { "word": "छोटा", "startSec": 2.0, "endSec": 2.4 },
+    { "word": "नंबर", "startSec": 2.4, "endSec": 2.8 },
+    { "word": "नहीं।", "startSec": 2.8, "endSec": 3.2 },
+    { "word": "दस", "startSec": 3.4, "endSec": 3.75 },
+    { "word": "हज़ार", "startSec": 3.75, "endSec": 4.2 },
+    { "word": "रुपये", "startSec": 4.2, "endSec": 4.65 },
+    { "word": "चाहिए।", "startSec": 4.65, "endSec": 5.2 },
+    { "word": "तीस", "startSec": 5.5, "endSec": 5.9 },
+    { "word": "दिन", "startSec": 5.9, "endSec": 6.3 },
+    { "word": "में।", "startSec": 6.3, "endSec": 6.7 },
+    { "word": "मतलब", "startSec": 9.7, "endSec": 10.2 },
+    { "word": "रोज़", "startSec": 10.2, "endSec": 10.6 },
+    { "word": "तीन", "startSec": 10.6, "endSec": 11.0 },
+    { "word": "सौ", "startSec": 11.0, "endSec": 11.35 },
+    { "word": "चौंतीस", "startSec": 11.35, "endSec": 12.0 },
+    { "word": "रुपये।", "startSec": 12.0, "endSec": 12.5 },
+    { "word": "एक", "startSec": 16.2, "endSec": 16.55 },
+    { "word": "टिफ़िन", "startSec": 16.55, "endSec": 17.1 },
+    { "word": "बचाओ।", "startSec": 17.1, "endSec": 17.7 },
+    { "word": "एक", "startSec": 18.0, "endSec": 18.35 },
+    { "word": "सब्सक्रिप्शन", "startSec": 18.35, "endSec": 19.2 },
+    { "word": "बंद", "startSec": 19.2, "endSec": 19.6 },
+    { "word": "करो।", "startSec": 19.6, "endSec": 20.1 },
+    { "word": "तीस", "startSec": 24.2, "endSec": 24.6 },
+    { "word": "दिन", "startSec": 24.6, "endSec": 25.0 },
+    { "word": "बाद", "startSec": 25.0, "endSec": 25.4 },
+    { "word": "पहला", "startSec": 25.6, "endSec": 26.1 },
+    { "word": "कदम", "startSec": 26.1, "endSec": 26.6 },
+    { "word": "पूरा।", "startSec": 26.6, "endSec": 27.2 }
+  ],
+  "brand": {
+    "seriesName": "पैसे की सीढ़ी",
+    "disclaimer": "सामान्य जानकारी — निवेश सलाह नहीं",
+    "layoutVariant": "a"
+  }
+}

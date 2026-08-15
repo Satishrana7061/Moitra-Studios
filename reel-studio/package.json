@@ -9,7 +9,8 @@
     "build:assets": "node scripts/build-map-paths.mjs && node scripts/build-asset-manifest.mjs",
     "build:map": "node scripts/build-map-paths.mjs",
     "build:manifest": "node scripts/build-asset-manifest.mjs",
-    "render": "remotion render Challenge out/challenge.mp4",
+    "render": "remotion render MoneyReel out/money.mp4",
+    "still": "remotion still MoneyReel out/still.png",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

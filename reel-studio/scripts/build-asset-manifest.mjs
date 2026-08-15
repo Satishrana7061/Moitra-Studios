@@ -200,6 +200,28 @@ const main = async () => {
     return out;
   };
 
+  // ── Fonts ─────────────────────────────────────────────────────────
+  // Copied rather than referenced: Remotion serves everything from public/,
+  // and the compositions need Devanagari for Hindi captions.
+  const FONT_SOURCE = path.join(REPO_ROOT, 'rajneeti-backend', 'assets', 'fonts');
+  const fonts = {};
+  for (const [key, file] of Object.entries({
+    devanagari: 'NotoSansDevanagari.ttf',
+    display: 'Outfit.ttf',
+  })) {
+    const abs = path.join(FONT_SOURCE, file);
+    if (!fs.existsSync(abs)) {
+      console.warn(`[build-asset-manifest] font missing: ${file}`);
+      continue;
+    }
+    const dest = path.join(PUBLIC_DIR, '..', 'fonts', file);
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.copyFileSync(abs, dest);
+    fonts[key] = `fonts/${file}`;
+    copied += 1;
+    bytes += fs.statSync(dest).size;
+  }
+
   const ui = await collect(UI_ASSETS, 'ui');
   // Screens are only ever shown as a background bed behind other layers, so
   // 1080px wide is plenty on a 1080-wide canvas.
@@ -219,6 +241,7 @@ const main = async () => {
     partySymbols,
     ui,
     screens,
+    fonts,
   };
 
   fs.mkdirSync(path.dirname(OUT), { recursive: true });

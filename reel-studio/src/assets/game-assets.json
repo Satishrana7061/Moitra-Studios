@@ -164,5 +164,9 @@
     "screen-fundraise": "game/screens/screen-fundraise.jpg",
     "screen-rally": "game/screens/screen-rally.jpg",
     "screen-state-data": "game/screens/screen-state-data.jpg"
+  },
+  "fonts": {
+    "devanagari": "fonts/NotoSansDevanagari.ttf",
+    "display": "fonts/Outfit.ttf"
   }
 }

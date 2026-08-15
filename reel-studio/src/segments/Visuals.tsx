@@ -268,11 +268,19 @@ const Ladder: React.FC<{ highlightStep: number }> = ({ highlightStep }) => {
   );
 };
 
-/** A sweeping arc for anything about duration. */
-const Clock: React.FC<{ label?: string }> = ({ label }) => {
+/**
+ * A sweeping arc for anything about duration.
+ *
+ * The sweep spans the beat's OWN length, passed in explicitly. Relying on
+ * `useVideoConfig().durationInFrames` here would be wrong — inside a Sequence
+ * that is the composition duration, not the sequence's — and a fixed sweep
+ * window left the ring sitting complete and motionless for the rest of the beat.
+ */
+const Clock: React.FC<{ label?: string; beatDurationSec: number }> = ({ label, beatDurationSec }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
-  const sweep = interpolate(frame, [0, Math.min(durationInFrames, fps * 2.5)], [0, 1], {
+  const { fps } = useVideoConfig();
+  const sweep = interpolate(frame, [0, Math.max(1, beatDurationSec * fps)], [0, 1], {
+    extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
   const r = 150;
@@ -311,7 +319,10 @@ const Clock: React.FC<{ label?: string }> = ({ label }) => {
   );
 };
 
-export const Visual: React.FC<{ spec: VisualSpec }> = ({ spec }) => {
+export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = ({
+  spec,
+  beatDurationSec,
+}) => {
   const body = (() => {
     switch (spec.kind) {
       case 'bigNumber':
@@ -323,7 +334,7 @@ export const Visual: React.FC<{ spec: VisualSpec }> = ({ spec }) => {
       case 'ladder':
         return <Ladder highlightStep={spec.highlightStep} />;
       case 'clock':
-        return <Clock label={spec.label} />;
+        return <Clock label={spec.label} beatDurationSec={beatDurationSec} />;
     }
   })();
 
@@ -332,7 +343,6 @@ export const Visual: React.FC<{ spec: VisualSpec }> = ({ spec }) => {
       style={{
         position: 'absolute',
         left: CONTENT.left,
-        right: CONTENT.width ? undefined : CONTENT.left,
         width: CONTENT.width,
         top: 470,
         height: 620,

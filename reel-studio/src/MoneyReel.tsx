@@ -1,6 +1,6 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Sequence, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig } from 'remotion';
-import { CANVAS, CONTENT, SAFE_BOTTOM, SAFE_X, SLOTS } from './lib/layout';
+import { CANVAS, CONTENT, SAFE_BOTTOM, SAFE_X } from './lib/layout';
 import { loadFonts } from './lib/fonts';
 import { money, moneyFonts, moneyType } from './lib/moneyTheme';
 import { MONEY_OUTRO_SEC, type MoneyStoryboard } from './lib/moneySchema';
@@ -19,7 +19,7 @@ import { SeriesBar } from './layers/SeriesBar';
 
 const Background: React.FC<{ variant: 'a' | 'b' | 'c' }> = ({ variant }) => {
   const frame = useCurrentFrame();
-  const { fps, durationInFrames } = useVideoConfig();
+  const { durationInFrames } = useVideoConfig();
 
   // A very slow drift so the ground is never perfectly still.
   const drift = interpolate(frame, [0, durationInFrames], [0, 1]);
@@ -206,7 +206,7 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
           durationInFrames={Math.max(1, sec(beat.endSec - beat.startSec))}
         >
           <BeatText text={beat.onScreen} />
-          <Visual spec={beat.visual} />
+          <Visual spec={beat.visual} beatDurationSec={beat.endSec - beat.startSec} />
         </Sequence>
       ))}
 

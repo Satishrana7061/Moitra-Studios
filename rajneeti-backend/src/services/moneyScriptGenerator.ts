@@ -93,7 +93,14 @@ STRUCTURE
 - beats: ${MIN_BEATS} to ${MAX_BEATS} beats. Each has:
     onScreen  — MAXIMUM ${MAX_ONSCREEN_WORDS} words. Big text on screen. Not a sentence; a label.
     say       — the Hindi voiceover for that beat.
-    visual    — one of: bigNumber (value), compare (a, b), steps (items), ladder, clock.
+    visual    — one of:
+                  bigNumber (value, optional label) — one figure that lands hard
+                  compare   (a, b, aLabel, bLabel)  — "a" is drawn GREEN as the better
+                                                      outcome and "b" RED as the cost.
+                                                      Never put the worse number in "a".
+                  steps     (items: 2-4 short lines)
+                  ladder    (highlightStep: 1-7, the step this episode belongs to)
+                  clock     (optional label) — only for durations
 - cta: the closing question. Must invite a comment, not a like.
 
 COMPLIANCE — THIS IS NOT OPTIONAL

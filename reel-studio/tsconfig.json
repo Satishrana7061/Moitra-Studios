@@ -7,6 +7,9 @@
     "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": false,
+    // On because a dead `SLOTS` import survived a clean tsc run during Stage 3.
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,

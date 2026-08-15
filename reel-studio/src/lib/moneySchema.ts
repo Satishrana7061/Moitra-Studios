@@ -11,6 +11,9 @@ import { z } from 'zod';
 
 export const visualSpecSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('bigNumber'), value: z.string(), label: z.string().optional() }),
+  // ORDER IS SEMANTIC, not arbitrary: `a` renders green (the better outcome),
+  // `b` renders red (the cost). Putting the bad number in `a` silently colours
+  // it as good, which is worse than a crash because it still looks correct.
   z.object({ kind: z.literal('compare'), a: z.string(), b: z.string(), aLabel: z.string().optional(), bLabel: z.string().optional() }),
   z.object({ kind: z.literal('steps'), items: z.array(z.string()).min(2).max(4) }),
   z.object({ kind: z.literal('ladder'), highlightStep: z.number().int().min(1).max(7) }),

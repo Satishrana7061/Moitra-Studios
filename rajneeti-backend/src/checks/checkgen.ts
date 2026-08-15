@@ -108,6 +108,27 @@ async function main() {
   const englishBeat = { ...script, beats: script.beats.map((b, i) => i === 1 ? { ...b, say: 'Keep it separate from salary.' } : b) };
   check('English in a beat say is caught', languageIssues(englishBeat).some(i => i.includes('beat 1 say')));
 
+  console.log('\nvisual specs are checked before TTS spends credits:');
+  check('a valid script has no visual issues', structuralIssues(script).length === 0, structuralIssues(script).join('; '));
+
+  const badVisual = (v: any) => ({ ...script, beats: script.beats.map((b, i) => i === 0 ? { ...b, visual: v } : b) });
+  check('bigNumber without value is caught',
+    structuralIssues(badVisual({ kind: 'bigNumber' })).some(i => i.includes('visual.value')));
+  check('ladder without highlightStep is caught',
+    structuralIssues(badVisual({ kind: 'ladder' })).some(i => i.includes('highlightStep')));
+  check('ladder with an out-of-range step is caught',
+    structuralIssues(badVisual({ kind: 'ladder', highlightStep: 9 })).some(i => i.includes('highlightStep')));
+  check('steps with too many items is caught',
+    structuralIssues(badVisual({ kind: 'steps', items: ['a','b','c','d','e'] })).some(i => i.includes('2-4')));
+  check('steps with too few items is caught',
+    structuralIssues(badVisual({ kind: 'steps', items: ['a'] })).some(i => i.includes('2-4')));
+  check('compare missing a side is caught',
+    structuralIssues(badVisual({ kind: 'compare', a: 'Savings' })).some(i => i.includes('visual.b')));
+  check('clock needs nothing beyond its kind',
+    structuralIssues(badVisual({ kind: 'clock' })).length === 0);
+  check('an unknown visual kind is caught',
+    structuralIssues(badVisual({ kind: 'pieChart' })).some(i => i.includes('not renderable')));
+
   console.log('\ncompliance sweep over a whole script:');
   check('clean script passes', complianceViolations(scriptSurfaceText(script)).length === 0);
   const bad = { ...script, beats: [...script.beats, { onScreen: 'Take this', say: 'ये फंड 15% रिटर्न देता है।', visual: { kind: 'bigNumber' as const } }] };

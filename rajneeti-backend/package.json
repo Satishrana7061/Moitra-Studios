@@ -12,7 +12,9 @@
         "cast:plan": "tsx src/buildCaricatureCast.ts --dry-run",
         "cast:build": "tsx src/buildCaricatureCast.ts",
         "money:validate": "tsx src/validateMoneyCurriculum.ts",
-        "money:check": "tsx src/checks/checkcur.ts && tsx src/checks/checkgen.ts && tsx src/checks/checkalign.ts && tsx src/checks/checkbuilder.ts && tsx src/checks/checkaudio.ts"
+        "money:check": "tsx src/checks/checkcur.ts && tsx src/checks/checkgen.ts && tsx src/checks/checkalign.ts && tsx src/checks/checkbuilder.ts && tsx src/checks/checkaudio.ts",
+        "money:voices": "tsx src/listMoneyVoices.ts",
+        "money:episode": "tsx src/generateMoneyEpisode.ts"
     },
     "dependencies": {
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

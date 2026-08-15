@@ -284,6 +284,40 @@ export const languageIssues = (script: MoneyScript): string[] => {
     return issues;
 };
 
+/**
+ * Mirrors the discriminated union in reel-studio/src/lib/moneySchema.ts.
+ *
+ * Checked HERE, in the retry loop, rather than left to the schema at render
+ * time. A model that returns `{kind:"ladder"}` with no highlightStep, or a
+ * `steps` list of five items, produces a board that zod rejects inside
+ * Remotion — which is after the voiceover has been generated and paid for.
+ * Catching it here costs one regeneration instead.
+ */
+function visualIssues(visual: ScriptBeat['visual'], at: string): string[] {
+    const need = (field: string, ok: boolean) => (ok ? [] : [`${at}: visual.${field} is required for kind "${visual.kind}"`]);
+
+    switch (visual.kind) {
+        case 'bigNumber':
+            return need('value', Boolean(visual.value?.trim()));
+        case 'compare':
+            return [...need('a', Boolean(visual.a?.trim())), ...need('b', Boolean(visual.b?.trim()))];
+        case 'steps': {
+            const n = visual.items?.length ?? 0;
+            return n >= 2 && n <= 4 ? [] : [`${at}: visual.items must hold 2-4 lines, got ${n}`];
+        }
+        case 'ladder': {
+            const s = visual.highlightStep;
+            return Number.isInteger(s) && (s as number) >= 1 && (s as number) <= 7
+                ? []
+                : [`${at}: visual.highlightStep must be an integer 1-7, got ${String(s)}`];
+        }
+        case 'clock':
+            return [];
+        default:
+            return [`${at}: visual.kind "${String(visual.kind)}" is not renderable`];
+    }
+}
+
 /** Structural problems that make a script unrenderable. */
 export function structuralIssues(script: MoneyScript): string[] {
     const issues: string[] = [];
@@ -310,6 +344,7 @@ export function structuralIssues(script: MoneyScript): string[] {
         }
         if (!beat.say?.trim()) issues.push(`beat ${i}: say is empty`);
         if (!beat.visual?.kind) issues.push(`beat ${i}: visual.kind is missing`);
+        else issues.push(...visualIssues(beat.visual, `beat ${i}`));
     });
 
     return issues;

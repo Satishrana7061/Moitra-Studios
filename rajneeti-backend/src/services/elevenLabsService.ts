@@ -16,6 +16,22 @@ export interface WordTiming {
     end: number;    // seconds
 }
 
+export interface TtsOptions {
+    /**
+     * Rewrite digit runs into spoken words before sending. Default true, which
+     * is what the Rajneeti news pipeline has always done.
+     *
+     * Set false for Hindi reads. numberToEnglishWord() emits ENGLISH words, so
+     * a Hindi sentence containing "10,000" is sent as "ten zero" — the comma
+     * breaks \b\d+\b into two matches — and eleven_multilingual_v2 then
+     * pronounces English mid-sentence. It also desynchronises the returned
+     * timings from the caller's own text, which is why `spokenText` is
+     * returned alongside them: alignment must compare against what was
+     * actually sent, never against the original.
+     */
+    normalizeNumerals?: boolean;
+}
+
 /**
  * Converts numbers to their English spoken word equivalents.
  */
@@ -76,8 +92,12 @@ export function normalizeNumeralsForTTS(text: string): string {
  * Standard TTS — generates audio buffer from text.
  * Used by PM Promises pipeline where word-level sync is not needed.
  */
-export async function generateAudio(text: string, voiceId?: string): Promise<Buffer> {
-    const normalizedText = normalizeNumeralsForTTS(text);
+export async function generateAudio(
+    text: string,
+    voiceId?: string,
+    opts: TtsOptions = {}
+): Promise<Buffer> {
+    const normalizedText = opts.normalizeNumerals === false ? text : normalizeNumeralsForTTS(text);
     const apiKey = process.env.ELEVENLABS_API_KEY;
     const finalVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs'; // User defined voice
 
@@ -129,10 +149,11 @@ export async function generateAudio(text: string, voiceId?: string): Promise<Buf
  * Used by PM Interview pipeline for phrase-by-phrase caption sync.
  */
 export async function generateAudioWithTimestamps(
-    text: string, 
-    voiceId?: string
-): Promise<{ audioBuffer: Buffer; wordTimings: WordTiming[] }> {
-    const normalizedText = normalizeNumeralsForTTS(text);
+    text: string,
+    voiceId?: string,
+    opts: TtsOptions = {}
+): Promise<{ audioBuffer: Buffer; wordTimings: WordTiming[]; spokenText: string }> {
+    const normalizedText = opts.normalizeNumerals === false ? text : normalizeNumeralsForTTS(text);
     const apiKey = process.env.ELEVENLABS_API_KEY;
     const finalVoiceId = voiceId || process.env.ELEVENLABS_VOICE_ID || 'tVeibrRmkweME2rrFZAs';
 
@@ -167,7 +188,7 @@ export async function generateAudioWithTimestamps(
             const errBody = await response.text();
             console.warn(`[ElevenLabs] Timestamps endpoint failed (${response.status}): ${errBody}`);
             console.warn('[ElevenLabs] Falling back to standard TTS with estimated timings...');
-            return fallbackWithEstimatedTimings(text, voiceId);
+            return fallbackWithEstimatedTimings(text, voiceId, opts);
         }
 
         const data: any = await response.json();
@@ -176,7 +197,7 @@ export async function generateAudioWithTimestamps(
         const audioBase64 = data.audio_base64;
         if (!audioBase64) {
             console.warn('[ElevenLabs] No audio_base64 in response. Falling back...');
-            return fallbackWithEstimatedTimings(text, voiceId);
+            return fallbackWithEstimatedTimings(text, voiceId, opts);
         }
         const audioBuffer = Buffer.from(audioBase64, 'base64');
 
@@ -185,8 +206,8 @@ export async function generateAudioWithTimestamps(
         if (!alignment || !alignment.characters || !alignment.character_start_times_seconds || !alignment.character_end_times_seconds) {
             console.warn('[ElevenLabs] No alignment data in response. Using estimated timings.');
             // Still return the audio, just estimate the timings
-            const wordTimings = estimateWordTimingsFromText(text, audioBuffer);
-            return { audioBuffer, wordTimings };
+            const wordTimings = estimateWordTimingsFromText(normalizedText, audioBuffer);
+            return { audioBuffer, wordTimings, spokenText: normalizedText };
         }
 
         // Aggregate character timestamps into word-level timestamps
@@ -202,12 +223,12 @@ export async function generateAudioWithTimestamps(
             console.log(`[ElevenLabs] Last word: "${wordTimings[wordTimings.length - 1].word}" at ${wordTimings[wordTimings.length - 1].end.toFixed(3)}s`);
         }
 
-        return { audioBuffer, wordTimings };
+        return { audioBuffer, wordTimings, spokenText: normalizedText };
 
     } catch (err: any) {
         console.error(`[ElevenLabs] Timestamps generation error: ${err.message}`);
         console.warn('[ElevenLabs] Falling back to standard TTS with estimated timings...');
-        return fallbackWithEstimatedTimings(text, voiceId);
+        return fallbackWithEstimatedTimings(text, voiceId, opts);
     }
 }
 
@@ -271,12 +292,17 @@ function aggregateCharacterTimings(
  * by distributing words evenly across the audio duration.
  */
 async function fallbackWithEstimatedTimings(
-    text: string, 
-    voiceId?: string
-): Promise<{ audioBuffer: Buffer; wordTimings: WordTiming[] }> {
-    const audioBuffer = await generateAudio(text, voiceId);
-    const wordTimings = estimateWordTimingsFromText(text, audioBuffer);
-    return { audioBuffer, wordTimings };
+    text: string,
+    voiceId?: string,
+    opts: TtsOptions = {}
+): Promise<{ audioBuffer: Buffer; wordTimings: WordTiming[]; spokenText: string }> {
+    // Normalise HERE rather than letting generateAudio do it silently, so the
+    // estimated timings and the reported spokenText describe the same string
+    // that was sent.
+    const spokenText = opts.normalizeNumerals === false ? text : normalizeNumeralsForTTS(text);
+    const audioBuffer = await generateAudio(spokenText, voiceId, { normalizeNumerals: false });
+    const wordTimings = estimateWordTimingsFromText(spokenText, audioBuffer);
+    return { audioBuffer, wordTimings, spokenText };
 }
 
 

@@ -71,7 +71,10 @@ export interface Curriculum {
 /** A topic with its position in the overall running order. */
 export interface ScheduledTopic extends Topic {
     stepNumber: number;
+    /** Hindi step title — reference only, never rendered. */
     stepTitle: string;
+    /** English step title — this is what the on-screen series bar draws. */
+    stepTitleEn: string;
     stepSlug: string;
     /** 1-based position across the whole curriculum; drives the episode number. */
     order: number;
@@ -102,6 +105,7 @@ export function getAllTopics(curriculum: Curriculum = loadCurriculum()): Schedul
                 ...topic,
                 stepNumber: step.step,
                 stepTitle: step.title,
+                stepTitleEn: step.titleEn,
                 stepSlug: step.slug,
                 order: out.length + 1,
             });

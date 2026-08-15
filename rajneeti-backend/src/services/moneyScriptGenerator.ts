@@ -53,7 +53,10 @@ export interface MoneyScript {
     /** Spoken opening line -- may be longer than the hook card. */
     hookSaid: string;
     beats: ScriptBeat[];
+    /** On-screen closing question. ENGLISH. */
     cta: string;
+    /** Spoken closing line. HINDI. Distinct from `cta`, which is only drawn. */
+    ctaSaid: string;
     /** Factual numeric claims, surfaced for review on the approve page. */
     numericClaims: string[];
 }
@@ -116,7 +119,8 @@ STRUCTURE
                   steps     (items: 2-4 short lines)
                   ladder    (highlightStep: 1-7, the step this episode belongs to)
                   clock     (optional label) — only for durations
-- cta: the closing question. ENGLISH. Must invite a comment, not a like.
+- cta: the closing question shown on screen. ENGLISH. Must invite a comment, not a like.
+- ctaSaid: the same closing question SPOKEN. HINDI. This one is read aloud; "cta" is only drawn.
 
 COMPLIANCE — THIS IS NOT OPTIONAL
 This channel is financial EDUCATION, not investment advice. Under SEBI rules an
@@ -144,6 +148,7 @@ Respond with STRICT JSON only. No markdown fences, no commentary.
     }
   ],
   "cta": "English closing question",
+  "ctaSaid": "वही सवाल हिंदी में, जो बोला जाएगा",
   "numericClaims": ["every factual number you stated, so a human can check it"]
 }`;
 };
@@ -247,7 +252,7 @@ const DEVANAGARI = /[ऀ-ॿ]/;
  * would render Devanagari in a composition that no longer loads a Devanagari
  * font, producing tofu boxes rather than an obvious error.
  */
-const languageIssues = (script: MoneyScript): string[] => {
+export const languageIssues = (script: MoneyScript): string[] => {
     const issues: string[] = [];
 
     const mustBeEnglish: [string, string][] = [
@@ -267,6 +272,9 @@ const languageIssues = (script: MoneyScript): string[] => {
     if (script.hookSaid && !DEVANAGARI.test(script.hookSaid)) {
         issues.push('hookSaid must be spoken HINDI in Devanagari');
     }
+    if (script.ctaSaid && !DEVANAGARI.test(script.ctaSaid)) {
+        issues.push('ctaSaid must be spoken HINDI in Devanagari');
+    }
     script.beats.forEach((b, i) => {
         if (b.say && !DEVANAGARI.test(b.say)) {
             issues.push(`beat ${i} say must be spoken HINDI in Devanagari`);
@@ -277,7 +285,7 @@ const languageIssues = (script: MoneyScript): string[] => {
 };
 
 /** Structural problems that make a script unrenderable. */
-function structuralIssues(script: MoneyScript): string[] {
+export function structuralIssues(script: MoneyScript): string[] {
     const issues: string[] = [];
 
     if (!script.hook?.trim()) issues.push('hook is empty');
@@ -287,6 +295,7 @@ function structuralIssues(script: MoneyScript): string[] {
 
     if (!script.hookSaid?.trim()) issues.push('hookSaid is empty');
     if (!script.cta?.trim()) issues.push('cta is empty');
+    if (!script.ctaSaid?.trim()) issues.push('ctaSaid is empty — nothing would be spoken at the close');
 
     if (!Array.isArray(script.beats) || script.beats.length < MIN_BEATS) {
         issues.push(`expected at least ${MIN_BEATS} beats, got ${script.beats?.length ?? 0}`);
@@ -312,6 +321,7 @@ export function scriptSurfaceText(script: MoneyScript): string {
         script.hook,
         script.hookSaid,
         script.cta,
+        script.ctaSaid,
         ...(script.beats ?? []).flatMap((b) => [b.onScreen, b.say]),
     ]
         .filter(Boolean)
@@ -325,7 +335,8 @@ function parseScript(raw: string, topic: ScheduledTopic): MoneyScript {
         hook: parsed.hook ?? '',
         hookSaid: parsed.hookSaid ?? '',
         beats: Array.isArray(parsed.beats) ? parsed.beats : [],
-        cta: parsed.cta ?? topic.cta,
+        cta: parsed.cta ?? '',
+        ctaSaid: parsed.ctaSaid ?? topic.cta,
         numericClaims: Array.isArray(parsed.numericClaims) ? parsed.numericClaims : [],
     };
 }
@@ -379,10 +390,19 @@ export async function generateMoneyScript(topic: ScheduledTopic): Promise<MoneyS
     throw new Error('[money] unreachable');
 }
 
-/** Full voiceover text, in playback order. Derived so it can never drift from the beats. */
+/**
+ * Full voiceover text, in playback order. Derived so it can never drift from
+ * the beats.
+ *
+ * Uses ctaSaid, NOT cta. After the on-screen text moved to English, `cta`
+ * became a drawn-only string; feeding it here made ElevenLabs read an English
+ * sentence at the end of an otherwise Hindi read.
+ */
 export function voiceoverText(script: MoneyScript): string {
-    return [script.hookSaid, ...script.beats.map((b) => b.say), script.cta]
-        .map((s) => s.trim())
+    // Coerce before trimming: a missing field should degrade to a shorter
+    // voiceover, not throw. `structuralIssues` is what rejects an empty one.
+    return [script.hookSaid, ...script.beats.map((b) => b.say), script.ctaSaid]
+        .map((s) => (s ?? '').trim())
         .filter(Boolean)
         .join(' ');
 }

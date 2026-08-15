@@ -10,7 +10,8 @@
         "seed-assets": "tsx src/seed_media_assets.ts",
         "seed-promise-images": "tsx src/seed_promise_images.ts",
         "cast:plan": "tsx src/buildCaricatureCast.ts --dry-run",
-        "cast:build": "tsx src/buildCaricatureCast.ts"
+        "cast:build": "tsx src/buildCaricatureCast.ts",
+        "money:validate": "tsx src/validateMoneyCurriculum.ts"
     },
     "dependencies": {
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

@@ -1,9 +1,18 @@
 name: Daily Automated Reels Pipeline
 
 on:
-  schedule:
-    # 13:30 UTC = 7:00 PM IST
-    - cron: '30 13 * * *'
+  # PAUSED — the Rajneeti reel channel is on hold while the money channel is
+  # built. Nothing is deleted: uncomment the two lines below to resume the
+  # nightly run, and the "Run workflow" button still works in the meantime.
+  #
+  # The pause is deliberate rather than incidental. The publish bug fixed in
+  # af4fc2e means scheduled runs would now actually post to YouTube, Facebook
+  # and Instagram for the first time — and the reel quality is the open problem
+  # that started this work. Resuming before that is fixed would publish it.
+  #
+  # schedule:
+  #   # 13:30 UTC = 7:00 PM IST
+  #   - cron: '30 13 * * *'
   workflow_dispatch:
     inputs:
       news_slug:

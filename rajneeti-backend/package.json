@@ -14,7 +14,8 @@
         "money:validate": "tsx src/validateMoneyCurriculum.ts",
         "money:check": "tsx src/checks/checkcur.ts && tsx src/checks/checkgen.ts && tsx src/checks/checkalign.ts && tsx src/checks/checkbuilder.ts && tsx src/checks/checkaudio.ts",
         "money:voices": "tsx src/listMoneyVoices.ts",
-        "money:episode": "tsx src/generateMoneyEpisode.ts"
+        "money:episode": "tsx src/generateMoneyEpisode.ts",
+        "money:e2e": "tsx src/checks/checkpipeline.ts"
     },
     "dependencies": {
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

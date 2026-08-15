@@ -130,7 +130,14 @@ export function masterVoiceover(
     const outPath = path.join(outDir, 'master.wav');
     const hasMusic = Boolean(musicPath && fs.existsSync(musicPath));
 
-    const pad = tailSec > 0 ? `,apad=pad_dur=${tailSec}` : '';
+    // The tail is bare `apad` (pad forever) capped by an output `-t`, NOT
+    // `apad=pad_dur=`. pad_dur only exists from ffmpeg 4.2, and
+    // @ffmpeg-installer/ffmpeg ships 4.1 — so pad_dur fails with "Option
+    // 'pad_dur' not found" on exactly the machine this is meant to run on.
+    // Bare apad has been there since forever, and -t is version-proof.
+    const pad = tailSec > 0 ? ',apad' : '';
+    const capArgs =
+        tailSec > 0 ? ['-t', String(audioDurationSec(voicePath) + tailSec)] : [];
 
     if (!hasMusic) {
         // Voice only: normalise straight to the platform target.
@@ -139,6 +146,7 @@ export function masterVoiceover(
             '-i', voicePath,
             '-af', `loudnorm=I=${TARGET_LUFS}:TP=-1.0:LRA=11${pad}`,
             '-ar', '48000', '-ac', '2',
+            ...capArgs,
             outPath,
         ]);
     } else {
@@ -152,11 +160,16 @@ export function masterVoiceover(
         // may be mono or stereo at any sample rate.
         const norm = 'aformat=sample_fmts=fltp:sample_rates=48000:channel_layouts=stereo';
         const filter = [
-            `[0:a]loudnorm=I=${VOICE_LUFS}:TP=-1.5:LRA=11,${norm},asplit=2[voice][key]`,
+            // The tail is padded onto the VOICE, before the split, so amix's
+            // duration=first runs past the last word and the music carries on
+            // under the outro card instead of stopping dead with the speech.
+            // The key branch is padded too, so the sidechain sees silence there
+            // and lets the music back up.
+            `[0:a]loudnorm=I=${VOICE_LUFS}:TP=-1.5:LRA=11,${norm}${pad},asplit=2[voice][key]`,
             `[1:a]volume=${musicGain},${norm}[music]`,
             `[music][key]sidechaincompress=threshold=0.05:ratio=6:attack=20:release=300[ducked]`,
             `[voice][ducked]amix=inputs=2:duration=first:dropout_transition=0[mixed]`,
-            `[mixed]loudnorm=I=${TARGET_LUFS}:TP=-1.0:LRA=11${pad}[out]`,
+            `[mixed]loudnorm=I=${TARGET_LUFS}:TP=-1.0:LRA=11[out]`,
         ].join(';');
 
         run(ffmpegBin(), [
@@ -166,6 +179,7 @@ export function masterVoiceover(
             '-filter_complex', filter,
             '-map', '[out]',
             '-ar', '48000', '-ac', '2',
+            ...capArgs,
             outPath,
         ]);
     }

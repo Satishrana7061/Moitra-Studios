@@ -56,5 +56,24 @@ check('music is quieter while the voice speaks',
   Number.isFinite(speaking) && Number.isFinite(gap) && speaking < gap - 1.5,
   `speaking ${speaking.toFixed(1)} dB vs gap ${gap.toFixed(1)} dB (ducked by ${(gap-speaking).toFixed(1)} dB)`);
 
+// The outro card needs silence after the last word. This path went untested at
+// first and was broken: apad=pad_dur only exists from ffmpeg 4.2, while
+// @ffmpeg-installer ships 4.1, so every real episode (which asks for a tail)
+// died with "Option 'pad_dur' not found" while these checks stayed green.
+console.log('\ntail padding, on both branches:');
+const TAIL = 1.5;
+
+const soloTail = masterVoiceover(voice, `${SP}/mix-solo-tail`, { tailSec: TAIL });
+check('voice-only: tail is added', Math.abs(soloTail.durationSec - (12 + TAIL)) < 0.6,
+  `${soloTail.durationSec.toFixed(2)}s vs ${(12 + TAIL).toFixed(2)}s expected`);
+
+const mixTail = masterVoiceover(voice, `${SP}/mix-duck-tail`, { musicPath: `${SP}/fake-music.wav`, tailSec: TAIL });
+check('with music: tail is added', Math.abs(mixTail.durationSec - (12 + TAIL)) < 0.6,
+  `${mixTail.durationSec.toFixed(2)}s vs ${(12 + TAIL).toFixed(2)}s expected`);
+// The music should carry on under the outro rather than stopping with the voice.
+const tailMusic = bandRms(mixTail.path, 12.4, 13.3);
+check('music continues under the tail', Number.isFinite(tailMusic) && tailMusic > -60,
+  `${Number.isFinite(tailMusic) ? tailMusic.toFixed(1) + ' dB' : 'silent'}`);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

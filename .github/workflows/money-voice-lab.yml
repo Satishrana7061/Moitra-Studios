@@ -83,6 +83,13 @@ jobs:
         working-directory: ./rajneeti-backend
         run: npm run money:validate && npm run money:check
 
+      # Proves master -> align -> render on synthetic audio before a single
+      # credit is spent. If this fails, the run would have wasted the voiceover.
+      - name: Offline end-to-end render
+        if: inputs.mode == 'episode'
+        working-directory: ./rajneeti-backend
+        run: npm run money:e2e
+
       # Cheap gate: proves the model writes a compliant, correctly-split script
       # before a single ElevenLabs credit is spent.
       - name: Generate script only

@@ -15,18 +15,12 @@ export const loadFonts = (): Promise<void> => {
   if (loaded) return loaded;
 
   loaded = (async () => {
-    const handle = delayRender('Loading Devanagari and display fonts');
+    const handle = delayRender('Loading display font');
     try {
-      const faces = [
-        new FontFace('Noto Sans Devanagari', `url(${staticFile('fonts/NotoSansDevanagari.ttf')})`),
-        new FontFace('Outfit', `url(${staticFile('fonts/Outfit.ttf')})`),
-      ];
-      await Promise.all(
-        faces.map(async (face) => {
-          await face.load();
-          document.fonts.add(face);
-        }),
-      );
+      // Outfit only: nothing Devanagari is rendered any more.
+      const face = new FontFace('Outfit', `url(${staticFile('fonts/Outfit.ttf')})`);
+      await face.load();
+      document.fonts.add(face);
       await document.fonts.ready;
     } finally {
       continueRender(handle);

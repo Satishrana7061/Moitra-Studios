@@ -29,12 +29,33 @@ export interface Topic {
 export interface Step {
     step: number;
     slug: string;
+    /** Hindi. Reference only — never rendered. */
     title: string;
+    /** English. This is what appears in the on-screen series bar. */
+    titleEn: string;
     goal: string;
     outlineOnly?: boolean;
     plannedTopics?: string[];
     topics: Topic[];
 }
+
+/**
+ * The rendered ladder labels, mirrored from reel-studio/src/lib/ladder.ts.
+ *
+ * Duplicated deliberately: the backend cannot import from the Remotion package,
+ * and the two lists silently drifting apart would put one label on the ladder
+ * and a different one in the series bar of the same frame. `validateCurriculum`
+ * asserts they agree, so the duplication is checked rather than trusted.
+ */
+export const LADDER_STEPS_EN = [
+    'First ₹10,000',
+    'Clear the debt',
+    '6-month fund',
+    'Right insurance',
+    'Investing habit',
+    'Your own home',
+    'The future',
+] as const;
 
 export interface Curriculum {
     series: {
@@ -165,6 +186,20 @@ export function validateCurriculum(curriculum: Curriculum = loadCurriculum()): V
     const seenIds = new Set<string>();
 
     for (const step of curriculum.steps) {
+        // The series bar draws titleEn while the ladder visual draws its own
+        // label for the same step. If they disagree, one frame shows two
+        // different names for the same rung.
+        const expected = LADDER_STEPS_EN[step.step - 1];
+        if (!step.titleEn) {
+            issues.push({ topicId: step.slug, field: 'titleEn', message: 'missing — the series bar renders this' });
+        } else if (expected && step.titleEn !== expected) {
+            issues.push({
+                topicId: step.slug,
+                field: 'titleEn',
+                message: `"${step.titleEn}" does not match the ladder label "${expected}"`,
+            });
+        }
+
         if (step.outlineOnly) {
             if ((step.topics ?? []).length > 0) {
                 issues.push({

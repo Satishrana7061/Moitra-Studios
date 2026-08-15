@@ -35,9 +35,14 @@ export interface ScriptBeat {
         kind: VisualKind;
         /** bigNumber: the figure. compare: left vs right. steps: the list. */
         value?: string;
+        /** English caption under a figure or beside a bar. */
+        label?: string;
         a?: string;
         b?: string;
+        aLabel?: string;
+        bLabel?: string;
         items?: string[];
+        highlightStep?: number;
     };
 }
 
@@ -79,20 +84,30 @@ Suggested visual style: ${topic.visual}
 Closing question: ${topic.cta}
 
 AUDIENCE
-Ordinary Indian salaried and self-employed people. Plain spoken Hindi in
-Devanagari. No English jargon unless it is the word people actually use
-(SIP, EMI, CIBIL). Never condescending. Never guilt-tripping.
+Ordinary Indian salaried and self-employed people.
+
+TWO LANGUAGES — THIS IS THE MOST COMMON MISTAKE, READ IT TWICE
+- Everything SPOKEN is Hindi in Devanagari. That is the "say" field only.
+- Everything SHOWN ON SCREEN is English. That is "hook", every "onScreen",
+  every visual label, and "cta".
+They are not translations of each other. The on-screen text is a short English
+label for the idea; the spoken line is natural Hindi that explains it. A viewer
+hears Hindi and reads English at the same time, and both must stand alone.
+
+For the spoken Hindi: plain, warm, everyday speech. Keep English words only
+where Indians genuinely use them (SIP, EMI, credit card, CIBIL). Never
+condescending, never guilt-tripping.
 
 LENGTH
 About ${series.targetDurationSec} seconds spoken in total. That is roughly 75-90 Hindi words
 across ALL the "say" fields combined. Count them.
 
 STRUCTURE
-- hook: the on-screen card at 0 seconds. MAXIMUM ${MAX_HOOK_WORDS} words. Must create a question in the viewer's mind.
-- hookSaid: the spoken version of the hook. One sentence, may be slightly longer.
+- hook: the on-screen card at 0 seconds. ENGLISH. MAXIMUM ${MAX_HOOK_WORDS} words. Must create a question in the viewer's mind.
+- hookSaid: the spoken opening line. HINDI. One sentence, may be longer than the hook card.
 - beats: ${MIN_BEATS} to ${MAX_BEATS} beats. Each has:
-    onScreen  — MAXIMUM ${MAX_ONSCREEN_WORDS} words. Big text on screen. Not a sentence; a label.
-    say       — the Hindi voiceover for that beat.
+    onScreen  — ENGLISH. MAXIMUM ${MAX_ONSCREEN_WORDS} words. Big text on screen. A label, not a sentence.
+    say       — HINDI. The voiceover for that beat.
     visual    — one of:
                   bigNumber (value, optional label) — one figure that lands hard
                   compare   (a, b, aLabel, bLabel)  — "a" is drawn GREEN as the better
@@ -101,7 +116,7 @@ STRUCTURE
                   steps     (items: 2-4 short lines)
                   ladder    (highlightStep: 1-7, the step this episode belongs to)
                   clock     (optional label) — only for durations
-- cta: the closing question. Must invite a comment, not a like.
+- cta: the closing question. ENGLISH. Must invite a comment, not a like.
 
 COMPLIANCE — THIS IS NOT OPTIONAL
 This channel is financial EDUCATION, not investment advice. Under SEBI rules an
@@ -119,12 +134,16 @@ ${retryNote}
 OUTPUT
 Respond with STRICT JSON only. No markdown fences, no commentary.
 {
-  "hook": "...",
-  "hookSaid": "...",
+  "hook": "English, 6 words max",
+  "hookSaid": "हिंदी में बोली जाने वाली पहली लाइन",
   "beats": [
-    { "onScreen": "...", "say": "...", "visual": { "kind": "bigNumber", "value": "₹10,000" } }
+    {
+      "onScreen": "English label",
+      "say": "इस बीट की हिंदी वॉयसओवर लाइन",
+      "visual": { "kind": "bigNumber", "value": "₹10,000", "label": "English label" }
+    }
   ],
-  "cta": "...",
+  "cta": "English closing question",
   "numericClaims": ["every factual number you stated, so a human can check it"]
 }`;
 };
@@ -218,6 +237,45 @@ const stripFences = (raw: string): string =>
 
 const wordCount = (s: string): number => s.trim().split(/\s+/).filter(Boolean).length;
 
+const DEVANAGARI = /[ऀ-ॿ]/;
+
+/**
+ * The two-language split is enforced, not merely requested.
+ *
+ * Everything drawn on screen is English and everything spoken is Hindi, and the
+ * single most likely LLM failure is to translate one into the other — which
+ * would render Devanagari in a composition that no longer loads a Devanagari
+ * font, producing tofu boxes rather than an obvious error.
+ */
+const languageIssues = (script: MoneyScript): string[] => {
+    const issues: string[] = [];
+
+    const mustBeEnglish: [string, string][] = [
+        ['hook', script.hook],
+        ['cta', script.cta],
+        ...script.beats.flatMap((b, i): [string, string][] => [
+            [`beat ${i} onScreen`, b.onScreen],
+            ...(b.visual?.label ? ([[`beat ${i} visual.label`, b.visual.label]] as [string, string][]) : []),
+        ]),
+    ];
+    for (const [field, value] of mustBeEnglish) {
+        if (value && DEVANAGARI.test(value)) {
+            issues.push(`${field} must be ENGLISH but contains Devanagari: "${value}"`);
+        }
+    }
+
+    if (script.hookSaid && !DEVANAGARI.test(script.hookSaid)) {
+        issues.push('hookSaid must be spoken HINDI in Devanagari');
+    }
+    script.beats.forEach((b, i) => {
+        if (b.say && !DEVANAGARI.test(b.say)) {
+            issues.push(`beat ${i} say must be spoken HINDI in Devanagari`);
+        }
+    });
+
+    return issues;
+};
+
 /** Structural problems that make a script unrenderable. */
 function structuralIssues(script: MoneyScript): string[] {
     const issues: string[] = [];
@@ -294,7 +352,7 @@ export async function generateMoneyScript(topic: ScheduledTopic): Promise<MoneyS
             continue;
         }
 
-        const structural = structuralIssues(script);
+        const structural = [...structuralIssues(script), ...languageIssues(script)];
         const compliance = complianceViolations(scriptSurfaceText(script)).map(
             (v) => `${v.rule}: ${v.why}`,
         );

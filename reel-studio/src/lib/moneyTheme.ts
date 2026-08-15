@@ -33,8 +33,13 @@ export const money = {
   legal: 'rgba(247, 245, 239, 0.55)',
 } as const;
 
+/**
+ * One face, everywhere. Every rendered string is English/Latin — the Hindi
+ * exists only in the voiceover, which is sent to ElevenLabs and never drawn.
+ * Outfit is a far better display face for large rupee figures than a Devanagari
+ * text face, and dropping Noto saves 647 KB and one delayRender.
+ */
 export const moneyFonts = {
-  hindi: '"Noto Sans Devanagari", sans-serif',
   display: '"Outfit", sans-serif',
 } as const;
 

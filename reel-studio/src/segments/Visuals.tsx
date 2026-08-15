@@ -3,6 +3,7 @@ import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { CONTENT } from '../lib/layout';
 import { focalGlow, money, moneyFonts, moneyType, softShadow } from '../lib/moneyTheme';
 import type { VisualSpec } from '../lib/moneySchema';
+import { LADDER_STEPS } from '../lib/ladder';
 
 /**
  * The visual vocabulary for money content.
@@ -67,7 +68,7 @@ const BigNumber: React.FC<{ value: string; label?: string }> = ({ value, label }
         <div
           style={{
             marginTop: 24,
-            fontFamily: moneyFonts.hindi,
+            fontFamily: moneyFonts.display,
             fontSize: moneyType.bigNumberLabel,
             color: money.textDim,
             opacity: enter,
@@ -123,7 +124,7 @@ const Compare: React.FC<{ a: string; b: string; aLabel?: string; bLabel?: string
         <div
           style={{
             marginTop: 12,
-            fontFamily: moneyFonts.hindi,
+            fontFamily: moneyFonts.display,
             fontSize: moneyType.compareLabel,
             color: money.textDim,
           }}
@@ -183,7 +184,7 @@ const StepRow: React.FC<{ item: string; index: number }> = ({ item, index }) => 
       </div>
       <div
         style={{
-          fontFamily: moneyFonts.hindi,
+          fontFamily: moneyFonts.display,
           fontSize: moneyType.stepItem,
           color: money.text,
           lineHeight: 1.25,
@@ -203,16 +204,6 @@ const Steps: React.FC<{ items: string[] }> = ({ items }) => (
     ))}
   </div>
 );
-
-const LADDER_STEPS = [
-  'पहला ₹10,000',
-  'कर्ज़ खत्म',
-  '6 महीने का फंड',
-  'सही बीमा',
-  'निवेश की आदत',
-  'अपना घर',
-  'भविष्य',
-];
 
 /** The seven-step ladder with the current rung lit — the series' spine. */
 const Ladder: React.FC<{ highlightStep: number }> = ({ highlightStep }) => {
@@ -252,7 +243,7 @@ const Ladder: React.FC<{ highlightStep: number }> = ({ highlightStep }) => {
             </span>
             <span
               style={{
-                fontFamily: moneyFonts.hindi,
+                fontFamily: moneyFonts.display,
                 fontSize: 38,
                 color: active ? money.bg : money.text,
                 fontWeight: active ? 700 : 400,
@@ -307,7 +298,7 @@ const Clock: React.FC<{ label?: string; beatDurationSec: number }> = ({ label, b
         <div
           style={{
             marginTop: 8,
-            fontFamily: moneyFonts.hindi,
+            fontFamily: moneyFonts.display,
             fontSize: moneyType.bigNumberLabel,
             color: money.text,
           }}
@@ -344,8 +335,13 @@ export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = (
         position: 'absolute',
         left: CONTENT.left,
         width: CONTENT.width,
-        top: 470,
-        height: 620,
+        // Spans from just under the beat text down to just above the
+        // disclaimer, and centres within that. Sized for the caption-less
+        // layout: when captions occupied the lower third a 620px box sat about
+        // right, but without them the frame read top-heavy with a dead band
+        // below the visual.
+        top: 450,
+        height: 880,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

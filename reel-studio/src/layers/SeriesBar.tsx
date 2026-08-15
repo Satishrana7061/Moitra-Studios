@@ -24,14 +24,14 @@ export const SeriesBar: React.FC<{
       display: 'flex',
       alignItems: 'center',
       gap: 16,
-      fontFamily: moneyFonts.hindi,
+      fontFamily: moneyFonts.display,
       fontSize: moneyType.seriesBar,
       color: money.textDim,
     }}
   >
     <span style={{ color: money.gold, fontWeight: 700 }}>{seriesName}</span>
     <span style={{ opacity: 0.4 }}>·</span>
-    <span>कदम {stepNumber}</span>
+    <span>Step {stepNumber}</span>
     <span style={{ opacity: 0.4 }}>·</span>
     <span style={{ flex: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
       {stepTitle}

@@ -5,16 +5,20 @@ import { loadFonts } from './lib/fonts';
 import { money, moneyFonts, moneyType } from './lib/moneyTheme';
 import { MONEY_OUTRO_SEC, type MoneyStoryboard } from './lib/moneySchema';
 import { Visual } from './segments/Visuals';
-import { Captions } from './layers/Captions';
 import { SeriesBar } from './layers/SeriesBar';
 
 /**
- * पैसे की सीढ़ी — the money composition.
+ * The Money Ladder — the money composition.
  *
  * Structure: hook card (0-3s) → one beat per idea, each with a moving visual →
  * closing CTA. No frame is ever static: something is entering, counting or
  * sweeping at all times, which is the single biggest difference from the
  * previous ffmpeg build's flat rectangle.
+ *
+ * Everything rendered is English. The Hindi lives only in the voiceover, which
+ * is sent to ElevenLabs and never drawn — Devanagari read poorly at these
+ * display sizes. Word-level timings are still produced upstream, because they
+ * set the beat boundaries; they are simply no longer displayed as captions.
  */
 
 const Background: React.FC<{ variant: 'a' | 'b' | 'c' }> = ({ variant }) => {
@@ -65,7 +69,7 @@ const HookCard: React.FC<{ text: string }> = ({ text }) => {
         // bottom-heavy with dead space.
         top: 560,
         textAlign: 'center',
-        fontFamily: moneyFonts.hindi,
+        fontFamily: moneyFonts.display,
         fontSize: moneyType.hook,
         fontWeight: 800,
         lineHeight: 1.18,
@@ -93,7 +97,7 @@ const BeatText: React.FC<{ text: string }> = ({ text }) => {
         right: SAFE_X,
         top: 300,
         textAlign: 'center',
-        fontFamily: moneyFonts.hindi,
+        fontFamily: moneyFonts.display,
         fontSize: moneyType.beatText,
         fontWeight: 800,
         lineHeight: 1.2,
@@ -119,7 +123,7 @@ const CtaCard: React.FC<{ text: string }> = ({ text }) => {
         style={{
           maxWidth: CONTENT.width,
           textAlign: 'center',
-          fontFamily: moneyFonts.hindi,
+          fontFamily: moneyFonts.display,
           fontSize: moneyType.hook,
           fontWeight: 800,
           color: money.text,
@@ -140,7 +144,7 @@ const CtaCard: React.FC<{ text: string }> = ({ text }) => {
             fontWeight: 700,
           }}
         >
-          ↓ कमेंट में बताओ
+          ↓ Comment below
         </div>
       </div>
     </AbsoluteFill>
@@ -159,7 +163,7 @@ const DisclaimerBar: React.FC<{ text: string }> = ({ text }) => (
       // line -- it is the compliance element and must never be occluded.
       top: CANVAS.height - SAFE_BOTTOM - 44,
       textAlign: 'center',
-      fontFamily: moneyFonts.hindi,
+      fontFamily: moneyFonts.display,
       fontSize: moneyType.disclaimer,
       color: money.legal,
       letterSpacing: '0.02em',
@@ -214,7 +218,6 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
         <CtaCard text={board.cta} />
       </Sequence>
 
-      <Captions captions={board.captions} />
       <DisclaimerBar text={board.brand.disclaimer} />
     </AbsoluteFill>
   );

@@ -28,12 +28,6 @@ export const moneyBeatSchema = z.object({
   endSec: z.number().positive(),
 });
 
-export const moneyCaptionSchema = z.object({
-  word: z.string(),
-  startSec: z.number().nonnegative(),
-  endSec: z.number().nonnegative(),
-});
-
 export const moneyStoryboardSchema = z.object({
   episode: z.number().int().positive(),
   topicId: z.string(),
@@ -50,8 +44,9 @@ export const moneyStoryboardSchema = z.object({
     durationSec: z.number().positive(),
   }),
 
-  captions: z.array(moneyCaptionSchema).default([]),
-
+  // No `captions` field. Per-word timings are still generated upstream -- they
+  // are what sets each beat's startSec/endSec -- but they are not rendered, so
+  // the composition has no reason to receive them.
   brand: z
     .object({
       seriesName: z.string(),
@@ -60,8 +55,8 @@ export const moneyStoryboardSchema = z.object({
       layoutVariant: z.enum(['a', 'b', 'c']),
     })
     .default({
-      seriesName: 'पैसे की सीढ़ी',
-      disclaimer: 'सामान्य जानकारी — निवेश सलाह नहीं',
+      seriesName: 'The Money Ladder',
+      disclaimer: 'General information, not investment advice',
       layoutVariant: 'a',
     }),
 });

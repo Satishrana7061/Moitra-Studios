@@ -1,84 +1,73 @@
 {
-  "$comment": "Coverage fixture: exercises all five visual kinds in one board, including `compare` and `clock` which the main fixture never renders. Content is drawn from real curriculum topics s2-04 (card interest) and s3-02 (why six months) so the layouts are stress-tested with realistic Hindi string lengths rather than short placeholders. Not for publishing — this is the render test.",
+  "$comment": "Coverage fixture: exercises all five visual kinds in one board, including compare and clock which the main fixture never renders. Content drawn from real curriculum topics s2-03/s2-04 so layouts are stress-tested with realistic string lengths. Not for publishing.",
   "episode": 999,
   "topicId": "coverage-all-visuals",
   "stepNumber": 2,
-  "stepTitle": "कर्ज़ खत्म करो",
-  "hook": "महीने का 3.5%?",
-  "cta": "ये नंबर आपको पता था?",
-  "audio": { "src": "", "durationSec": 30.0 },
+  "stepTitle": "Clear the debt",
+  "hook": "3.5% a month?",
+  "cta": "Did you know this number?",
+  "audio": {
+    "src": "",
+    "durationSec": 30.0
+  },
   "beats": [
     {
-      "onScreen": "सालाना असली ब्याज",
-      "visual": { "kind": "bigNumber", "value": "42%", "label": "क्रेडिट कार्ड पर" },
+      "onScreen": "The real yearly rate",
+      "visual": {
+        "kind": "bigNumber",
+        "value": "42%",
+        "label": "on credit card dues"
+      },
       "startSec": 2.0,
       "endSec": 8.0
     },
     {
-      "onScreen": "मिनिमम बनाम पूरा",
+      "onScreen": "Minimum vs full",
       "visual": {
         "kind": "compare",
         "a": "₹4,200",
         "b": "₹18,900",
-        "aLabel": "पूरा भरने पर ब्याज",
-        "bLabel": "मिनिमम भरने पर ब्याज"
+        "aLabel": "paying in full",
+        "bLabel": "paying the minimum"
       },
       "startSec": 8.0,
       "endSec": 15.0
     },
     {
-      "onScreen": "कितना समय लगेगा",
-      "visual": { "kind": "clock", "label": "6 महीने" },
+      "onScreen": "How long it takes",
+      "visual": {
+        "kind": "clock",
+        "label": "6 months"
+      },
       "startSec": 15.0,
       "endSec": 21.0
     },
     {
-      "onScreen": "क्या करना है",
+      "onScreen": "What to do",
       "visual": {
         "kind": "steps",
-        "items": ["कार्ड इस्तेमाल बंद", "सबसे छोटा कर्ज़ पहले", "हर महीने थोड़ा ज़्यादा"]
+        "items": [
+          "Stop using the card",
+          "Smallest debt first",
+          "Pay a little extra"
+        ]
       },
       "startSec": 21.0,
       "endSec": 26.0
     },
     {
-      "onScreen": "कदम 2 पर हो",
-      "visual": { "kind": "ladder", "highlightStep": 2 },
+      "onScreen": "You are on step 2",
+      "visual": {
+        "kind": "ladder",
+        "highlightStep": 2
+      },
       "startSec": 26.0,
       "endSec": 30.0
     }
   ],
-  "captions": [
-    { "word": "क्रेडिट", "startSec": 2.2, "endSec": 2.7 },
-    { "word": "कार्ड", "startSec": 2.7, "endSec": 3.1 },
-    { "word": "पर", "startSec": 3.1, "endSec": 3.4 },
-    { "word": "महीने", "startSec": 3.4, "endSec": 3.9 },
-    { "word": "का", "startSec": 3.9, "endSec": 4.2 },
-    { "word": "साढ़े", "startSec": 4.2, "endSec": 4.7 },
-    { "word": "तीन", "startSec": 4.7, "endSec": 5.1 },
-    { "word": "प्रतिशत", "startSec": 5.1, "endSec": 5.8 },
-    { "word": "मिनिमम", "startSec": 8.3, "endSec": 8.9 },
-    { "word": "भरते", "startSec": 8.9, "endSec": 9.4 },
-    { "word": "रहे", "startSec": 9.4, "endSec": 9.8 },
-    { "word": "तो", "startSec": 9.8, "endSec": 10.1 },
-    { "word": "ब्याज", "startSec": 10.1, "endSec": 10.7 },
-    { "word": "चार", "startSec": 10.7, "endSec": 11.1 },
-    { "word": "गुना", "startSec": 11.1, "endSec": 11.6 },
-    { "word": "छह", "startSec": 15.3, "endSec": 15.7 },
-    { "word": "महीने", "startSec": 15.7, "endSec": 16.2 },
-    { "word": "में", "startSec": 16.2, "endSec": 16.5 },
-    { "word": "खत्म", "startSec": 16.5, "endSec": 17.0 },
-    { "word": "हो", "startSec": 17.0, "endSec": 17.3 },
-    { "word": "सकता", "startSec": 17.3, "endSec": 17.8 },
-    { "word": "है।", "startSec": 17.8, "endSec": 18.2 },
-    { "word": "कार्ड", "startSec": 21.3, "endSec": 21.8 },
-    { "word": "इस्तेमाल", "startSec": 21.8, "endSec": 22.5 },
-    { "word": "बंद", "startSec": 22.5, "endSec": 22.9 },
-    { "word": "करो।", "startSec": 22.9, "endSec": 23.4 }
-  ],
   "brand": {
-    "seriesName": "पैसे की सीढ़ी",
-    "disclaimer": "सामान्य जानकारी — निवेश सलाह नहीं",
+    "seriesName": "The Money Ladder",
+    "disclaimer": "General information, not investment advice",
     "layoutVariant": "b"
   }
 }

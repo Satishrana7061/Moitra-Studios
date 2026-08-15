@@ -122,6 +122,15 @@ STRUCTURE
 - cta: the closing question shown on screen. ENGLISH. Must invite a comment, not a like.
 - ctaSaid: the same closing question SPOKEN. HINDI. This one is read aloud; "cta" is only drawn.
 
+NEVER REPEAT WHAT THE SCREEN ALREADY SHOWS
+Two things are drawn on EVERY frame without you writing them: the series bar,
+which already reads "${topic.stepTitleEn}", and on a ladder beat, the ladder
+itself, which draws all seven rungs with this one lit up.
+So an "onScreen" of "Step ${topic.stepNumber}" or "${topic.stepTitleEn}" says nothing —
+the viewer is already reading it elsewhere in the same frame. On a ladder beat,
+write the IDEA the ladder cannot express: what this rung buys you, or what
+comes after it.
+
 COMPLIANCE — THIS IS NOT OPTIONAL
 This channel is financial EDUCATION, not investment advice. Under SEBI rules an
 unregistered educator may explain what things are, and may NOT:
@@ -149,7 +158,7 @@ Respond with STRICT JSON only. No markdown fences, no commentary.
   ],
   "cta": "English closing question",
   "ctaSaid": "वही सवाल हिंदी में, जो बोला जाएगा",
-  "numericClaims": ["every factual number you stated, so a human can check it"]
+  "numericClaims": ["only CHECKABLE figures — money, percentages, durations. NOT step numbers or beat counts."]
 }`;
 };
 
@@ -318,8 +327,35 @@ function visualIssues(visual: ScriptBeat['visual'], at: string): string[] {
     }
 }
 
+/**
+ * Keeps only figures a human could actually go and check.
+ *
+ * The generator returns its own list, and the first real run put "1" in it —
+ * lifted from "कदम 1". A bare ordinal is not a claim: it tells the reviewer on
+ * the approve page nothing, and a review list padded with noise is one that
+ * stops being read. A figure earns its place by carrying money, a percentage,
+ * a unit, or enough magnitude to be wrong.
+ */
+export function checkableClaims(claims: string[]): string[] {
+    return (claims ?? [])
+        .map((c) => (c ?? '').trim())
+        .filter(Boolean)
+        .filter((c) => {
+            if (!/\d/.test(c)) return false;
+            // Currency, percentage, or a multiplier — always checkable.
+            // The multiplier is matched as digit-then-x: \bx\b never fires in
+            // "2x", because a digit and a letter are both word characters and
+            // there is no boundary between them.
+            if (/[₹$%]|\d\s*[x×]\b|गुना/i.test(c)) return true;
+            // A unit of time or money alongside the number.
+            if (/\b(month|months|year|years|day|days|week|weeks|lakh|crore|thousand|hazaar)\b|महीन|साल|दिन|हफ़्त|हज़ार|लाख|करोड़/i.test(c)) return true;
+            // Otherwise require real magnitude: a lone 1-9 is an ordinal.
+            return /\d{2,}/.test(c);
+        });
+}
+
 /** Structural problems that make a script unrenderable. */
-export function structuralIssues(script: MoneyScript): string[] {
+export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): string[] {
     const issues: string[] = [];
 
     if (!script.hook?.trim()) issues.push('hook is empty');
@@ -345,6 +381,19 @@ export function structuralIssues(script: MoneyScript): string[] {
         if (!beat.say?.trim()) issues.push(`beat ${i}: say is empty`);
         if (!beat.visual?.kind) issues.push(`beat ${i}: visual.kind is missing`);
         else issues.push(...visualIssues(beat.visual, `beat ${i}`));
+
+        // The series bar draws the step title on every frame, and a ladder beat
+        // draws the lit rung as well. Beat text that repeats either one spends
+        // the largest type on screen saying what the viewer is already reading.
+        if (topic && beat.onScreen?.trim()) {
+            const flat = beat.onScreen.trim().toLowerCase().replace(/[^a-z0-9 ]/g, '');
+            if (flat === `step ${topic.stepNumber}` || flat === topic.stepTitleEn.toLowerCase().replace(/[^a-z0-9 ]/g, '')) {
+                issues.push(
+                    `beat ${i}: onScreen "${beat.onScreen}" repeats the series bar — ` +
+                        'say what this step BUYS the viewer instead',
+                );
+            }
+        }
     });
 
     return issues;
@@ -372,7 +421,9 @@ function parseScript(raw: string, topic: ScheduledTopic): MoneyScript {
         beats: Array.isArray(parsed.beats) ? parsed.beats : [],
         cta: parsed.cta ?? '',
         ctaSaid: parsed.ctaSaid ?? topic.cta,
-        numericClaims: Array.isArray(parsed.numericClaims) ? parsed.numericClaims : [],
+        // Filtered here rather than trusted: the model's own list is padded
+        // with ordinals lifted from the prose.
+        numericClaims: checkableClaims(Array.isArray(parsed.numericClaims) ? parsed.numericClaims : []),
     };
 }
 
@@ -398,7 +449,7 @@ export async function generateMoneyScript(topic: ScheduledTopic): Promise<MoneyS
             continue;
         }
 
-        const structural = [...structuralIssues(script), ...languageIssues(script)];
+        const structural = [...structuralIssues(script, topic), ...languageIssues(script)];
         const compliance = complianceViolations(scriptSurfaceText(script)).map(
             (v) => `${v.rule}: ${v.why}`,
         );

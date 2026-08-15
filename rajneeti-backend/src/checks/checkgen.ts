@@ -4,6 +4,7 @@ import {
   voiceoverText,
   languageIssues,
   structuralIssues,
+  checkableClaims,
   type Provider,
   type MoneyScript,
 } from '../services/moneyScriptGenerator.js';
@@ -128,6 +129,28 @@ async function main() {
     structuralIssues(badVisual({ kind: 'clock' })).length === 0);
   check('an unknown visual kind is caught',
     structuralIssues(badVisual({ kind: 'pieChart' })).some(i => i.includes('not renderable')));
+
+  console.log('\nnumeric claims are filtered to what a human can check:');
+  // The first real run put "1" in this list, lifted from "कदम 1".
+  const claims = checkableClaims(['₹10,000', '1', '6 months', '3.5%', 'Step 2', '', '2x']);
+  check('bare ordinal is dropped', !claims.includes('1'), claims.join(' | '));
+  check('rupee figure is kept', claims.includes('₹10,000'));
+  check('percentage is kept', claims.includes('3.5%'));
+  check('duration is kept', claims.includes('6 months'));
+  check('multiplier is kept', claims.includes('2x'));
+  check('text with no digits is dropped', !claims.some(c => c === ''));
+  check('"Step 2" is dropped as an ordinal', !claims.includes('Step 2'));
+
+  console.log('\non-screen text may not repeat the series bar:');
+  const topic = { stepNumber: 1, stepTitleEn: 'First ₹10,000' } as any;
+  const echoesStep = { ...script, beats: script.beats.map((b, i) => i === 2 ? { ...b, onScreen: 'Step 1' } : b) };
+  check('"Step 1" beat text is caught',
+    structuralIssues(echoesStep, topic).some(i => i.includes('repeats the series bar')));
+  const echoesTitle = { ...script, beats: script.beats.map((b, i) => i === 2 ? { ...b, onScreen: 'First ₹10,000' } : b) };
+  check('beat text echoing the step title is caught',
+    structuralIssues(echoesTitle, topic).some(i => i.includes('repeats the series bar')));
+  check('a real idea passes', structuralIssues(script, topic).length === 0, structuralIssues(script, topic).join('; '));
+  check('without a topic the check is skipped, not crashed', structuralIssues(echoesStep).length === 0);
 
   console.log('\ncompliance sweep over a whole script:');
   check('clean script passes', complianceViolations(scriptSurfaceText(script)).length === 0);

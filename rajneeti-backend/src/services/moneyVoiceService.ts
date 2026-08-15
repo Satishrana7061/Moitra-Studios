@@ -20,8 +20,19 @@
 import { generateAudioWithTimestamps, type WordTiming } from './elevenLabsService.js';
 import { voiceoverText, type MoneyScript } from './moneyScriptGenerator.js';
 
-/** Default read for this channel. Overridden per-run by the voice lab. */
-export const MONEY_VOICE_ID = process.env.ELEVENLABS_VOICE_ID__MONEY || '';
+/**
+ * Monika Sogam — young female Hindi, "pleasant", conversational.
+ *
+ * Chosen over Abhii (tVeibrRmkweME2rrFZAs) deliberately: Abhii is the Rajneeti
+ * game's voice, and reusing it would make both channels sound like the same
+ * person. A female read is also the rarer one in Hindi finance, which is
+ * differentiation for free.
+ *
+ * Hard-coded rather than left to a secret. A voice id is not sensitive, and a
+ * missing env var would silently fall back to ElevenLabs' default voice —
+ * a wrong voice that still produces a publishable-looking reel.
+ */
+export const MONEY_VOICE_ID = process.env.ELEVENLABS_VOICE_ID__MONEY || 'Ms9OTvWb99V6DwRHZn6q';
 
 const letters = (s: string): string =>
     s.normalize('NFC').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();

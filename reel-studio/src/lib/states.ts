@@ -17,7 +17,12 @@ export const MAP_WIDTH = mapData.width;
 export const MAP_HEIGHT = mapData.height;
 
 export const STATE_PATHS = mapData.states as Record<string, string>;
-export const STATE_CENTROIDS = mapData.centroids as Record<string, [number, number]>;
+// The JSON import widens the centroid pairs to number[], so the tuple shape has
+// to be reasserted through unknown.
+export const STATE_CENTROIDS = mapData.centroids as unknown as Record<
+  string,
+  [number, number]
+>;
 
 export const ALL_STATES = Object.keys(STATE_PATHS);
 

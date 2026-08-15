@@ -1,0 +1,62 @@
+{
+  "$comment": "Built from real curriculum topic s1-04. All rendered text is English; the Hindi lives only in the voiceover, which is never drawn. No captions field: per-word timings still set beat boundaries upstream but are not displayed. audio.src is empty because no voiceover is rendered yet -- the composition tolerates that and renders silently.",
+  "episode": 4,
+  "topicId": "s1-04",
+  "stepNumber": 1,
+  "stepTitle": "First ₹10,000",
+  "hook": "₹334 a day.",
+  "cta": "Can you find ₹334 a day?",
+  "audio": {
+    "src": "",
+    "durationSec": 31.5
+  },
+  "beats": [
+    {
+      "onScreen": "One month. One goal.",
+      "visual": {
+        "kind": "bigNumber",
+        "value": "₹10,000",
+        "label": "your first buffer"
+      },
+      "startSec": 3.0,
+      "endSec": 9.5
+    },
+    {
+      "onScreen": "Break it down daily",
+      "visual": {
+        "kind": "bigNumber",
+        "value": "₹334",
+        "label": "every day, 30 days"
+      },
+      "startSec": 9.5,
+      "endSec": 16.0
+    },
+    {
+      "onScreen": "Where it comes from",
+      "visual": {
+        "kind": "steps",
+        "items": [
+          "Eat out less often",
+          "Cancel one subscription",
+          "Sell what you don't use"
+        ]
+      },
+      "startSec": 16.0,
+      "endSec": 24.0
+    },
+    {
+      "onScreen": "Step 1 complete",
+      "visual": {
+        "kind": "ladder",
+        "highlightStep": 1
+      },
+      "startSec": 24.0,
+      "endSec": 31.5
+    }
+  ],
+  "brand": {
+    "seriesName": "The Money Ladder",
+    "disclaimer": "General information, not investment advice",
+    "layoutVariant": "a"
+  }
+}

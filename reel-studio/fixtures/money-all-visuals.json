@@ -1,0 +1,73 @@
+{
+  "$comment": "Coverage fixture: exercises all five visual kinds in one board, including compare and clock which the main fixture never renders. Content drawn from real curriculum topics s2-03/s2-04 so layouts are stress-tested with realistic string lengths. Not for publishing.",
+  "episode": 999,
+  "topicId": "coverage-all-visuals",
+  "stepNumber": 2,
+  "stepTitle": "Clear the debt",
+  "hook": "3.5% a month?",
+  "cta": "Did you know this number?",
+  "audio": {
+    "src": "",
+    "durationSec": 30.0
+  },
+  "beats": [
+    {
+      "onScreen": "The real yearly rate",
+      "visual": {
+        "kind": "bigNumber",
+        "value": "42%",
+        "label": "on credit card dues"
+      },
+      "startSec": 2.0,
+      "endSec": 8.0
+    },
+    {
+      "onScreen": "Minimum vs full",
+      "visual": {
+        "kind": "compare",
+        "a": "₹4,200",
+        "b": "₹18,900",
+        "aLabel": "paying in full",
+        "bLabel": "paying the minimum"
+      },
+      "startSec": 8.0,
+      "endSec": 15.0
+    },
+    {
+      "onScreen": "How long it takes",
+      "visual": {
+        "kind": "clock",
+        "label": "6 months"
+      },
+      "startSec": 15.0,
+      "endSec": 21.0
+    },
+    {
+      "onScreen": "What to do",
+      "visual": {
+        "kind": "steps",
+        "items": [
+          "Stop using the card",
+          "Smallest debt first",
+          "Pay a little extra"
+        ]
+      },
+      "startSec": 21.0,
+      "endSec": 26.0
+    },
+    {
+      "onScreen": "You are on step 2",
+      "visual": {
+        "kind": "ladder",
+        "highlightStep": 2
+      },
+      "startSec": 26.0,
+      "endSec": 30.0
+    }
+  ],
+  "brand": {
+    "seriesName": "The Money Ladder",
+    "disclaimer": "General information, not investment advice",
+    "layoutVariant": "b"
+  }
+}

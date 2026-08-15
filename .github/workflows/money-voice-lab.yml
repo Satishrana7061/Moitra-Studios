@@ -1,0 +1,152 @@
+name: Money Voice Lab
+
+# Manual only. This is the bench for The Money Ladder, not the publisher —
+# nothing here uploads to any platform.
+#
+# The API keys live in GitHub Secrets and are write-only, so this is the only
+# place the real chain can run. Two modes:
+#
+#   list-voices    free. Prints the voices on the account, ranked, so a real
+#                  Hindi voice ID can be chosen instead of guessed.
+#   episode        spends credits. Runs script -> Hindi VO -> master -> align ->
+#                  render and uploads the MP4 as an artifact to judge by ear.
+#
+# Costs are real, so `episode` renders ONE topic per run by default.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'What to run'
+        type: choice
+        required: true
+        default: list-voices
+        options:
+          - list-voices
+          - script-only
+          - episode
+      topic_id:
+        description: 'Curriculum topic id, e.g. s1-01. Blank = first written topic.'
+        required: false
+      voice_ids:
+        description: 'Comma-separated ElevenLabs voice ids to compare (episode mode). Blank = account default.'
+        required: false
+
+jobs:
+  voice-lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            rajneeti-backend/package-lock.json
+            reel-studio/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./rajneeti-backend
+        run: npm ci
+
+      # ── List voices ────────────────────────────────────────────────────────
+      # Free call, so it runs first and independently of everything below.
+      - name: List available voices
+        if: inputs.mode == 'list-voices'
+        working-directory: ./rajneeti-backend
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: npm run money:voices
+
+      # ── Everything below needs the render toolchain ────────────────────────
+      - name: Install ffmpeg
+        if: inputs.mode == 'episode'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Install reel-studio dependencies
+        if: inputs.mode == 'episode'
+        working-directory: ./reel-studio
+        run: npm ci
+
+      - name: Install headless Chrome for Remotion
+        if: inputs.mode == 'episode'
+        working-directory: ./reel-studio
+        run: npx remotion browser ensure
+
+      - name: Run offline checks
+        if: inputs.mode != 'list-voices'
+        working-directory: ./rajneeti-backend
+        run: npm run money:validate && npm run money:check
+
+      # Proves master -> align -> render on synthetic audio before a single
+      # credit is spent. If this fails, the run would have wasted the voiceover.
+      - name: Offline end-to-end render
+        if: inputs.mode == 'episode'
+        working-directory: ./rajneeti-backend
+        run: npm run money:e2e
+
+      # Cheap gate: proves the model writes a compliant, correctly-split script
+      # before a single ElevenLabs credit is spent.
+      - name: Generate script only
+        if: inputs.mode == 'script-only'
+        working-directory: ./rajneeti-backend
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          npx tsx src/generateMoneyEpisode.ts \
+            ${{ inputs.topic_id && format('--topic {0}', inputs.topic_id) || '--index 0' }} \
+            --out ../out/money --script-only
+
+      # ── Full episode, once per requested voice ─────────────────────────────
+      - name: Generate episode(s)
+        if: inputs.mode == 'episode'
+        working-directory: ./rajneeti-backend
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          TOPIC_ARG: ${{ inputs.topic_id && format('--topic {0}', inputs.topic_id) || '--index 0' }}
+          VOICE_IDS: ${{ inputs.voice_ids }}
+        run: |
+          set -euo pipefail
+          # No voice ids given: one run on the account default.
+          IFS=',' read -ra VOICES <<< "${VOICE_IDS:-}"
+          if [ ${#VOICES[@]} -eq 0 ] || [ -z "${VOICES[0]}" ]; then VOICES=(""); fi
+
+          n=0
+          for v in "${VOICES[@]}"; do
+            n=$((n+1))
+            v="$(echo "$v" | xargs)"   # trim
+            echo "::group::Episode take $n ${v:+(voice $v)}"
+            # --episode keeps each take's audio and MP4 under a distinct name,
+            # so takes do not overwrite each other in the artifact.
+            npx tsx src/generateMoneyEpisode.ts \
+              $TOPIC_ARG \
+              --episode "$n" \
+              --out "../out/money/take-$n" \
+              ${v:+--voice "$v"}
+            echo "::endgroup::"
+          done
+
+      - name: Upload results
+        if: always() && inputs.mode != 'list-voices'
+        uses: actions/upload-artifact@v4
+        with:
+          name: money-voice-lab-${{ github.run_number }}
+          # The script and storyboard are uploaded too: if the render looks
+          # wrong, the JSON says whether the cause was the writing, the timing
+          # or the composition.
+          path: |
+            out/money/**/*.mp4
+            out/money/**/*.wav
+            out/money/**/script.json
+            out/money/**/storyboard.json
+            out/money/script.json
+          if-no-files-found: warn
+          retention-days: 14

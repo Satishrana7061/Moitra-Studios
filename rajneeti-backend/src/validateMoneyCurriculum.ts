@@ -1,0 +1,47 @@
+/**
+ * Validates content/money-ladder.json and prints a summary.
+ *
+ *   npm run money:validate
+ *
+ * Exits non-zero on any issue so it can gate CI before a render ever runs.
+ * The compliance rules it enforces are the difference between "general
+ * financial awareness" (permitted) and unregistered investment advice, so a
+ * failure here should block the pipeline rather than warn.
+ */
+
+import {
+    loadCurriculum,
+    validateCurriculum,
+    curriculumStats,
+    getAllTopics,
+} from './services/moneyCurriculum.js';
+
+const curriculum = loadCurriculum();
+const stats = curriculumStats(curriculum);
+const issues = validateCurriculum(curriculum);
+
+console.log(`\n📚 ${curriculum.series.name} — ${curriculum.series.tagline}`);
+console.log(
+    `   ${stats.writtenTopics} topics written across ${stats.stepsWritten}/${stats.stepsTotal} steps ` +
+        `(~${stats.daysOfContent} days of daily content), ${stats.outlinedTopics} more outlined.`,
+);
+
+const byStep = new Map<number, number>();
+for (const t of getAllTopics(curriculum)) {
+    byStep.set(t.stepNumber, (byStep.get(t.stepNumber) ?? 0) + 1);
+}
+for (const step of curriculum.steps) {
+    const n = byStep.get(step.step) ?? 0;
+    const label = step.outlineOnly ? `outline only (${step.plannedTopics?.length ?? 0} planned)` : `${n} topics`;
+    console.log(`   कदम ${step.step}: ${step.title} — ${label}`);
+}
+
+if (issues.length === 0) {
+    console.log('\n✅ No validation or compliance issues.\n');
+    process.exit(0);
+}
+
+console.error(`\n❌ ${issues.length} issue(s):`);
+for (const i of issues) console.error(`   [${i.topicId}] ${i.field}: ${i.message}`);
+console.error('');
+process.exit(1);

@@ -1,0 +1,146 @@
+/**
+ * Offline end-to-end: master -> align -> build -> render.
+ *
+ * Everything generateMoneyEpisode does EXCEPT the two paid API calls. The
+ * script is canned and the "voiceover" is a synthetic tone with hand-made word
+ * timings, so this proves the wiring — ffmpeg mastering, beat alignment, the
+ * staticFile audio hand-off, the props path and the Remotion render itself —
+ * without a key and without spending credits.
+ *
+ * What it deliberately does NOT prove: that the model writes well, and that
+ * ElevenLabs returns usable timings. Those need the voice lab.
+ */
+
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { execFileSync, spawnSync } from 'child_process';
+
+import { masterVoiceover, measureLoudness, ffmpegBin } from '../services/audioMixService.js';
+import { buildMoneyStoryboard } from '../services/moneyStoryboardBuilder.js';
+import { voiceoverText, structuralIssues, languageIssues, type MoneyScript } from '../services/moneyScriptGenerator.js';
+import { getAllTopics } from '../services/moneyCurriculum.js';
+import type { WordTiming } from '../services/beatTimingAligner.js';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const REEL_STUDIO = path.join(REPO_ROOT, 'reel-studio');
+
+let pass = 0, fail = 0;
+const check = (l: string, c: boolean, x = '') => {
+    console.log(`  ${c ? 'PASS' : 'FAIL'}  ${l}${x ? ' — ' + x : ''}`);
+    c ? pass++ : fail++;
+};
+
+/** A script in the current contract: English drawn, Hindi spoken. */
+const script: MoneyScript = {
+    topicId: 's1-01',
+    hook: 'Do this before investing',
+    hookSaid: 'निवेश से पहले एक काम करो।',
+    beats: [
+        { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
+        { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
+        { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', visual: { kind: 'ladder', highlightStep: 1 } },
+    ],
+    cta: 'How big is your buffer?',
+    ctaSaid: 'आपके पास कितना बफर है? कमेंट में बताओ।',
+    numericClaims: ['₹10,000'],
+};
+
+/**
+ * Synthetic word timings for the exact voiceover text, at a plausible Hindi
+ * speaking rate. Built from the real string so the aligner is exercised on the
+ * same tokenisation problem it faces in production.
+ */
+function fakeTimings(text: string, wordsPerSec = 2.6): WordTiming[] {
+    let t = 0.4;
+    return text.split(/\s+/).filter(Boolean).map((word) => {
+        const dur = word.length > 6 ? 1 / wordsPerSec * 1.4 : 1 / wordsPerSec;
+        const timing = { word, start: Number(t.toFixed(3)), end: Number((t + dur).toFixed(3)) };
+        t += dur + 0.06;
+        return timing;
+    });
+}
+
+async function main() {
+    const topic = getAllTopics().find((t) => t.id === script.topicId);
+    if (!topic) throw new Error(`Fixture topic ${script.topicId} is no longer in the curriculum.`);
+
+    console.log('script passes its own gates:');
+    check('no structural issues', structuralIssues(script).length === 0, structuralIssues(script).join('; '));
+    check('no language issues', languageIssues(script).length === 0, languageIssues(script).join('; '));
+
+    const vo = voiceoverText(script);
+    const timings = fakeTimings(vo);
+    const speechSec = timings[timings.length - 1].end;
+
+    const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'money-pipe-'));
+
+    console.log('\nmastering a synthetic read:');
+    execFileSync(ffmpegBin(), [
+        '-y', '-f', 'lavfi', '-i', `sine=frequency=200:duration=${speechSec.toFixed(2)}`,
+        '-q:a', '4', path.join(tmp, 'raw.mp3'),
+    ], { stdio: 'ignore' });
+
+    const master = masterVoiceover(fs.readFileSync(path.join(tmp, 'raw.mp3')), tmp, { tailSec: 1.2 });
+    check('master exists', fs.existsSync(master.path));
+    // The tail is padded on, so the file must be LONGER than the speech.
+    check('tail padding is applied', master.durationSec > speechSec, `${master.durationSec.toFixed(2)}s vs ${speechSec.toFixed(2)}s speech`);
+    const lufs = measureLoudness(master.path);
+    check('normalised near -14 LUFS', Math.abs(lufs + 14) < 1.5, `${lufs} LUFS`);
+
+    console.log('\nalignment against the real voiceover string:');
+    const episode = 999;
+    const { storyboard, fullyMatched } = buildMoneyStoryboard({
+        script, topic, episode,
+        audioSrc: `money/episode-${episode}.wav`,
+        audioDurationSec: master.durationSec,
+        wordTimings: timings,
+    });
+    check('every beat matched real word timings', fullyMatched);
+    check('beats are in order and non-overlapping',
+        storyboard.beats.every((b, i) => b.endSec > b.startSec && (i === 0 || b.startSec >= storyboard.beats[i - 1].endSec)));
+    check('last beat ends within the audio', storyboard.beats[storyboard.beats.length - 1].endSec <= master.durationSec + 0.01);
+    check('series bar draws the ENGLISH step title', storyboard.stepTitle === topic.stepTitleEn);
+    check('nothing drawn contains Devanagari',
+        !/[ऀ-ॿ]/.test(JSON.stringify({ h: storyboard.hook, c: storyboard.cta, b: storyboard.beats.map(b => [b.onScreen, b.visual]) })));
+
+    console.log('\nrender:');
+    const publicAudio = path.join(REEL_STUDIO, 'public', 'money', `episode-${episode}.wav`);
+    fs.mkdirSync(path.dirname(publicAudio), { recursive: true });
+    fs.copyFileSync(master.path, publicAudio);
+
+    const boardPath = path.join(tmp, 'storyboard.json');
+    fs.writeFileSync(boardPath, JSON.stringify(storyboard, null, 2));
+
+    const mp4 = path.join(tmp, 'out.mp4');
+    const res = spawnSync('npx', ['remotion', 'render', 'MoneyReel', mp4, `--props=${boardPath}`, '--log=error'],
+        { cwd: REEL_STUDIO, encoding: 'utf-8', env: process.env });
+
+    if (res.status !== 0) {
+        console.log((res.stderr || res.stdout || '').slice(-2500));
+    }
+    check('remotion render succeeds', res.status === 0, res.status === 0 ? '' : `exit ${res.status}`);
+
+    if (res.status === 0) {
+        const size = fs.statSync(mp4).size;
+        check('produced a non-trivial mp4', size > 200_000, `${(size / 1024 / 1024).toFixed(2)} MB`);
+
+        // The audio must have survived into the container — a silent reel is the
+        // failure mode that looks fine in a thumbnail.
+        const probe = spawnSync(ffmpegBin(), ['-i', mp4, '-f', 'null', '-'], { encoding: 'utf-8' });
+        const streams = `${probe.stdout ?? ''}${probe.stderr ?? ''}`;
+        check('mp4 carries an audio stream', /Stream #\d+:\d+.*Audio:/.test(streams));
+        check('mp4 carries a video stream', /Stream #\d+:\d+.*Video:/.test(streams));
+    }
+
+    fs.rmSync(publicAudio, { force: true });
+    console.log(`\n${pass} passed, ${fail} failed`);
+    process.exit(fail ? 1 : 0);
+}
+
+main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+});

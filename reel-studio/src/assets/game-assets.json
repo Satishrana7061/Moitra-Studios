@@ -1,0 +1,172 @@
+{
+  "generatedFrom": "Game FinalGraphics/",
+  "leaders": {
+    "Akhilesh Yadav": {
+      "name": "Akhilesh Yadav",
+      "avatar": "game/avatars/akhilesh-yadav.png"
+    },
+    "Amit Shah": {
+      "name": "Amit Shah",
+      "avatar": "game/avatars/amit-shah.png"
+    },
+    "Arvind Kejriwal": {
+      "name": "Arvind Kejriwal",
+      "avatar": "game/avatars/arvind-kejriwal.png"
+    },
+    "Bhagwant Mann": {
+      "name": "Bhagwant Mann",
+      "avatar": "game/avatars/bhagwant-mann.png"
+    },
+    "Lalu Prasad Yadav": {
+      "name": "Lalu Prasad Yadav",
+      "avatar": "game/avatars/lalu-prasad-yadav.png"
+    },
+    "M. K. Stalin": {
+      "name": "M. K. Stalin",
+      "avatar": "game/avatars/m-k-stalin.png"
+    },
+    "Mallikarjun Kharge": {
+      "name": "Mallikarjun Kharge",
+      "avatar": "game/avatars/mallikarjun-kharge.png"
+    },
+    "Mamata Banerjee": {
+      "name": "Mamata Banerjee",
+      "avatar": "game/avatars/mamata-banerjee.png"
+    },
+    "Mayawati": {
+      "name": "Mayawati",
+      "avatar": "game/avatars/mayawati.png"
+    },
+    "N. Chandrababu Naidu": {
+      "name": "N. Chandrababu Naidu",
+      "avatar": "game/avatars/n-chandrababu-naidu.png"
+    },
+    "Narendra Modi": {
+      "name": "Narendra Modi",
+      "avatar": "game/avatars/narendra-modi.png"
+    },
+    "Nirmala Sitharaman": {
+      "name": "Nirmala Sitharaman",
+      "avatar": "game/avatars/nirmala-sitharaman.png"
+    },
+    "Nitish Kumar": {
+      "name": "Nitish Kumar",
+      "avatar": "game/avatars/nitish-kumar.png"
+    },
+    "Pinarayi Vijayan": {
+      "name": "Pinarayi Vijayan",
+      "avatar": "game/avatars/pinarayi-vijayan.png"
+    },
+    "Prashant Kishor": {
+      "name": "Prashant Kishor",
+      "avatar": "game/avatars/prashant-kishor.png"
+    },
+    "Priyanka Gandhi": {
+      "name": "Priyanka Gandhi",
+      "avatar": "game/avatars/priyanka-gandhi.png"
+    },
+    "Rahul Gandhi": {
+      "name": "Rahul Gandhi",
+      "avatar": "game/avatars/rahul-gandhi.png"
+    },
+    "Rajnath Singh": {
+      "name": "Rajnath Singh",
+      "avatar": "game/avatars/rajnath-singh.png"
+    },
+    "Smriti Irani": {
+      "name": "Smriti Irani",
+      "avatar": "game/avatars/smriti-irani.png"
+    },
+    "Tejashwi Yadav": {
+      "name": "Tejashwi Yadav",
+      "avatar": "game/avatars/tejashwi-yadav.png"
+    },
+    "Uddhav Thackeray": {
+      "name": "Uddhav Thackeray",
+      "avatar": "game/avatars/uddhav-thackeray.png"
+    },
+    "Yogi Adityanath": {
+      "name": "Yogi Adityanath",
+      "avatar": "game/avatars/yogi-adityanath.png"
+    }
+  },
+  "leaderAliases": {
+    "akhilesh yadav": "Akhilesh Yadav",
+    "amit shah": "Amit Shah",
+    "arvind kejriwal": "Arvind Kejriwal",
+    "bhagwant mann": "Bhagwant Mann",
+    "lalu prasad yadav": "Lalu Prasad Yadav",
+    "m. k. stalin": "M. K. Stalin",
+    "mallikarjun kharge": "Mallikarjun Kharge",
+    "mamata banerjee": "Mamata Banerjee",
+    "mayawati": "Mayawati",
+    "n. chandrababu naidu": "N. Chandrababu Naidu",
+    "narendra modi": "Narendra Modi",
+    "nirmala sitharaman": "Nirmala Sitharaman",
+    "nitish kumar": "Nitish Kumar",
+    "pinarayi vijayan": "Pinarayi Vijayan",
+    "prashant kishor": "Prashant Kishor",
+    "priyanka gandhi": "Priyanka Gandhi",
+    "rahul gandhi": "Rahul Gandhi",
+    "rajnath singh": "Rajnath Singh",
+    "smriti irani": "Smriti Irani",
+    "tejashwi yadav": "Tejashwi Yadav",
+    "uddhav thackeray": "Uddhav Thackeray",
+    "yogi adityanath": "Yogi Adityanath",
+    "modi": "Narendra Modi",
+    "pm modi": "Narendra Modi",
+    "mamta banerjee": "Mamata Banerjee",
+    "didi": "Mamata Banerjee",
+    "uddhav thackrey": "Uddhav Thackeray",
+    "tejaswi yadav": "Tejashwi Yadav",
+    "chandrababu naidu": "N. Chandrababu Naidu",
+    "mk stalin": "M. K. Stalin",
+    "m.k. stalin": "M. K. Stalin",
+    "stalin": "M. K. Stalin",
+    "yogi": "Yogi Adityanath",
+    "kejriwal": "Arvind Kejriwal",
+    "nitish": "Nitish Kumar",
+    "lalu": "Lalu Prasad Yadav"
+  },
+  "partySymbols": [
+    "game/party-symbols/1.png",
+    "game/party-symbols/10.png",
+    "game/party-symbols/11.png",
+    "game/party-symbols/12.png",
+    "game/party-symbols/13.png",
+    "game/party-symbols/14.png",
+    "game/party-symbols/15.png",
+    "game/party-symbols/16.png",
+    "game/party-symbols/17.png",
+    "game/party-symbols/2.png",
+    "game/party-symbols/3.png",
+    "game/party-symbols/4.png",
+    "game/party-symbols/5.png",
+    "game/party-symbols/6.png",
+    "game/party-symbols/7.png",
+    "game/party-symbols/8.png",
+    "game/party-symbols/9.png"
+  ],
+  "ui": {
+    "hud-bar": "game/ui/hud-bar.png",
+    "button-primary": "game/ui/button-primary.png",
+    "button-empty": "game/ui/button-empty.png",
+    "popup": "game/ui/popup.png",
+    "gold": "game/ui/gold.png",
+    "money-bag": "game/ui/money-bag.png",
+    "india-map-flat": "game/ui/india-map-flat.png",
+    "gameplay-background": "game/ui/gameplay-background.jpg"
+  },
+  "screens": {
+    "screen-india-map": "game/screens/screen-india-map.jpg",
+    "screen-hq-build": "game/screens/screen-hq-build.jpg",
+    "screen-hq-upgrades": "game/screens/screen-hq-upgrades.jpg",
+    "screen-fundraise": "game/screens/screen-fundraise.jpg",
+    "screen-rally": "game/screens/screen-rally.jpg",
+    "screen-state-data": "game/screens/screen-state-data.jpg"
+  },
+  "fonts": {
+    "devanagari": "fonts/NotoSansDevanagari.ttf",
+    "display": "fonts/Outfit.ttf"
+  }
+}

@@ -1,9 +1,18 @@
 name: Daily Automated Reels Pipeline
 
 on:
-  schedule:
-    # 13:30 UTC = 7:00 PM IST
-    - cron: '30 13 * * *'
+  # PAUSED — the Rajneeti reel channel is on hold while the money channel is
+  # built. Nothing is deleted: uncomment the two lines below to resume the
+  # nightly run, and the "Run workflow" button still works in the meantime.
+  #
+  # The pause is deliberate rather than incidental. The publish bug fixed in
+  # af4fc2e means scheduled runs would now actually post to YouTube, Facebook
+  # and Instagram for the first time — and the reel quality is the open problem
+  # that started this work. Resuming before that is fixed would publish it.
+  #
+  # schedule:
+  #   # 13:30 UTC = 7:00 PM IST
+  #   - cron: '30 13 * * *'
   workflow_dispatch:
     inputs:
       news_slug:
@@ -16,12 +25,12 @@ on:
         description: 'Skip publishing to YouTube, Facebook, and Instagram (only save to Supabase)'
         type: boolean
         required: false
-        default: true
+        default: false
       short_test_reel:
         description: 'Generate a short 2-turn reel (Q1/A1) to save ElevenLabs credits'
         type: boolean
         required: false
-        default: true
+        default: false
   repository_dispatch:
     types: [daily-reels-manual]
 
@@ -95,8 +104,12 @@ jobs:
           NEWS_SLUG: ${{ github.event.inputs.news_slug || github.event.client_payload.slug }}
           NEWS_TITLE: ${{ github.event.inputs.news_title || github.event.client_payload.title }}
           NEWS_SUMMARY: ${{ github.event.client_payload.summary }}
-          SKIP_SOCIAL_PUBLISH: ${{ github.event.inputs.skip_social_publish != 'false' }}
-          SHORT_TEST_REEL: ${{ github.event.inputs.short_test_reel != 'false' }}
+          # NOTE: on a `schedule` run, github.event.inputs is empty. The previous
+          # `!= 'false'` form therefore evaluated to true and silently disabled
+          # publishing on every nightly run. `|| 'false'` keeps the manual override
+          # working while defaulting scheduled runs to publish.
+          SKIP_SOCIAL_PUBLISH: ${{ github.event.inputs.skip_social_publish || 'false' }}
+          SHORT_TEST_REEL: ${{ github.event.inputs.short_test_reel || 'false' }}
 
 
         run: npx tsx src/runPipeline.ts

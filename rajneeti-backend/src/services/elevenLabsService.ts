@@ -16,6 +16,22 @@ export interface WordTiming {
     end: number;    // seconds
 }
 
+/**
+ * How expressive the read is.
+ *
+ * In ElevenLabs, `stability` is inverted from what the name suggests: HIGH
+ * stability means flat and consistent, which is what a news bulletin wants and
+ * exactly what makes a read sound synthetic. Lowering it lets pitch and pace
+ * move between sentences, which is most of what "sounds human" actually is.
+ * `style` adds delivery character on top; too much makes it theatrical.
+ */
+export interface VoiceSettings {
+    stability?: number;
+    similarity_boost?: number;
+    style?: number;
+    use_speaker_boost?: boolean;
+}
+
 export interface TtsOptions {
     /**
      * Rewrite digit runs into spoken words before sending. Default true, which
@@ -30,7 +46,17 @@ export interface TtsOptions {
      * actually sent, never against the original.
      */
     normalizeNumerals?: boolean;
+    /** Overrides the defaults below. */
+    voiceSettings?: VoiceSettings;
 }
+
+/** The news-reader defaults the Rajneeti pipeline has always used. */
+export const NEWS_VOICE_SETTINGS: VoiceSettings = {
+    stability: 0.55,
+    similarity_boost: 0.75,
+    style: 0.15,
+    use_speaker_boost: true,
+};
 
 /**
  * Converts numbers to their English spoken word equivalents.
@@ -116,13 +142,8 @@ export async function generateAudio(
             body: JSON.stringify({
                 text: normalizedText,
                 // Use multilingual v2 for proper Hindi/Hinglish pronunciation
-                model_id: 'eleven_multilingual_v2',
-                voice_settings: {
-                    stability: 0.55,
-                    similarity_boost: 0.75,
-                    style: 0.15, // Subtle style for natural delivery
-                    use_speaker_boost: true
-                }
+                model_id: process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
+                voice_settings: { ...NEWS_VOICE_SETTINGS, ...(opts.voiceSettings ?? {}) }
             })
         });
 
@@ -174,13 +195,8 @@ export async function generateAudioWithTimestamps(
             },
             body: JSON.stringify({
                 text: normalizedText,
-                model_id: 'eleven_multilingual_v2',
-                voice_settings: {
-                    stability: 0.55,
-                    similarity_boost: 0.75,
-                    style: 0.15,
-                    use_speaker_boost: true
-                }
+                model_id: process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
+                voice_settings: { ...NEWS_VOICE_SETTINGS, ...(opts.voiceSettings ?? {}) }
             })
         });
 

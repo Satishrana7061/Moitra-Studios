@@ -22,6 +22,17 @@ export interface Topic {
     hookIdea: string;
     teaches: string;
     keyNumbers: string[];
+    /**
+     * Real, checkable statements about how Indian consumer finance works.
+     *
+     * This is what separates an episode from generic advice. The first real
+     * script came back saying nothing a viewer did not already suspect, because
+     * the topic gave the model one invented target figure and nothing else.
+     *
+     * Strictly the cost of debt and published rates — never investment returns,
+     * which is both the SEBI line and the more interesting material anyway.
+     */
+    facts?: string[];
     visual: VisualKind;
     cta: string;
 }
@@ -253,7 +264,11 @@ export function curriculumStats(curriculum: Curriculum = loadCurriculum()) {
     const outlined = curriculum.steps
         .filter((s) => s.outlineOnly)
         .reduce((n, s) => n + (s.plannedTopics?.length ?? 0), 0);
+    const withFacts = written.filter((t) => (t.facts?.length ?? 0) > 0);
     return {
+        /** Topics carrying real facts. The rest will produce generic scripts. */
+        topicsWithFacts: withFacts.length,
+        topicsNeedingFacts: written.filter((t) => !(t.facts?.length ?? 0)).map((t) => t.id),
         writtenTopics: written.length,
         outlinedTopics: outlined,
         stepsWritten: curriculum.steps.filter((s) => !s.outlineOnly).length,

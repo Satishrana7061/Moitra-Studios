@@ -17,7 +17,11 @@
  *    proportional split. That is a failure worth seeing, so it throws.
  */
 
-import { generateAudioWithTimestamps, type WordTiming } from './elevenLabsService.js';
+import {
+    generateAudioWithTimestamps,
+    type VoiceSettings,
+    type WordTiming,
+} from './elevenLabsService.js';
 import { voiceoverText, type MoneyScript } from './moneyScriptGenerator.js';
 
 /**
@@ -33,6 +37,27 @@ import { voiceoverText, type MoneyScript } from './moneyScriptGenerator.js';
  * a wrong voice that still produces a publishable-looking reel.
  */
 export const MONEY_VOICE_ID = process.env.ELEVENLABS_VOICE_ID__MONEY || 'Ms9OTvWb99V6DwRHZn6q';
+
+/**
+ * Tuned away from the news-reader defaults, which is what made the first
+ * episode sound synthetic.
+ *
+ * `stability` is inverted from how it reads: HIGH means flat and identical
+ * sentence to sentence, which is precisely the quality people hear as "AI".
+ * Dropping it to 0.35 lets pitch and pace move; raising `style` gives the read
+ * some attitude. `similarity_boost` stays high so the voice still sounds like
+ * Monika rather than drifting.
+ *
+ * These are a starting point, not a settled answer — they have to be judged by
+ * ear, and the voice lab exists to make that cheap. Override per run with
+ * MONEY_VOICE_STABILITY / MONEY_VOICE_STYLE.
+ */
+export const MONEY_VOICE_SETTINGS: VoiceSettings = {
+    stability: Number(process.env.MONEY_VOICE_STABILITY ?? 0.35),
+    similarity_boost: 0.8,
+    style: Number(process.env.MONEY_VOICE_STYLE ?? 0.45),
+    use_speaker_boost: true,
+};
 
 const letters = (s: string): string =>
     s.normalize('NFC').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
@@ -54,7 +79,7 @@ export async function speakMoneyScript(
     const { audioBuffer, wordTimings, spokenText } = await generateAudioWithTimestamps(
         text,
         voiceId || undefined,
-        { normalizeNumerals: false },
+        { normalizeNumerals: false, voiceSettings: MONEY_VOICE_SETTINGS },
     );
 
     if (letters(spokenText) !== letters(text)) {

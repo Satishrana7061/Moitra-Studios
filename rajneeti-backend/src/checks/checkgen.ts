@@ -152,6 +152,27 @@ async function main() {
   check('a real idea passes', structuralIssues(script, topic).length === 0, structuralIssues(script, topic).join('; '));
   check('without a topic the check is skipped, not crashed', structuralIssues(echoesStep).length === 0);
 
+  console.log('\nspoken lines must spell numbers, not print them:');
+  // The bug the first real episode had: the voice read "₹10,000" aloud as a
+  // stumble because the say line carried the symbol instead of the words.
+  const symbolInSay = { ...script, beats: script.beats.map((b, i) => i === 0
+    ? { ...b, say: '₹10,000 अलग रखो।' } : b) };
+  check('a rupee symbol in a spoken line is caught',
+    languageIssues(symbolInSay).some(i => i.includes('beat 0 say') && i.includes('₹')));
+
+  const digitsInSay = { ...script, ctaSaid: 'आपके पास 5000 रुपये हैं?' };
+  check('digits in a spoken line are caught',
+    languageIssues(digitsInSay).some(i => i.includes('ctaSaid')));
+
+  const pctInSay = { ...script, hookSaid: 'सालाना 42% ब्याज लगता है।' };
+  check('a percent sign in a spoken line is caught',
+    languageIssues(pctInSay).some(i => i.includes('hookSaid')));
+
+  check('spelled-out numbers pass', languageIssues(script).length === 0, languageIssues(script).join('; '));
+  // On screen the symbols are exactly what we want — the rule is one-directional.
+  check('the SAME symbols are fine on screen',
+    languageIssues({ ...script, hook: 'Save your first ₹10,000' }).length === 0);
+
   console.log('\ncompliance sweep over a whole script:');
   check('clean script passes', complianceViolations(scriptSurfaceText(script)).length === 0);
   const bad = { ...script, beats: [...script.beats, { onScreen: 'Take this', say: 'ये फंड 15% रिटर्न देता है।', visual: { kind: 'bigNumber' as const } }] };

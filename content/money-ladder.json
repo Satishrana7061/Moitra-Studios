@@ -34,7 +34,11 @@
             "₹10,000"
           ],
           "visual": "bigNumber",
-          "cta": "आपके पास अभी कितना बफर है?"
+          "cta": "आपके पास अभी कितना बफर है?",
+          "facts": [
+            "Indian credit cards charge about 3.5% per MONTH on unpaid balances — roughly 42% a year",
+            "That rate applies from the transaction date once you miss paying in full, not from the due date"
+          ]
         },
         {
           "id": "s1-02",
@@ -45,7 +49,11 @@
             "₹10,000"
           ],
           "visual": "compare",
-          "cta": "आपका बफर अलग खाते में है?"
+          "cta": "आपका बफर अलग खाते में है?",
+          "facts": [
+            "A savings account pays about 2.5-4% a year at most large Indian banks",
+            "Money in a savings account is available the same day; that availability is the whole point of a buffer"
+          ]
         },
         {
           "id": "s1-03",
@@ -54,7 +62,11 @@
           "teaches": "इमरजेंसी = अचानक, ज़रूरी, और टाला न जा सके। बाकी सब खर्च है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "पिछली बार आपने इसे कब तोड़ा?"
+          "cta": "पिछली बार आपने इसे कब तोड़ा?",
+          "facts": [
+            "A credit card's interest-free period only exists if the FULL bill is paid; paying the minimum voids it entirely",
+            "The 'minimum due' on an Indian card is typically 5% of the outstanding"
+          ]
         },
         {
           "id": "s1-04",
@@ -67,7 +79,10 @@
             "₹10,000"
           ],
           "visual": "bigNumber",
-          "cta": "रोज़ ₹334 निकाल सकते हैं?"
+          "cta": "रोज़ ₹334 निकाल सकते हैं?",
+          "facts": [
+            "₹334 a day for 30 days is ₹10,020"
+          ]
         },
         {
           "id": "s1-05",
@@ -91,7 +106,10 @@
             "₹7,188"
           ],
           "visual": "compare",
-          "cta": "आपके कितने ऑटो-डेबिट चल रहे हैं?"
+          "cta": "आपके कितने ऑटो-डेबिट चल रहे हैं?",
+          "facts": [
+            "One ₹599 subscription is ₹7,188 over a year"
+          ]
         },
         {
           "id": "s1-07",
@@ -111,7 +129,11 @@
             "₹10,000"
           ],
           "visual": "ladder",
-          "cta": "आप किस स्थिति में हैं?"
+          "cta": "आप किस स्थिति में हैं?",
+          "facts": [
+            "A personal loan in India typically runs 10.5-24% a year; a credit card runs about 42%",
+            "The gap between what a buffer earns and what debt costs is why the expensive debt is dealt with first"
+          ]
         },
         {
           "id": "s1-09",
@@ -129,7 +151,11 @@
           "teaches": "कार्ड की लिमिट उधार है, बचत नहीं — इमरजेंसी में ये दिक्कत को कर्ज़ में बदल देती है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आप इससे सहमत हैं?"
+          "cta": "आप इससे सहमत हैं?",
+          "facts": [
+            "Cash withdrawn on a credit card has NO interest-free period — interest starts the same day",
+            "A cash-advance fee of about 2.5% of the amount is charged on top, with a floor of roughly ₹500"
+          ]
         },
         {
           "id": "s1-11",
@@ -138,7 +164,10 @@
           "teaches": "परिवार से उधार का ब्याज नहीं लगता, पर रिश्ते पर असर पड़ता है — इसलिए अपना बफर ज़रूरी है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपका अनुभव क्या रहा?"
+          "cta": "आपका अनुभव क्या रहा?",
+          "facts": [
+            "A late payment fee attracts 18% GST on top of the fee itself"
+          ]
         },
         {
           "id": "s1-12",
@@ -149,7 +178,11 @@
             "₹10,000"
           ],
           "visual": "bigNumber",
-          "cta": "आपने आखिरी बार कब भरा?"
+          "cta": "आपने आखिरी बार कब भरा?",
+          "facts": [
+            "CIBIL scores run 300-900; most Indian lenders treat 750+ as good",
+            "You are entitled to one free credit report a year from each bureau"
+          ]
         },
         {
           "id": "s1-13",
@@ -714,5 +747,6 @@
       ],
       "topics": []
     }
-  ]
+  ],
+  "$factsNote": "`facts` are real, checkable statements about how Indian consumer finance works — the cost of debt and published rates, never investment returns. They are what stops an episode being generic advice. Re-check the numeric ones yearly."
 }

@@ -36,6 +36,16 @@ for (const step of curriculum.steps) {
     console.log(`   कदम ${step.step}: ${step.title} — ${label}`);
 }
 
+// Facts coverage. Not a pass/fail: a topic with no facts still renders, but it
+// produces the generic script that made the first episode forgettable, so the
+// list is printed to be worked down rather than ignored.
+console.log(`\n📊 ${stats.topicsWithFacts}/${stats.writtenTopics} topics carry real facts.`);
+if (stats.topicsNeedingFacts.length) {
+    const shown = stats.topicsNeedingFacts.slice(0, 12).join(', ');
+    const more = stats.topicsNeedingFacts.length - 12;
+    console.log(`   Still generic: ${shown}${more > 0 ? ` … +${more} more` : ''}`);
+}
+
 if (issues.length === 0) {
     console.log('\n✅ No validation or compliance issues.\n');
     process.exit(0);

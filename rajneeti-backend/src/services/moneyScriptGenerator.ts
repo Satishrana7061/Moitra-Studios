@@ -83,8 +83,22 @@ Title: ${topic.title}
 Hook idea: ${topic.hookIdea}
 The single thing the viewer must learn: ${topic.teaches}
 Key numbers to use: ${topic.keyNumbers.length ? topic.keyNumbers.join(', ') : '(none — do not invent any)'}
+
 Suggested visual style: ${topic.visual}
 Closing question: ${topic.cta}
+
+REAL FACTS FOR THIS EPISODE — BUILD THE SCRIPT AROUND THESE
+${topic.facts?.length
+    ? topic.facts.map((f) => `- ${f}`).join('\n')
+    : '(none supplied — say only what is true in general, and invent NO figures)'}
+
+These are checked facts about how Indian money actually works. At least one of
+them must carry the episode. A viewer can get "save money" anywhere; what they
+cannot get anywhere is a specific, true number that changes how they see their
+own situation. Lead with the fact, then say what it means for them.
+
+Do NOT round these into vagueness ("a lot of interest"). The number IS the
+content. And do not invent additional figures beyond what is given here.
 
 AUDIENCE
 Ordinary Indian salaried and self-employed people.
@@ -121,6 +135,27 @@ STRUCTURE
                   clock     (optional label) — only for durations
 - cta: the closing question shown on screen. ENGLISH. Must invite a comment, not a like.
 - ctaSaid: the same closing question SPOKEN. HINDI. This one is read aloud; "cta" is only drawn.
+
+NUMBERS: WRITTEN ON SCREEN, SPOKEN IN WORDS
+The "say" fields are read aloud by a text-to-speech voice. It pronounces "₹"
+and digit strings badly — "₹10,000" comes out as a stumble, not as money.
+So in every "say" field, write numbers the way a person SAYS them, in Hindi
+words with no symbols and no digits:
+
+  WRONG   say: "₹10,000 अलग रखो"          →  reads as "rupees ten thousand" awkwardly
+  RIGHT   say: "दस हज़ार रुपये अलग रखो"
+  WRONG   say: "42% सालाना ब्याज"
+  RIGHT   say: "सालाना बयालीस प्रतिशत ब्याज"
+
+On screen it is the opposite: "onScreen" and visual values keep the symbols and
+digits, because ₹10,000 LOOKS better than words. The viewer reads the figure and
+hears it spoken naturally at the same time.
+
+SOUND LIKE A PERSON, NOT A NEWSREADER
+Write the "say" lines the way you would actually talk to a friend who is worried
+about money. Short sentences. Natural pauses with commas. The odd everyday
+filler is fine. Do not write in the polished register of written Hindi — write
+what a warm, direct twenty-something would really say out loud.
 
 NEVER REPEAT WHAT THE SCREEN ALREADY SHOWS
 Two things are drawn on EVERY frame without you writing them: the series bar,
@@ -289,6 +324,25 @@ export const languageIssues = (script: MoneyScript): string[] => {
             issues.push(`beat ${i} say must be spoken HINDI in Devanagari`);
         }
     });
+
+    // Symbols and digits in a SPOKEN line are read out badly by TTS — "₹10,000"
+    // came back as a stumbled "rupees rs" in the first real episode. On screen
+    // they are exactly what we want; in the voice they have to be words.
+    const spoken: [string, string][] = [
+        ['hookSaid', script.hookSaid],
+        ['ctaSaid', script.ctaSaid],
+        ...script.beats.map((b, i): [string, string] => [`beat ${i} say`, b.say]),
+    ];
+    for (const [field, value] of spoken) {
+        if (!value) continue;
+        const offenders = value.match(/[₹$%]|\d+/g);
+        if (offenders) {
+            issues.push(
+                `${field} contains ${offenders.join(', ')} — spoken lines must spell numbers ` +
+                    'in Hindi words (दस हज़ार रुपये), because the voice mispronounces symbols and digits',
+            );
+        }
+    }
 
     return issues;
 };

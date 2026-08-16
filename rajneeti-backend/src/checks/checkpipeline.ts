@@ -106,6 +106,22 @@ async function main() {
     check('nothing drawn contains Devanagari',
         !/[ऀ-ॿ]/.test(JSON.stringify({ h: storyboard.hook, c: storyboard.cta, b: storyboard.beats.map(b => [b.onScreen, b.visual]) })));
 
+    console.log('\nthe font is actually in this checkout:');
+    // The check that would have caught the first CI failure. public/fonts was
+    // gitignored, so a fresh clone rendered with no display face at all — and
+    // every other assertion below still passed, because an MP4 in the wrong
+    // typeface has exactly the same streams and roughly the same size.
+    const fontPath = path.join(REEL_STUDIO, 'public', 'fonts', 'Outfit.ttf');
+    check('Outfit.ttf is present', fs.existsSync(fontPath), fontPath);
+    if (fs.existsSync(fontPath)) {
+        const bytes = fs.statSync(fontPath).size;
+        // A truncated or LFS-pointer file is a few hundred bytes and fails to
+        // parse as a font, which looks identical to "missing" at render time.
+        check('...and is a real font file, not a stub', bytes > 50_000, `${(bytes / 1024).toFixed(0)} KB`);
+        check('...and is tracked by git', spawnSync('git', ['ls-files', '--error-unmatch', fontPath],
+            { cwd: REEL_STUDIO, encoding: 'utf-8' }).status === 0);
+    }
+
     console.log('\nrender:');
     const publicAudio = path.join(REEL_STUDIO, 'public', 'money', `episode-${episode}.wav`);
     fs.mkdirSync(path.dirname(publicAudio), { recursive: true });

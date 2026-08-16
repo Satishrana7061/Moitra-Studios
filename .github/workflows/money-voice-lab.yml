@@ -64,9 +64,10 @@ jobs:
         run: npm run money:voices
 
       # ── Everything below needs the render toolchain ────────────────────────
-      - name: Install ffmpeg
-        if: inputs.mode == 'episode'
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      # No apt ffmpeg step. @ffmpeg-installer/ffmpeg is already a dependency and
+      # ffmpegBin() prefers it over PATH, so `apt-get install ffmpeg` bought
+      # nothing — and on the first episode run it took 12 of the 13 minutes.
+      # Remotion ships its own encoder, so nothing else needs a system build.
 
       - name: Install reel-studio dependencies
         if: inputs.mode == 'episode'

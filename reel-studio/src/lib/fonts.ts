@@ -16,12 +16,25 @@ export const loadFonts = (): Promise<void> => {
 
   loaded = (async () => {
     const handle = delayRender('Loading display font');
+    const url = staticFile('fonts/Outfit.ttf');
     try {
       // Outfit only: nothing Devanagari is rendered any more.
-      const face = new FontFace('Outfit', `url(${staticFile('fonts/Outfit.ttf')})`);
+      const face = new FontFace('Outfit', `url(${url})`);
       await face.load();
       document.fonts.add(face);
       await document.fonts.ready;
+    } catch (err) {
+      // Rethrow with the URL attached. The raw failure is a bare
+      // "DOMException: NetworkError", which says nothing about which file was
+      // missing or why — and the answer is almost always that public/fonts was
+      // not in the checkout. Fail loudly rather than continuing: a reel that
+      // renders in a fallback face still looks finished, so a silent fallback
+      // ships wrong-looking video instead of stopping the run.
+      throw new Error(
+        `[reel-studio] Could not load the display font from ${url}. ` +
+          'Check that reel-studio/public/fonts/Outfit.ttf exists in this checkout. ' +
+          `Underlying error: ${(err as Error)?.message ?? String(err)}`,
+      );
     } finally {
       continueRender(handle);
     }

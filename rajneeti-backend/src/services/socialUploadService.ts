@@ -1,21 +1,29 @@
 import fs from 'fs';
 import path from 'path';
+import {
+    MetaTokenExpiredError,
+    resolveLegacy,
+    type ChannelCredentials,
+} from './channelCredentials.js';
 
 export class SocialUploadService {
 
     /**
      * Diagnoses common Meta API errors and logs actionable advice.
      */
-    private static diagnoseMetaError(error: any, context: string): void {
+    private static diagnoseMetaError(error: any, context: string, channel = 'this channel'): void {
         const code = error.code;
         const subcode = error.error_subcode;
         const msg = error.message || '';
 
         if (code === 190) {
-            console.error(`\n🔴 [${context}] ACCESS TOKEN EXPIRED!`);
-            console.error('   → Your Instagram/Facebook access token has expired.');
-            console.error('   → Go to developers.facebook.com → Tools → Graph API Explorer to generate a new one.');
-            console.error('   → Or re-run the /api/admin/setup-instagram endpoint with a fresh user token.\n');
+            // THROWN, not logged. Both platforms share this token, so an expiry
+            // silently kills Instagram and Facebook at the same moment — and the
+            // previous behaviour was to print this and return false, which reads
+            // as "ran fine, posted nothing" in a CI log nobody opens. The whole
+            // reason the nightly reels went unnoticed for weeks was failures that
+            // did not fail.
+            throw new MetaTokenExpiredError(channel, msg || `code ${code}`);
         } else if (code === 10) {
             console.error(`\n🔴 [${context}] APP NOT IN LIVE MODE!`);
             console.error('   → Your Facebook App is still in Development Mode.');
@@ -42,16 +50,20 @@ export class SocialUploadService {
      * pages_show_list, pages_read_engagement.
      * The Facebook App must be in Live Mode (not Development Mode).
      */
-    static async uploadToInstagram(videoUrl: string, caption: string): Promise<boolean> {
-        console.log("[SocialUploadService] Uploading to Instagram Reels...");
-        
-        const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN;
-        const igUserId = process.env.INSTAGRAM_USER_ID; // The Instagram Business Account ID
-        
-        if (!accessToken || !igUserId) {
+    static async uploadToInstagram(
+        videoUrl: string,
+        caption: string,
+        creds?: ChannelCredentials,
+    ): Promise<boolean> {
+        // No creds passed = the original global-env behaviour, so every existing
+        // Rajneeti call site keeps working untouched.
+        const resolved = creds ?? resolveLegacy();
+        if (!resolved) {
             console.warn("[SocialUploadService] Missing Instagram credentials (INSTAGRAM_ACCESS_TOKEN or INSTAGRAM_USER_ID). Skipping upload.");
             return false;
         }
+        const { igToken: accessToken, igUserId } = resolved;
+        console.log(`[SocialUploadService] Uploading to Instagram Reels as ${resolved.channel} (account ${igUserId})...`);
 
         try {
             // Validate video URL is accessible and not too small
@@ -82,7 +94,7 @@ export class SocialUploadService {
 
             const initData: any = await initRes.json();
             if (initData.error) {
-                SocialUploadService.diagnoseMetaError(initData.error, 'Instagram Init');
+                SocialUploadService.diagnoseMetaError(initData.error, 'Instagram Init', resolved.channel);
                 throw new Error(`Instagram Init Error: ${initData.error.message}`);
             }
 
@@ -121,13 +133,18 @@ export class SocialUploadService {
 
             const publishData: any = await publishRes.json();
             if (publishData.error) {
-                SocialUploadService.diagnoseMetaError(publishData.error, 'Instagram Publish');
+                SocialUploadService.diagnoseMetaError(publishData.error, 'Instagram Publish', resolved.channel);
                 throw new Error(`Instagram Publish Error: ${publishData.error.message}`);
             }
 
             console.log(`[SocialUploadService] ✅ Instagram Upload Success! Reel ID: ${publishData.id}`);
             return true;
         } catch (err: any) {
+            // An expired token is not "this one upload failed" — it is every
+            // future upload on BOTH platforms failing until someone regenerates
+            // it. Swallowing it here would restore exactly the silent-failure
+            // behaviour this change exists to remove.
+            if (err instanceof MetaTokenExpiredError) throw err;
             console.error("[SocialUploadService] Instagram Upload Failed:", err.message || err);
             return false;
         }
@@ -137,22 +154,25 @@ export class SocialUploadService {
      * Uploads to Facebook Reels via Meta Graph API
      * Requires a publicly accessible video URL
      */
-    static async uploadToFacebook(videoUrl: string, caption: string): Promise<boolean> {
-        console.log("[SocialUploadService] Uploading to Facebook Reels...");
-        
-        const accessToken = process.env.INSTAGRAM_ACCESS_TOKEN; // Page Access Token
-        
-        if (!accessToken) {
+    static async uploadToFacebook(
+        videoUrl: string,
+        caption: string,
+        creds?: ChannelCredentials,
+    ): Promise<boolean> {
+        const resolved = creds ?? resolveLegacy();
+        if (!resolved) {
             console.warn("[SocialUploadService] Missing Facebook credentials (INSTAGRAM_ACCESS_TOKEN). Skipping upload.");
             return false;
         }
+        const accessToken = resolved.fbPageToken;
+        console.log(`[SocialUploadService] Uploading to Facebook Reels as ${resolved.channel}...`);
 
         try {
             // 1. Get Page ID dynamically using /me
             const meRes = await fetch(`https://graph.facebook.com/v21.0/me?access_token=${accessToken}`);
             const meData: any = await meRes.json();
             if (meData.error) {
-                SocialUploadService.diagnoseMetaError(meData.error, 'Facebook Me');
+                SocialUploadService.diagnoseMetaError(meData.error, 'Facebook Me', resolved.channel);
                 throw new Error(`Facebook Me Error: ${meData.error.message}`);
             }
             const pageId = meData.id;
@@ -169,7 +189,7 @@ export class SocialUploadService {
             });
             const initData: any = await initRes.json();
             if (initData.error) {
-                SocialUploadService.diagnoseMetaError(initData.error, 'Facebook Init');
+                SocialUploadService.diagnoseMetaError(initData.error, 'Facebook Init', resolved.channel);
                 throw new Error(`Facebook Reels Init Error: ${initData.error.message}`);
             }
             const { video_id, upload_url } = initData;
@@ -203,13 +223,18 @@ export class SocialUploadService {
             });
             const publishData: any = await publishRes.json();
             if (publishData.error) {
-                SocialUploadService.diagnoseMetaError(publishData.error, 'Facebook Publish');
+                SocialUploadService.diagnoseMetaError(publishData.error, 'Facebook Publish', resolved.channel);
                 throw new Error(`Facebook Reels Publish Error: ${publishData.error.message}`);
             }
 
             console.log(`[SocialUploadService] ✅ Facebook Upload Success! Reel ID: ${video_id}`);
             return true;
         } catch (err: any) {
+            // An expired token is not "this one upload failed" — it is every
+            // future upload on BOTH platforms failing until someone regenerates
+            // it. Swallowing it here would restore exactly the silent-failure
+            // behaviour this change exists to remove.
+            if (err instanceof MetaTokenExpiredError) throw err;
             console.error("[SocialUploadService] Facebook Upload Failed:", err.message || err);
             return false;
         }
@@ -298,6 +323,11 @@ export class SocialUploadService {
 
             return true;
         } catch (err: any) {
+            // An expired token is not "this one upload failed" — it is every
+            // future upload on BOTH platforms failing until someone regenerates
+            // it. Swallowing it here would restore exactly the silent-failure
+            // behaviour this change exists to remove.
+            if (err instanceof MetaTokenExpiredError) throw err;
             console.error("[SocialUploadService] YouTube Upload Failed:", err?.message || err);
             return false;
         }

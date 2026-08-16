@@ -15,7 +15,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
 
-import { getAllTopics, type ScheduledTopic } from './services/moneyCurriculum.js';
+import { getAllTopics, getNextTopic, type ScheduledTopic } from './services/moneyCurriculum.js';
+import { moneyDb, usedTopicIds, lastEpisodeNo, uploadVideo, recordEpisode } from './services/moneyEpisodeStore.js';
 import { generateMoneyScript, voiceoverText, type MoneyScript } from './services/moneyScriptGenerator.js';
 import { speakMoneyScript } from './services/moneyVoiceService.js';
 import { masterVoiceover, measureLoudness } from './services/audioMixService.js';
@@ -31,23 +32,47 @@ const arg = (name: string): string | undefined => {
 };
 const flag = (name: string): boolean => process.argv.includes(`--${name}`);
 
-function pickTopic(): ScheduledTopic {
+/**
+ * Which topic to make, and what number it is.
+ *
+ * `--next` is what the daily cron uses: ask the database what has already been
+ * made and take the first curriculum topic that has not. Everything else is for
+ * running a specific episode by hand.
+ */
+async function pickTopic(): Promise<{ topic: ScheduledTopic; episodeNo: number }> {
     const topics = getAllTopics();
+
+    if (flag('next')) {
+        const db = moneyDb();
+        const used = await usedTopicIds(db);
+        const topic = getNextTopic(used);
+        if (!topic) {
+            // Not an error. The curriculum is finite by design and this is the
+            // signal that it is time to write more, not that something broke.
+            throw new Error(
+                `[money] All ${topics.length} written topics have been used. ` +
+                    'Write more in content/money-ladder.json — steps 4-7 are outlined and waiting.',
+            );
+        }
+        return { topic, episodeNo: (await lastEpisodeNo(db)) + 1 };
+    }
+
     const id = arg('topic');
     if (id) {
         const found = topics.find((t) => t.id === id);
         if (!found) throw new Error(`No topic with id "${id}". First few: ${topics.slice(0, 5).map((t) => t.id).join(', ')}`);
-        return found;
+        return { topic: found, episodeNo: Number(arg('episode') ?? found.order) };
     }
+
     const index = Number(arg('index') ?? 0);
     if (!topics[index]) throw new Error(`--index ${index} is out of range (${topics.length} topics written).`);
-    return topics[index];
+    return { topic: topics[index], episodeNo: Number(arg('episode') ?? topics[index].order) };
 }
 
 async function main() {
-    const topic = pickTopic();
+    const { topic, episodeNo } = await pickTopic();
     const outDir = path.resolve(arg('out') ?? path.join(REPO_ROOT, 'out', 'money'));
-    const episode = Number(arg('episode') ?? topic.order);
+    const episode = Number(arg('episode') ?? episodeNo);
     fs.mkdirSync(outDir, { recursive: true });
 
     console.log(`\n━━ Episode ${episode}: ${topic.id} — ${topic.title}`);
@@ -137,6 +162,15 @@ async function main() {
     console.log(`\n✅ Episode ${episode} rendered — ${(size / 1024 / 1024).toFixed(1)} MB at ${mp4}`);
     if (!fullyMatched) {
         console.log('⚠️  Beat timings were approximate. Check the cuts before publishing.');
+    }
+
+    // 6. Record it, so the approve page has something to show.
+    if (flag('record')) {
+        const db = moneyDb();
+        const videoUrl = await uploadVideo(db, mp4, episode);
+        const row = await recordEpisode(db, { topic, episodeNo: episode, script, videoUrl });
+        console.log(`\n📼 Recorded as ${row.status} — ${videoUrl}`);
+        console.log('   Approve it at /studio/approve to publish this evening.');
     }
 }
 

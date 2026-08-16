@@ -1,0 +1,91 @@
+name: Money Reel — Morning Build
+
+# Builds tomorrow's episode and parks it for approval. Publishes nothing.
+#
+# Split from publishing on purpose: approval never holds a runner open, and a
+# day you do not approve simply posts nothing rather than failing.
+
+on:
+  # SCHEDULE OFF until the Instagram setup is done and one episode has been
+  # published by hand. Turning it on before then would spend OpenAI and
+  # ElevenLabs credits every morning building episodes with nowhere to go.
+  #
+  # To go live: uncomment the two lines below. That is the whole switch.
+  #
+  # schedule:
+  #   # 01:30 UTC = 07:00 IST. Ready before the working day.
+  #   - cron: '30 1 * * *'
+  workflow_dispatch:
+    inputs:
+      topic_id:
+        description: 'Force a specific curriculum topic (blank = next unused)'
+        required: false
+      dry_run:
+        description: 'Build it but do not record it for approval'
+        type: boolean
+        required: false
+        default: false
+
+# One build at a time. Two concurrent runs would both claim the same "next"
+# topic and produce duplicate episodes.
+concurrency:
+  group: money-reel-generate
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: |
+            rajneeti-backend/package-lock.json
+            reel-studio/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd rajneeti-backend && npm ci
+          cd ../reel-studio && npm ci
+
+      - name: Install headless Chrome for Remotion
+        working-directory: ./reel-studio
+        run: npx remotion browser ensure
+
+      # The offline gate. Everything below this line costs money, so a broken
+      # render or a bad curriculum fails here instead of after the voiceover.
+      - name: Offline checks
+        working-directory: ./rajneeti-backend
+        run: npm run money:validate && npm run money:check && npm run money:e2e
+
+      - name: Build the episode
+        working-directory: ./rajneeti-backend
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          SELECT="${{ inputs.topic_id && format('--topic {0}', inputs.topic_id) || '--next' }}"
+          RECORD="${{ inputs.dry_run == true && ' ' || '--record' }}"
+          npx tsx src/generateMoneyEpisode.ts $SELECT --out ../out/money $RECORD
+
+      # Kept whether or not the run succeeded — a failed build is exactly when
+      # you want the script and storyboard to look at.
+      - name: Upload the episode
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: money-episode-${{ github.run_number }}
+          path: |
+            out/money/*.mp4
+            out/money/*.json
+          if-no-files-found: warn
+          retention-days: 14

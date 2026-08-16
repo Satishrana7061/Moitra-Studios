@@ -16,6 +16,7 @@ import {
     approvedEpisodes,
     markPublished,
     markFailed,
+    pruneOldVideos,
     type EpisodeRow,
 } from './services/moneyEpisodeStore.js';
 import { SERIES_NAME, DISCLAIMER } from './services/moneyStoryboardBuilder.js';
@@ -51,6 +52,10 @@ async function main() {
 
     if (!episodes.length) {
         console.log('[money] Nothing approved. Nothing to publish — this is a normal quiet day.');
+        // Still tidy up. Cleanup depends on what was published DAYS ago, not on
+        // anything happening today, so returning early here would mean storage
+        // is only ever reclaimed on days you happen to approve something.
+        await prune();
         return;
     }
 
@@ -105,6 +110,28 @@ async function main() {
     }
 
     console.log(`\n[money] Done. ${published}/${episodes.length} published.`);
+    await prune();
+}
+
+/**
+ * Frees storage after publishing, in the same run.
+ *
+ * Deliberately not its own workflow: a separate cleanup cron is one more thing
+ * to notice has stopped, and this has exactly one job to do right after the
+ * only event that makes a file disposable.
+ */
+async function prune() {
+    const keepDays = Number(process.env.MONEY_VIDEO_KEEP_DAYS ?? 7);
+    try {
+        const { deleted, skipped } = await pruneOldVideos(moneyDb(), { keepDays, dryRun: dryRun });
+        if (deleted) {
+            console.log(`[money] Freed storage: removed ${deleted} video(s) published over ${keepDays} days ago.`);
+        }
+        for (const s of skipped) console.warn(`[money] Cleanup skipped — ${s}`);
+    } catch (err: any) {
+        // Never fail a successful publish because tidying up went wrong.
+        console.warn(`[money] Cleanup skipped: ${err.message}`);
+    }
 }
 
 main().catch((err) => {

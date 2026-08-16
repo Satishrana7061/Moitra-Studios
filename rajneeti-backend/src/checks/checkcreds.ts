@@ -103,5 +103,32 @@ check('it is throwable and named', err instanceof Error && err.name === 'MetaTok
 check('it says both platforms are affected', err.message.includes('Instagram and Facebook both'));
 check('it names the fix', err.message.includes('System User'));
 
+
+// ── Storage cleanup safety ───────────────────────────────────────────────────
+// The function that decides which files get deleted. The Rajneeti reels sit at
+// the bucket root, so the money/ prefix requirement is the only thing standing
+// between a cleanup job and two months of the game's videos.
+import { storageKeyFromUrl } from '../services/moneyEpisodeStore.js';
+
+console.log('\nstorage cleanup can only ever reach money/ files:');
+const base = 'https://xbgjkmahmyuoaspevipd.supabase.co/storage/v1/object/public/automated-reels/';
+
+check('a money video resolves to its key',
+    storageKeyFromUrl(`${base}money/episode-3-1234.mp4`) === 'money/episode-3-1234.mp4');
+check('a query string is stripped',
+    storageKeyFromUrl(`${base}money/episode-3.mp4?token=abc`) === 'money/episode-3.mp4');
+
+// The ones that must come back null.
+check('A RAJNEETI REEL IS REFUSED',
+    storageKeyFromUrl(`${base}pm-interview-youth-jobs-squeeze-1786198071662.mp4`) === null);
+check('a root-level file is refused',
+    storageKeyFromUrl(`${base}anything.mp4`) === null);
+check('another bucket is refused',
+    storageKeyFromUrl('https://x.supabase.co/storage/v1/object/public/reel-assets/money/a.mp4') === null);
+check('a path climbing out of the prefix is refused',
+    storageKeyFromUrl(`${base}money/../pm-interview-x.mp4`) === null);
+check('an empty url is refused', storageKeyFromUrl('') === null);
+check('a foreign url is refused', storageKeyFromUrl('https://evil.example/automated-reels/money/x.mp4') === null);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

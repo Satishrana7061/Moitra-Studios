@@ -149,6 +149,96 @@ export async function markPublished(db: SupabaseClient, id: string): Promise<voi
 }
 
 /**
+ * Deletes the stored MP4 of episodes published more than `keepDays` ago.
+ *
+ * Once a reel is on Instagram, Meta holds its own copy — the URL here was only
+ * ever a delivery mechanism, so keeping it forever just fills a 1 GB free tier
+ * at about 130 MB a month. The grace period exists because "published" is not
+ * quite "finished": a post can be taken down, or want re-posting elsewhere, and
+ * getting the file back after deletion means re-rendering and paying for the
+ * voice again.
+ *
+ * Three rails, because a cleanup job with a bug is the worst kind:
+ *   1. Only rows with status='published' — never pending or approved.
+ *   2. Only keys under `money/`. The Rajneeti reels sit at the bucket root as
+ *      pm-interview-*.mp4, so this cannot reach them even if a URL is malformed.
+ *   3. Anything whose key does not parse to that prefix is skipped and reported,
+ *      not guessed at.
+ */
+/**
+ * The storage key for a video URL, or null if it is not one of ours.
+ *
+ * Pulled out and exported purely so it can be tested, because this is the
+ * function that decides what gets deleted. It returns null rather than
+ * guessing: an unrecognised URL is reported and left alone.
+ *
+ * The Rajneeti reels live at the bucket root (pm-interview-*.mp4), so requiring
+ * the `money/` prefix is what makes it impossible for this to reach them.
+ */
+export function storageKeyFromUrl(url: string): string | null {
+    if (!url) return null;
+    // Match the FULL Supabase public-object path, not just the bucket name.
+    // `/automated-reels/` alone appears in any URL that happens to contain it —
+    // including one pointing at another host entirely — and we would then
+    // cheerfully derive a key and delete that file from OUR bucket.
+    const marker = `/storage/v1/object/public/${BUCKET}/`;
+    const at = url.indexOf(marker);
+    if (at < 0) return null;
+
+    const key = url.slice(at + marker.length).split('?')[0];
+    if (!key.startsWith(`${PREFIX}/`)) return null;
+    // A traversal segment could climb out of the prefix on some backends.
+    if (key.includes('..')) return null;
+    return key;
+}
+
+export async function pruneOldVideos(
+    db: SupabaseClient,
+    opts: { keepDays?: number; dryRun?: boolean } = {},
+): Promise<{ deleted: number; freedBytes: number; skipped: string[] }> {
+    const keepDays = opts.keepDays ?? 7;
+    const cutoff = new Date(Date.now() - keepDays * 86_400_000).toISOString();
+
+    const { data, error } = await db
+        .from('money_episodes')
+        .select('id, episode_no, video_url, published_at')
+        .eq('status', 'published')
+        .lt('published_at', cutoff)
+        .not('video_url', 'is', null);
+
+    if (error) throw new Error(`[money] Could not list old episodes: ${error.message}`);
+
+    const rows = (data ?? []) as { id: string; episode_no: number; video_url: string }[];
+    const skipped: string[] = [];
+    const keys: { id: string; key: string }[] = [];
+
+    for (const row of rows) {
+        const key = storageKeyFromUrl(row.video_url);
+        if (!key) {
+            skipped.push(`episode ${row.episode_no}: "${row.video_url}" is not a ${PREFIX}/ object`);
+            continue;
+        }
+        keys.push({ id: row.id, key });
+    }
+
+    if (!keys.length) return { deleted: 0, freedBytes: 0, skipped };
+
+    if (opts.dryRun) {
+        console.log(`[money] --dry-run: would delete ${keys.length} file(s):`);
+        for (const k of keys) console.log(`   ${k.key}`);
+        return { deleted: 0, freedBytes: 0, skipped };
+    }
+
+    const { error: delErr } = await db.storage.from(BUCKET).remove(keys.map((k) => k.key));
+    if (delErr) throw new Error(`[money] Storage cleanup failed: ${delErr.message}`);
+
+    // Clear the URL too, so the approve page never offers a dead video.
+    await db.from('money_episodes').update({ video_url: null }).in('id', keys.map((k) => k.id));
+
+    return { deleted: keys.length, freedBytes: 0, skipped };
+}
+
+/**
  * Records a failure ON the row rather than only in the CI log.
  *
  * A run that fails silently in Actions is a run nobody notices — which is

@@ -4,12 +4,15 @@ name: Money Voice Lab
 # nothing here uploads to any platform.
 #
 # The API keys live in GitHub Secrets and are write-only, so this is the only
-# place the real chain can run. Two modes:
+# place the real chain can run. Four modes, cheapest first:
 #
 #   list-voices    free. Prints the voices on the account, ranked, so a real
 #                  Hindi voice ID can be chosen instead of guessed.
-#   episode        spends credits. Runs script -> Hindi VO -> master -> align ->
-#                  render and uploads the MP4 as an artifact to judge by ear.
+#   fact-probe     a few OpenAI calls. Asks the same questions with and without
+#                  web search, to find out whether the model can fetch current
+#                  Indian rates or only recite remembered ones. Writes nothing.
+#   script-only    one OpenAI call. Proves the writing before any voice credits.
+#   episode        spends ElevenLabs credits. Full chain, uploads the MP4.
 #
 # Costs are real, so `episode` renders ONE topic per run by default.
 
@@ -23,6 +26,7 @@ on:
         default: list-voices
         options:
           - list-voices
+          - fact-probe
           - script-only
           - episode
       topic_id:
@@ -63,6 +67,16 @@ jobs:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: npm run money:voices
 
+      # Asks the same questions with and without web search, so we can see
+      # whether the model is fetching current figures or reciting remembered
+      # ones with equal confidence. Writes nothing.
+      - name: Probe fact sources
+        if: inputs.mode == 'fact-probe'
+        working-directory: ./rajneeti-backend
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run money:probe-facts
+
       # ── Everything below needs the render toolchain ────────────────────────
       # No apt ffmpeg step. @ffmpeg-installer/ffmpeg is already a dependency and
       # ffmpegBin() prefers it over PATH, so `apt-get install ffmpeg` bought
@@ -80,7 +94,7 @@ jobs:
         run: npx remotion browser ensure
 
       - name: Run offline checks
-        if: inputs.mode != 'list-voices'
+        if: inputs.mode == 'script-only' || inputs.mode == 'episode'
         working-directory: ./rajneeti-backend
         run: npm run money:validate && npm run money:check
 
@@ -136,7 +150,7 @@ jobs:
           done
 
       - name: Upload results
-        if: always() && inputs.mode != 'list-voices'
+        if: always() && (inputs.mode == 'script-only' || inputs.mode == 'episode')
         uses: actions/upload-artifact@v4
         with:
           name: money-voice-lab-${{ github.run_number }}

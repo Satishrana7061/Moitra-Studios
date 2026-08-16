@@ -55,7 +55,7 @@ export const moneyStoryboardSchema = z.object({
       layoutVariant: z.enum(['a', 'b', 'c']),
     })
     .default({
-      seriesName: 'The Money Ladder',
+      seriesName: 'Hisaab Kitab',
       disclaimer: 'General information, not investment advice',
       layoutVariant: 'a',
     }),

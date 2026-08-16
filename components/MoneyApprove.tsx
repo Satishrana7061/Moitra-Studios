@@ -1,5 +1,5 @@
 /**
- * The daily approve step for The Money Ladder.
+ * The daily approve step for Hisaab Kitab.
  *
  * One episode at a time: watch it, read what it says, Approve or Skip. The
  * evening workflow publishes whatever is approved.
@@ -164,7 +164,7 @@ const MoneyApprove: React.FC = () => {
     if (phase === 'signed-out') {
         return (
             <Panel>
-                <h1 className="font-serif text-2xl text-lokGold-400 mb-2">The Money Ladder</h1>
+                <h1 className="font-serif text-2xl text-lokGold-400 mb-2">Hisaab Kitab</h1>
                 <p className="text-slate-400 text-sm mb-6">Sign in to review today's episode.</p>
                 <form onSubmit={sendLink} className="flex flex-col gap-3">
                     <input
@@ -197,7 +197,7 @@ const MoneyApprove: React.FC = () => {
         <div className="w-full max-w-2xl mx-auto px-4 py-8">
             <header className="flex items-baseline justify-between gap-4 mb-8 pb-4 border-b border-slate-800">
                 <div>
-                    <h1 className="font-serif text-2xl md:text-3xl text-lokGold-400">The Money Ladder</h1>
+                    <h1 className="font-serif text-2xl md:text-3xl text-lokGold-400">Hisaab Kitab</h1>
                     <p className="text-slate-500 text-xs mt-1">{sessionEmail}</p>
                 </div>
                 <button onClick={signOut} className="text-slate-400 hover:text-white text-sm underline underline-offset-4">

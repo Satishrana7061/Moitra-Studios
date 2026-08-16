@@ -46,6 +46,27 @@ if (stats.topicsNeedingFacts.length) {
     console.log(`   Still generic: ${shown}${more > 0 ? ` … +${more} more` : ''}`);
 }
 
+// Volatile facts go stale. A quarterly rate quoted a year late is exactly the
+// failure the fact probe demonstrated, so surface the age rather than trusting
+// that someone remembers to look.
+const STALE_DAYS = 180;
+const now = Date.now();
+const stale: string[] = [];
+for (const step of curriculum.steps) {
+    for (const t of step.topics ?? []) {
+        for (const fs of (t as any).factSources ?? []) {
+            if (!fs?.volatile || !fs?.checkedOn) continue;
+            const age = (now - Date.parse(fs.checkedOn)) / 86_400_000;
+            if (age > STALE_DAYS) stale.push(`${t.id} (checked ${fs.checkedOn}, ${Math.round(age)} days ago)`);
+        }
+    }
+}
+if (stale.length) {
+    console.log(`\n⏰ ${stale.length} changing figure(s) not checked in over ${STALE_DAYS} days:`);
+    for (const s of stale.slice(0, 8)) console.log(`   ${s}`);
+    console.log('   Re-run the research step for these before they are published again.');
+}
+
 if (issues.length === 0) {
     console.log('\n✅ No validation or compliance issues.\n');
     process.exit(0);

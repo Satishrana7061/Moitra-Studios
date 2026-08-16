@@ -1,5 +1,5 @@
 /**
- * Produces one complete episode of The Money Ladder: topic → script → Hindi
+ * Produces one complete episode of Hisaab Kitab: topic → script → Hindi
  * voiceover → mastered audio → aligned storyboard → rendered MP4.
  *
  * Run from CI, where the API keys exist. Everything up to the render happens in

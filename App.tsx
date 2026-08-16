@@ -14,7 +14,7 @@ const HeadlessReelGenerator = lazy(() => import('./components/HeadlessReelGenera
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
 const ManifestoHub = lazy(() => import('./components/ManifestoHub'));
 const PromiseDetail = lazy(() => import('./components/PromiseDetail'));
-// The Money Ladder approve step. Lazy like the rest — it is a private page
+// Hisaab Kitab approve step. Lazy like the rest — it is a private page
 // visited once a day, so it has no business in the initial bundle.
 const MoneyApprove = lazy(() => import('./components/MoneyApprove'));
 

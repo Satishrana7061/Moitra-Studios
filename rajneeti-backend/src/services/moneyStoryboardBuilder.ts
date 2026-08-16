@@ -28,7 +28,7 @@ export interface MoneyStoryboard {
     brand: { seriesName: string; disclaimer: string; layoutVariant: 'a' | 'b' | 'c' };
 }
 
-export const SERIES_NAME = 'The Money Ladder';
+export const SERIES_NAME = 'Hisaab Kitab';
 export const DISCLAIMER = 'General information, not investment advice';
 
 /**

@@ -8,7 +8,7 @@ import { Visual } from './segments/Visuals';
 import { SeriesBar } from './layers/SeriesBar';
 
 /**
- * The Money Ladder — the money composition.
+ * Hisaab Kitab — the money composition.
  *
  * Structure: hook card (0-3s) → one beat per idea, each with a moving visual →
  * closing CTA. No frame is ever static: something is entering, counting or

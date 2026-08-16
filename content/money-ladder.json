@@ -1,12 +1,12 @@
 {
   "$comment": "पैसे की सीढ़ी — the content source for the Hindi money-management channel. This file replaces a news feed: there is no scraping and no external input, so the pipeline cannot dry up or surface something unsafe during breaking news. Topics are consumed in order; money_episodes tracks which have been used. COMPLIANCE: every topic here must stay inside SEBI's permitted 'general financial awareness' zone -- no named securities or tickers, no returns figures, no price data, no buy/sell framing. Explaining what an instrument IS is permitted; recommending one is not.",
   "series": {
-    "name": "पैसे की सीढ़ी",
+    "name": "हिसाब किताब",
     "tagline": "एक बार में एक कदम",
     "language": "hi",
     "disclaimer": "सामान्य जानकारी — निवेश सलाह नहीं",
     "targetDurationSec": 35,
-    "nameEn": "The Money Ladder",
+    "nameEn": "Hisaab Kitab",
     "disclaimerEn": "General information, not investment advice",
     "$languageNote": "Everything RENDERED is English (titleEn, and the generator's hook/onScreen/cta). Everything SPOKEN is Hindi. The Hindi fields here are generator guidance and are never drawn."
   },

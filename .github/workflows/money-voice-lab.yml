@@ -27,6 +27,7 @@ on:
         options:
           - list-voices
           - fact-probe
+          - research-facts
           - script-only
           - episode
       topic_id:
@@ -76,6 +77,26 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: npm run money:probe-facts
+
+      # Fills in `facts` for topics that have none, using the search path the
+      # probe validated. Writes to content/money-ladder.json, so the diff is
+      # reviewed before it is committed — these become published claims.
+      - name: Research facts
+        if: inputs.mode == 'research-facts'
+        working-directory: ./rajneeti-backend
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          npm run money:research -- --limit 10 \
+            ${{ inputs.topic_id && format('--step {0}', inputs.topic_id) || '' }}
+
+      - name: Upload the updated curriculum
+        if: inputs.mode == 'research-facts'
+        uses: actions/upload-artifact@v4
+        with:
+          name: money-curriculum-${{ github.run_number }}
+          path: content/money-ladder.json
+          retention-days: 14
 
       # ── Everything below needs the render toolchain ────────────────────────
       # No apt ffmpeg step. @ffmpeg-installer/ffmpeg is already a dependency and

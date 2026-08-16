@@ -14,6 +14,9 @@ const HeadlessReelGenerator = lazy(() => import('./components/HeadlessReelGenera
 const TermsOfService = lazy(() => import('./components/TermsOfService'));
 const ManifestoHub = lazy(() => import('./components/ManifestoHub'));
 const PromiseDetail = lazy(() => import('./components/PromiseDetail'));
+// The Money Ladder approve step. Lazy like the rest — it is a private page
+// visited once a day, so it has no business in the initial bundle.
+const MoneyApprove = lazy(() => import('./components/MoneyApprove'));
 
 
 const PageLoader = () => (
@@ -70,6 +73,7 @@ const App: React.FC = () => {
             <Route path="/terms-of-service" element={<TermsOfService />} />
             <Route path="/prime-ministers-promises" element={<ManifestoHub />} />
             <Route path="/prime-ministers-promises/:slug" element={<PromiseDetail />} />
+            <Route path="/studio/approve" element={<MoneyApprove />} />
 
             <Route path="*" element={<RajneetiMap />} />
           </Routes>

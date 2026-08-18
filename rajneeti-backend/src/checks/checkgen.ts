@@ -5,10 +5,11 @@ import {
   languageIssues,
   structuralIssues,
   checkableClaims,
+  hasNumericMaterial,
   type Provider,
   type MoneyScript,
 } from '../services/moneyScriptGenerator.js';
-import { complianceViolations } from '../services/moneyCurriculum.js';
+import { complianceViolations, getAllTopics } from '../services/moneyCurriculum.js';
 import {
   MONEY_TTS_MODEL,
   TAG_VOCABULARY,
@@ -294,6 +295,55 @@ async function main() {
   check('a number arriving mid-read gets silence before it',
     lateDirected.includes(`[pause] [emphatic] ${script.beats[2].say}`), lateDirected.slice(0, 90));
   check('...and still strips back exactly', stripAudioTags(lateDirected) === voiceoverText(lateNumber));
+
+  // ── worked arithmetic ──────────────────────────────────────────────────────
+  // The change the competitive analysis said decides whether a reel gets sent:
+  // ONE number the viewer owns, with the sum done where they can see it.
+
+  console.log('\nworked arithmetic — the sum has to be a real sum:');
+  const workedBeat = {
+    onScreen: 'What it really costs',
+    say: 'पचास हज़ार के बकाया पर साल भर में इक्कीस हज़ार ब्याज लगता है।',
+    caption: 'A fifty thousand rupee balance costs you twenty one thousand in a year.',
+    visual: { kind: 'worked' as const, base: '₹50,000', baseLabel: 'Card balance', op: '× 42% a year', result: '₹21,000', resultLabel: 'Interest, in one year' },
+  };
+  const withWorked = { ...script, beats: [...script.beats, workedBeat] };
+  check('a real worked sum passes', structuralIssues(withWorked).length === 0,
+    structuralIssues(withWorked).join('; '));
+
+  // The failure this guards is specific: asked for arithmetic, a model will
+  // happily return base "your salary", op "a bit", result "more". That renders
+  // perfectly, reads as a calculation, and teaches nothing.
+  const wordySum = { ...script, beats: [...script.beats, { ...workedBeat, visual: { ...workedBeat.visual, base: 'Your salary', result: 'More' } }] };
+  check('a "sum" with no numbers in it is rejected',
+    wordySum && structuralIssues(wordySum).some((i) => i.includes('is not arithmetic')));
+  const halfSum = { ...script, beats: [...script.beats, { ...workedBeat, visual: { ...workedBeat.visual, result: 'a lot less' } }] };
+  check('...and so is one with a number on only one side',
+    structuralIssues(halfSum).some((i) => i.includes('is not arithmetic')));
+  const noOp = { ...script, beats: [...script.beats, { ...workedBeat, visual: { ...workedBeat.visual, op: '' } }] };
+  check('a missing operation is caught', structuralIssues(noOp).some((i) => i.includes('visual.op is required')));
+
+  console.log('\n...and it is required exactly where the topic has numbers:');
+  const numericTopic = getAllTopics().find((t) => hasNumericMaterial(t));
+  const plainTopic = getAllTopics().find((t) => !hasNumericMaterial(t));
+  check('the curriculum has topics that carry numbers', Boolean(numericTopic), numericTopic?.id);
+
+  if (numericTopic) {
+    check('a numeric topic with no worked beat is rejected',
+      structuralIssues(script, numericTopic).some((i) => i.includes('visible arithmetic')));
+    check('...and passes once one is added',
+      !structuralIssues(withWorked, numericTopic).some((i) => i.includes('visible arithmetic')),
+      structuralIssues(withWorked, numericTopic).join('; '));
+  }
+  if (plainTopic) {
+    // The asymmetry that decided the rule: a forced sum on a topic with no
+    // numbers is invented arithmetic, and on a money channel that costs trust.
+    check('a topic with no numbers is NOT forced to invent a sum',
+      !structuralIssues(script, plainTopic).some((i) => i.includes('visible arithmetic')),
+      plainTopic.id);
+  } else {
+    console.log('  n/a   every written topic now carries numbers — nothing to exempt');
+  }
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

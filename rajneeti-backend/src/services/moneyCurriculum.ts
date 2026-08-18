@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CURRICULUM_PATH = path.resolve(__dirname, '..', '..', '..', 'content', 'money-ladder.json');
 
-export type VisualKind = 'bigNumber' | 'ladder' | 'compare' | 'steps' | 'clock';
+export type VisualKind = 'bigNumber' | 'ladder' | 'compare' | 'steps' | 'clock' | 'worked';
 
 export interface Topic {
     id: string;
@@ -91,7 +91,7 @@ export interface ScheduledTopic extends Topic {
     order: number;
 }
 
-const VISUAL_KINDS: VisualKind[] = ['bigNumber', 'ladder', 'compare', 'steps', 'clock'];
+const VISUAL_KINDS: VisualKind[] = ['bigNumber', 'ladder', 'compare', 'steps', 'clock', 'worked'];
 
 let cached: Curriculum | null = null;
 

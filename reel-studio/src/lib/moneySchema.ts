@@ -18,6 +18,27 @@ export const visualSpecSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('steps'), items: z.array(z.string()).min(2).max(4) }),
   z.object({ kind: z.literal('ladder'), highlightStep: z.number().int().min(1).max(7) }),
   z.object({ kind: z.literal('clock'), label: z.string().optional() }),
+  /**
+   * One number the viewer owns, with visible arithmetic done to it.
+   *
+   * The competitive finding that mattered most. A stated fact ("cards charge
+   * 42% a year") is interesting; a worked sum the viewer can run on their OWN
+   * salary before the video ends is usable, and usable is what makes someone
+   * send a reel to a friend. On the channel we studied, sends outnumbered
+   * comments by more than a hundred to one.
+   *
+   * `base` and `result` carry their symbols — they are drawn, never spoken.
+   * `op` is written the way a person would say it out loud ("× 5%", "− ₹2,000",
+   * "÷ 12"), not as a formula.
+   */
+  z.object({
+    kind: z.literal('worked'),
+    base: z.string(),
+    baseLabel: z.string().optional(),
+    op: z.string(),
+    result: z.string(),
+    resultLabel: z.string().optional(),
+  }),
 ]);
 
 export const moneyBeatSchema = z.object({

@@ -41,6 +41,7 @@ const script: MoneyScript = {
     beats: [
         { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', caption: 'Put ten thousand rupees aside before you invest anything.', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
         { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', caption: 'Keep it in a separate account from your salary.', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
+        { onScreen: 'What waiting costs', say: 'पचास हज़ार के बकाया पर साल भर में इक्कीस हज़ार ब्याज लगता है।', caption: 'A fifty thousand rupee balance costs twenty one thousand in a year.', visual: { kind: 'worked', base: '₹50,000', baseLabel: 'Card balance', op: '× 42% a year', result: '₹21,000', resultLabel: 'Interest, in one year' } },
         { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', caption: 'Only once that is done should you talk about investing.', visual: { kind: 'ladder', highlightStep: 1 } },
     ],
     cta: 'How big is your buffer?',
@@ -68,7 +69,7 @@ async function main() {
     if (!topic) throw new Error(`Fixture topic ${script.topicId} is no longer in the curriculum.`);
 
     console.log('script passes its own gates:');
-    check('no structural issues', structuralIssues(script).length === 0, structuralIssues(script).join('; '));
+    check('no structural issues', structuralIssues(script, topic).length === 0, structuralIssues(script, topic).join('; '));
     check('no language issues', languageIssues(script).length === 0, languageIssues(script).join('; '));
 
     const vo = voiceoverText(script);

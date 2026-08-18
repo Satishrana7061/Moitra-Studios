@@ -52,6 +52,12 @@ export interface ScriptBeat {
         bLabel?: string;
         items?: string[];
         highlightStep?: number;
+        /** worked: the number the viewer owns, and what is done to it. */
+        base?: string;
+        baseLabel?: string;
+        op?: string;
+        result?: string;
+        resultLabel?: string;
     };
 }
 
@@ -147,6 +153,13 @@ STRUCTURE
                   steps     (items: 2-4 short lines)
                   ladder    (highlightStep: 1-7, the step this episode belongs to)
                   clock     (optional label) — only for durations
+                  worked    (base, baseLabel, op, result, resultLabel)
+                            — ONE number the viewer owns, with the arithmetic
+                              done where they can see it. Example:
+                              base "₹30,000", baseLabel "Your salary",
+                              op "× 5%", result "₹1,500", resultLabel "Every month".
+                              Write "op" the way a person says it out loud.
+                              "base" and "result" must both contain a real figure.
 - cta: the closing question shown on screen. ENGLISH. Must invite a comment, not a like.
 - ctaSaid: the same closing question SPOKEN. HINDI. This one is read aloud; "cta" is only drawn.
 
@@ -170,6 +183,24 @@ Write the "say" lines the way you would actually talk to a friend who is worried
 about money. Short sentences. Natural pauses with commas. The odd everyday
 filler is fine. Do not write in the polished register of written Hindi — write
 what a warm, direct twenty-something would really say out loud.
+
+DO THE MATHS ON SCREEN, ON A NUMBER THEY OWN
+The single thing that makes someone SEND a reel to a friend is that the friend
+can use it tonight. A stated fact does not do that; a sum they can run on their
+own salary does.
+
+So one beat must use the "worked" visual, and it must start from a number the
+viewer recognises as theirs — their salary, their card balance, their EMI, their
+rent — not an abstract figure. Take that number and do ONE visible operation to
+it. One step, not three: the viewer is following in their head.
+
+  WEAK    "Credit cards charge 42% a year"
+  STRONG  base "₹50,000", baseLabel "Card balance", op "× 42% a year",
+          result "₹21,000", resultLabel "Interest, in one year"
+
+Round to a figure a person would actually say. ₹21,000 lands; ₹20,997.50 does not.
+Check the arithmetic — a sum that does not add up is the fastest way to lose the
+audience this channel is for.
 
 NEVER REPEAT WHAT THE SCREEN ALREADY SHOWS
 Two things are drawn on EVERY frame without you writing them: the series bar,
@@ -392,6 +423,18 @@ function visualIssues(visual: ScriptBeat['visual'], at: string): string[] {
         }
         case 'clock':
             return [];
+        case 'worked':
+            return [
+                ...need('base', Boolean(visual.base?.trim())),
+                ...need('op', Boolean(visual.op?.trim())),
+                ...need('result', Boolean(visual.result?.trim())),
+                // A sum with no digits on either side is not a sum. The model
+                // will otherwise happily emit base "your salary", op "a bit",
+                // result "more" — which renders perfectly and teaches nothing.
+                ...(/\d/.test(visual.base ?? '') && /\d/.test(visual.result ?? '')
+                    ? []
+                    : [`${at}: visual.base and visual.result must both contain a number — "${visual.base}" ${visual.op} "${visual.result}" is not arithmetic`]),
+            ];
         default:
             return [`${at}: visual.kind "${String(visual.kind)}" is not renderable`];
     }
@@ -423,6 +466,17 @@ export function checkableClaims(claims: string[]): string[] {
             return /\d{2,}/.test(c);
         });
 }
+
+/**
+ * Whether this topic has real numeric material to build arithmetic from.
+ *
+ * The gate for requiring a `worked` beat, and it is deliberately derived from
+ * the curriculum rather than hand-flagged per topic. As `money:research` fills
+ * in facts for the remaining topics, more of them cross this line on their own —
+ * nobody has to remember to update a list.
+ */
+export const hasNumericMaterial = (topic?: ScheduledTopic): boolean =>
+    [...(topic?.facts ?? []), ...(topic?.keyNumbers ?? [])].some((f) => /\d/.test(f ?? ''));
 
 /** Structural problems that make a script unrenderable. */
 export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): string[] {
@@ -472,6 +526,23 @@ export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): s
             }
         }
     });
+
+    // ONE number the viewer owns, with the arithmetic done where they can see
+    // it. This is what makes a reel worth sending: a stated fact is interesting,
+    // a sum someone can run on their own salary tonight is usable.
+    //
+    // Required only where the topic actually carries a number. The two failure
+    // modes are not symmetric — a missing sum on a numeric topic is a wasted
+    // opportunity, but a FORCED sum on a topic that has none is invented
+    // arithmetic, and on a money channel that quietly costs trust. Topics like
+    // "your rights when a recovery agent calls" are carried by the story.
+    if (hasNumericMaterial(topic) && !(script.beats ?? []).some((b) => b.visual?.kind === 'worked')) {
+        issues.push(
+            'no beat does visible arithmetic, but this topic has real numbers to work with — ' +
+                'give one beat a "worked" visual that starts from a figure the viewer owns ' +
+                '(their salary, their card balance) and does one operation to it',
+        );
+    }
 
     return issues;
 }

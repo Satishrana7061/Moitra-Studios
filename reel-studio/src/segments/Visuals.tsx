@@ -363,6 +363,136 @@ const Clock: React.FC<{ label?: string; beatDurationSec: number }> = ({ label, b
   );
 };
 
+/**
+ * One number the viewer owns, worked on where they can see it.
+ *
+ * Laid out the way arithmetic is actually written on a ledger page: the figure,
+ * the operation under it, a rule drawn across, the answer below. Right-aligned
+ * on the digits, because that is how a column of figures is set and it makes
+ * the two numbers directly comparable.
+ *
+ * It ASSEMBLES rather than appearing. Four steps about a third of a second
+ * apart, so the viewer's eye is led down the sum and arrives at the answer with
+ * it — which is the whole point. A finished calculation dropped in at once is
+ * just another stated fact.
+ */
+const Worked: React.FC<{
+  base: string;
+  baseLabel?: string;
+  op: string;
+  result: string;
+  resultLabel?: string;
+}> = ({ base, baseLabel, op, result, resultLabel }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  const step = (delaySec: number) =>
+    spring({ frame: frame - Math.round(delaySec * fps), fps, config: { damping: 16, mass: 0.5, stiffness: 140 } });
+
+  const inBase = step(0);
+  const inOp = step(0.34);
+  const inRule = step(0.62);
+  const inResult = step(0.9);
+
+  const row = (enter: number): React.CSSProperties => ({
+    opacity: enter,
+    transform: `translateY(${(1 - enter) * 18}px)`,
+  });
+
+  return (
+    // Two boxes on purpose. The outer one centres; the inner one is
+    // inline-flex so it SHRINKS TO ITS CONTENT, which makes `width: 100%` on
+    // the rule below mean "as wide as the numbers" rather than "as wide as the
+    // page". A sum rule that runs the full width is not a sum rule, it is a
+    // horizontal line that happens to sit under some digits.
+    <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+      {baseLabel && (
+        <div style={{ ...row(inBase), fontFamily: moneyFonts.display, fontSize: moneyType.compareLabel, color: money.textDim }}>
+          {baseLabel}
+        </div>
+      )}
+      <div
+        style={{
+          ...row(inBase),
+          fontFamily: moneyFonts.display,
+          fontSize: 122,
+          fontWeight: 800,
+          color: money.text,
+          lineHeight: 1.05,
+          letterSpacing: '-0.02em',
+        }}
+      >
+        {base}
+      </div>
+
+      <div
+        style={{
+          ...row(inOp),
+          fontFamily: moneyFonts.display,
+          fontSize: 78,
+          fontWeight: 700,
+          color: money.cost,
+          lineHeight: 1.1,
+        }}
+      >
+        {op}
+      </div>
+
+      {/* The rule, drawn left to right rather than faded in — it is a pen stroke. */}
+      <div
+        style={{
+          width: '100%',
+          height: 6,
+          background: money.text,
+          opacity: 0.85,
+          borderRadius: 3,
+          transformOrigin: 'left center',
+          transform: `scaleX(${inRule})`,
+          margin: '10px 0 14px',
+        }}
+      />
+
+      <div style={{ ...row(inResult), position: 'relative', display: 'inline-block' }}>
+        {/* Same highlighter gesture as BigNumber: the answer is what matters. */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '-5%',
+            right: '-5%',
+            top: '10%',
+            bottom: '12%',
+            background: money.accentSoft,
+            borderRadius: 12,
+            transformOrigin: 'left center',
+            transform: `scaleX(${step(1.15)}) skewX(-2.5deg)`,
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            fontFamily: moneyFonts.display,
+            fontSize: moneyType.bigNumber * 0.82,
+            fontWeight: 800,
+            color: money.text,
+            lineHeight: 1.05,
+            letterSpacing: '-0.02em',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {result}
+        </div>
+      </div>
+      {resultLabel && (
+        <div style={{ ...row(inResult), fontFamily: moneyFonts.display, fontSize: moneyType.compareLabel, color: money.textDim, marginTop: 6 }}>
+          {resultLabel}
+        </div>
+      )}
+    </div>
+    </div>
+  );
+};
+
 export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = ({
   spec,
   beatDurationSec,
@@ -379,6 +509,16 @@ export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = (
         return <Ladder highlightStep={spec.highlightStep} />;
       case 'clock':
         return <Clock label={spec.label} beatDurationSec={beatDurationSec} />;
+      case 'worked':
+        return (
+          <Worked
+            base={spec.base}
+            baseLabel={spec.baseLabel}
+            op={spec.op}
+            result={spec.result}
+            resultLabel={spec.resultLabel}
+          />
+        );
     }
   })();
 

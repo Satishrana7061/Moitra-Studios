@@ -17,7 +17,8 @@
         "money:episode": "tsx src/generateMoneyEpisode.ts",
         "money:e2e": "tsx src/checks/checkpipeline.ts",
         "money:probe-facts": "tsx src/probeFactSources.ts",
-        "money:research": "tsx src/researchMoneyFacts.ts"
+        "money:research": "tsx src/researchMoneyFacts.ts",
+        "money:probe-voice": "tsx src/probeVoiceModels.ts"
     },
     "dependencies": {
         "@ffmpeg-installer/ffmpeg": "^1.1.0",

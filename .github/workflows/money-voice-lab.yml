@@ -28,6 +28,7 @@ on:
           - list-voices
           - fact-probe
           - research-facts
+          - voice-probe
           - script-only
           - episode
       topic_id:
@@ -96,6 +97,25 @@ jobs:
         with:
           name: money-curriculum-${{ github.run_number }}
           path: content/money-ladder.json
+          retention-days: 14
+
+      # Same Hindi line through four model/text combinations, reporting whether
+      # each returns word timings. Timings are the gate: without them every cut
+      # and caption falls back to a guess.
+      - name: Probe voice models
+        if: inputs.mode == 'voice-probe'
+        working-directory: ./rajneeti-backend
+        env:
+          ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+        run: npm run money:probe-voice -- --out ../out/voice
+
+      - name: Upload voice samples
+        if: inputs.mode == 'voice-probe'
+        uses: actions/upload-artifact@v4
+        with:
+          name: money-voice-samples-${{ github.run_number }}
+          path: out/voice/*.mp3
+          if-no-files-found: warn
           retention-days: 14
 
       # ── Everything below needs the render toolchain ────────────────────────

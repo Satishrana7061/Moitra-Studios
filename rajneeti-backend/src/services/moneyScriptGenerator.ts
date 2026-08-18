@@ -80,6 +80,7 @@ const MAX_HOOK_WORDS = 6;
 const MAX_ONSCREEN_WORDS = 6;
 const MIN_BEATS = 3;
 const MAX_BEATS = 5;
+const MAX_SCRIPT_ATTEMPTS = 3;
 
 const buildPrompt = (topic: ScheduledTopic, violationsToFix: string[] = []): string => {
     const series = loadCurriculum().series;
@@ -618,14 +619,21 @@ function parseScript(raw: string, topic: ScheduledTopic): MoneyScript {
 export async function generateMoneyScript(topic: ScheduledTopic): Promise<MoneyScript> {
     let violationsToFix: string[] = [];
 
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    // Three, not two. Each rejection feeds the specific problems back into the
+    // next prompt, so attempts are not independent samples — they measurably
+    // improve. Two was set when the only hard rules were compliance ones; there
+    // are now two more (a pause mark in every spoken line, and worked arithmetic
+    // on any topic carrying a number) that no draft has ever been tested
+    // against. A third attempt costs about ₹2 and is spent entirely BEFORE any
+    // voice credits, so the cheap thing retries and the expensive thing does not.
+    for (let attempt = 1; attempt <= MAX_SCRIPT_ATTEMPTS; attempt++) {
         const raw = await callModel(buildPrompt(topic, violationsToFix));
 
         let script: MoneyScript;
         try {
             script = parseScript(raw, topic);
         } catch (err: any) {
-            if (attempt === 2) throw new Error(`[money] Script JSON unparseable: ${err.message}`);
+            if (attempt === MAX_SCRIPT_ATTEMPTS) throw new Error(`[money] Script JSON unparseable: ${err.message}`);
             violationsToFix = ['Previous output was not valid JSON. Return strict JSON only.'];
             continue;
         }
@@ -644,9 +652,9 @@ export async function generateMoneyScript(topic: ScheduledTopic): Promise<MoneyS
             return script;
         }
 
-        if (attempt === 2) {
+        if (attempt === MAX_SCRIPT_ATTEMPTS) {
             throw new Error(
-                `[money] Script for ${topic.id} still invalid after retry:\n  - ${problems.join('\n  - ')}`,
+                `[money] Script for ${topic.id} still invalid after ${MAX_SCRIPT_ATTEMPTS} attempts:\n  - ${problems.join('\n  - ')}`,
             );
         }
 

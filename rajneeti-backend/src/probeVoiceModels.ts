@@ -277,12 +277,27 @@ async function main() {
     if (best && runnerUp) {
         const margin = best.pauseSec - runnerUp.pauseSec;
         const noise = Math.max(best.spread, runnerUp.spread) / 2;
-        console.log(
-            margin > noise
-                ? `\n  ${best.label} leads by ${margin.toFixed(2)}s, more than the ±${noise.toFixed(2)}s run-to-run spread.`
-                : `\n  ${best.label} leads by only ${margin.toFixed(2)}s against a ±${noise.toFixed(2)}s spread — ` +
-                  'too close to call from this sample. Decide by ear.',
-        );
+        if (margin > noise) {
+            console.log(`\n  ${best.label} leads by ${margin.toFixed(2)}s, more than the ±${noise.toFixed(2)}s spread.`);
+        } else {
+            // When the means are within the noise, CONSISTENCY decides — and
+            // ranking on the mean alone actively misleads here. Run 3 put
+            // v2-punctuated (4.12s, ±1.87) above v3-punctuated (3.71s, ±0.42)
+            // and called it "too close to call", when the useful fact was that
+            // one of them varies four times as much as the other. This pipeline
+            // publishes unattended: an episode that lands rushed on Monday and
+            // halting on Wednesday is worse than one slightly less pausy every
+            // time.
+            const steadiest = [best, runnerUp].sort((a, b) => a.spread - b.spread)[0];
+            console.log(
+                `\n  ${best.label} leads by only ${margin.toFixed(2)}s against a ±${noise.toFixed(2)}s spread — ` +
+                    'inside the noise, so the mean does not decide it.',
+            );
+            console.log(
+                `  ${steadiest.label} is the steadier read (±${(steadiest.spread / 2).toFixed(2)}), which is worth ` +
+                    'more than a fraction of a second of mean silence in an unattended pipeline.',
+            );
+        }
     }
 
     // Silence is a PROXY for a natural read, not the thing itself: a halting

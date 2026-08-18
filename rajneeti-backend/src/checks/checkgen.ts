@@ -38,9 +38,9 @@ const script: MoneyScript = {
   hook: 'Do this before investing',
   hookSaid: 'निवेश से पहले एक काम करो।',
   beats: [
-    { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', caption: 'Put ten thousand rupees aside before you invest anything.', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
-    { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', caption: 'Keep it in a separate account from your salary.', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
-    { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', caption: 'Only once that is done should you talk about investing.', visual: { kind: 'ladder', highlightStep: 1 } },
+    { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये... अलग रखो।', caption: 'Put ten thousand rupees aside before you invest anything.', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
+    { onScreen: 'A separate account', say: 'इसे सैलरी खाते से, अलग रखो।', caption: 'Keep it in a separate account from your salary.', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
+    { onScreen: 'Only then invest', say: 'ये होने के बाद ही, निवेश की बात करो।', caption: 'Only once that is done should you talk about investing.', visual: { kind: 'ladder', highlightStep: 1 } },
   ],
   cta: 'How big is your buffer?',
   ctaSaid: 'आपके पास कितना बफर है? कमेंट में बताओ।',
@@ -210,7 +210,7 @@ async function main() {
 
   console.log('\ncompliance sweep over a whole script:');
   check('clean script passes', complianceViolations(scriptSurfaceText(script)).length === 0);
-  const bad = { ...script, beats: [...script.beats, { onScreen: 'Take this', say: 'ये फंड 15% रिटर्न देता है।', caption: 'This fund gives fifteen percent returns every year.', visual: { kind: 'bigNumber' as const } }] };
+  const bad = { ...script, beats: [...script.beats, { onScreen: 'Take this', say: 'ये फंड, 15% रिटर्न देता है।', caption: 'This fund gives fifteen percent returns every year.', visual: { kind: 'bigNumber' as const } }] };
   check('violating beat is caught via surface text', complianceViolations(scriptSurfaceText(bad)).length > 0);
   // The compliance sweep must see the SPOKEN text too, not just what is drawn —
   // a recommendation read aloud is still a recommendation.
@@ -221,13 +221,32 @@ async function main() {
   // The probe proved tags come back inside the alignment stream. Everything
   // here is about making sure that costs us nothing.
 
-  console.log('\nv3 direction is added without changing the words:');
+  console.log('\npunctuation is how the voice is directed — measured at 3-4x more silence:');
+  const flatSay = { ...script, beats: script.beats.map((b, i) => i === 1 ? { ...b, say: 'इसे सैलरी खाते से अलग रखो' } : b) };
+  check('a say line with no internal pause is rejected',
+    structuralIssues(flatSay).some((i) => i.includes('no internal pause mark')));
+  for (const [mark, line] of [['comma', 'इसे सैलरी खाते से, अलग रखो।'], ['ellipsis', 'इसे सैलरी खाते से... अलग रखो।'], ['question', 'इसे सैलरी खाते से अलग रखो? हाँ।']] as [string, string][]) {
+    const ok = { ...script, beats: script.beats.map((b, i) => i === 1 ? { ...b, say: line } : b) };
+    check(`a ${mark} satisfies it`, structuralIssues(ok).length === 0, structuralIssues(ok).join('; '));
+  }
+
+  console.log('\nthe live read carries no tags — three probe runs said they do nothing:');
   const V3 = 'eleven_v3';
   const plain = voiceoverText(script);
-  const directed = directedVoiceoverText(script, V3);
+  // Explicitly on, to exercise the retained builder. The live path is asserted
+  // separately below.
+  const directed = directedVoiceoverText(script, V3, true);
+
+  // The finding this encodes: v3-tagged held 1.22s of silence against
+  // v3-plain's 1.23s, across three runs. The tags are accepted and ignored,
+  // so the direction moved into the prompt and the emission was switched off.
+  check('the shipped path emits no tags', directedVoiceoverText(script, V3) === plain,
+    directedVoiceoverText(script, V3).slice(0, 60));
+  check('...and still speaks the whole voiceover',
+    directedVoiceoverText(script, V3) === voiceoverText(script));
 
   check('v2 gets no tags at all — it would read them aloud',
-    directedVoiceoverText(script, 'eleven_multilingual_v2') === plain);
+    directedVoiceoverText(script, 'eleven_multilingual_v2', true) === plain);
   // Guards a typo more than a policy. MONEY_TTS_MODEL is a free-text env var,
   // and a misspelling would not fail — ElevenLabs would fall back to its own
   // default model and the episode would simply come back read by something we
@@ -279,10 +298,10 @@ async function main() {
   // generator can drop hookSaid and degrade to a shorter voiceover.
   const noHook = { ...script, hookSaid: '' };
   check('a hookless script still strips back exactly',
-    stripAudioTags(directedVoiceoverText(noHook, V3)) === voiceoverText(noHook));
+    stripAudioTags(directedVoiceoverText(noHook, V3, true)) === voiceoverText(noHook));
   const noNumberVisual = { ...script, beats: script.beats.map((b) => ({ ...b, visual: { kind: 'ladder' as const } })) };
   check('a script with no bigNumber beat still emphasises somewhere',
-    directedVoiceoverText(noNumberVisual, V3).includes('[emphatic]'));
+    directedVoiceoverText(noNumberVisual, V3, true).includes('[emphatic]'));
 
   // In the fixture the number lands on beat 0, where the post-hook [breathes]
   // already supplies the gap. When it lands later there is no such gap, so the
@@ -291,7 +310,7 @@ async function main() {
     ...script,
     beats: script.beats.map((b, i) => ({ ...b, visual: (i === 2 ? { kind: 'bigNumber' as const, value: '₹10,000' } : { kind: 'ladder' as const }) })),
   };
-  const lateDirected = directedVoiceoverText(lateNumber, V3);
+  const lateDirected = directedVoiceoverText(lateNumber, V3, true);
   check('a number arriving mid-read gets silence before it',
     lateDirected.includes(`[pause] [emphatic] ${script.beats[2].say}`), lateDirected.slice(0, 90));
   check('...and still strips back exactly', stripAudioTags(lateDirected) === voiceoverText(lateNumber));
@@ -303,7 +322,7 @@ async function main() {
   console.log('\nworked arithmetic — the sum has to be a real sum:');
   const workedBeat = {
     onScreen: 'What it really costs',
-    say: 'पचास हज़ार के बकाया पर साल भर में इक्कीस हज़ार ब्याज लगता है।',
+    say: 'पचास हज़ार के बकाया पर... साल भर में इक्कीस हज़ार ब्याज लगता है।',
     caption: 'A fifty thousand rupee balance costs you twenty one thousand in a year.',
     visual: { kind: 'worked' as const, base: '₹50,000', baseLabel: 'Card balance', op: '× 42% a year', result: '₹21,000', resultLabel: 'Interest, in one year' },
   };

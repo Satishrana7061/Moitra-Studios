@@ -87,6 +87,32 @@ export const MONEY_TTS_MODEL = process.env.MONEY_TTS_MODEL || 'eleven_v3';
 export const acceptsAudioTags = (modelId: string): boolean => /^eleven_v3/.test(modelId);
 
 /**
+ * Whether to actually emit the tags below. Off, on evidence.
+ *
+ * Three probe runs, five configurations each run three times, measuring held
+ * silence in the rendered audio:
+ *
+ *   v2-punctuated   4.12s  ±1.87
+ *   v3-punctuated   3.71s  ±0.42
+ *   v2-as-today     1.44s  ±0.26
+ *   v3-plain        1.23s  ±0.35
+ *   v3-tagged       1.22s  ±0.40   <- these tags
+ *
+ * Tagged and plain are indistinguishable: 1.22s against 1.23s. The tags are
+ * accepted by the API and then ignored. Meanwhile ordinary punctuation — an
+ * ellipsis before the figure, a comma where a person breathes — is worth three
+ * to four times more silence than any model choice. So the direction moved into
+ * the PROMPT, where the writer decides it, and this became dead weight.
+ *
+ * The machinery below stays. `stripAudioTags`, `dropTagTimings` and
+ * `tagAudibleSeconds` are correct and tested, and they are exactly what makes it
+ * cheap and safe to switch this back on if ElevenLabs starts honouring tags.
+ * Deleting them would mean re-deriving the timing-contamination fix from
+ * scratch — a bug that broke every cut silently and took a probe to find.
+ */
+export const EMIT_AUDIO_TAGS = process.env.MONEY_AUDIO_TAGS === '1';
+
+/**
  * The only tags this channel uses, and deliberately a short list.
  *
  * These four are the ones the probe actually sent and got audio back for. The
@@ -171,9 +197,16 @@ export const tagAudibleSeconds = (words: WordTiming[]): number =>
  * Stripping the result must return `voiceoverText(script)` exactly — asserted
  * offline for every fixture, and enforced again at runtime by the drift guard.
  */
-export function directedVoiceoverText(script: MoneyScript, modelId: string = MONEY_TTS_MODEL): string {
+export function directedVoiceoverText(
+    script: MoneyScript,
+    modelId: string = MONEY_TTS_MODEL,
+    // Passed rather than read from the env inside, so the retained tag builder
+    // can still be exercised by the checks. A dormant code path with no test
+    // over it is a code path that has quietly rotted by the time you want it.
+    emitTags: boolean = EMIT_AUDIO_TAGS,
+): string {
     const plain = voiceoverText(script);
-    if (!acceptsAudioTags(modelId)) return plain;
+    if (!acceptsAudioTags(modelId) || !emitTags) return plain;
 
     const spoken = script.beats.filter((b) => (b.say ?? '').trim());
     if (!spoken.length) return plain;

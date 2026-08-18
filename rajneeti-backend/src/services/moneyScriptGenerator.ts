@@ -31,6 +31,15 @@ export interface ScriptBeat {
     onScreen: string;
     /** The Hindi voiceover line for this beat. */
     say: string;
+    /**
+     * The sound-off caption. ENGLISH, a full sentence.
+     *
+     * Not a translation of `say` word for word — the same point written for a
+     * reader. Most of a reel's first watch is muted, and `onScreen` alone (six
+     * words) is not enough for a muted viewer to get the argument, which is
+     * what makes a reel worth sending.
+     */
+    caption: string;
     visual: {
         kind: VisualKind;
         /** bigNumber: the figure. compare: left vs right. steps: the list. */
@@ -125,6 +134,11 @@ STRUCTURE
 - beats: ${MIN_BEATS} to ${MAX_BEATS} beats. Each has:
     onScreen  — ENGLISH. MAXIMUM ${MAX_ONSCREEN_WORDS} words. Big text on screen. A label, not a sentence.
     say       — HINDI. The voiceover for that beat.
+    caption   — ENGLISH. 8 to 16 words, a full sentence. This is the SOUND-OFF
+                line, shown as a caption at the bottom. Most people watch muted
+                the first time, so this must carry the point on its own. Say the
+                same thing as "say", written for someone reading rather than
+                listening. NOT a word-for-word translation — natural English.
     visual    — one of:
                   bigNumber (value, optional label) — one figure that lands hard
                   compare   (a, b, aLabel, bLabel)  — "a" is drawn GREEN as the better
@@ -188,6 +202,7 @@ Respond with STRICT JSON only. No markdown fences, no commentary.
     {
       "onScreen": "English label",
       "say": "इस बीट की हिंदी वॉयसओवर लाइन",
+      "caption": "The same point in one full English sentence, for muted viewers",
       "visual": { "kind": "bigNumber", "value": "₹10,000", "label": "English label" }
     }
   ],
@@ -304,6 +319,7 @@ export const languageIssues = (script: MoneyScript): string[] => {
         ['cta', script.cta],
         ...script.beats.flatMap((b, i): [string, string][] => [
             [`beat ${i} onScreen`, b.onScreen],
+            [`beat ${i} caption`, b.caption],
             ...(b.visual?.label ? ([[`beat ${i} visual.label`, b.visual.label]] as [string, string][]) : []),
         ]),
     ];
@@ -433,6 +449,13 @@ export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): s
             issues.push(`beat ${i}: onScreen is ${wordCount(beat.onScreen)} words, maximum is ${MAX_ONSCREEN_WORDS}`);
         }
         if (!beat.say?.trim()) issues.push(`beat ${i}: say is empty`);
+        if (!beat.caption?.trim()) {
+            issues.push(`beat ${i}: caption is empty — a muted viewer would get nothing from this beat`);
+        } else {
+            const n = wordCount(beat.caption);
+            if (n < 5) issues.push(`beat ${i}: caption is ${n} words; too short to carry the point alone`);
+            if (n > 20) issues.push(`beat ${i}: caption is ${n} words; too long to read before the beat ends`);
+        }
         if (!beat.visual?.kind) issues.push(`beat ${i}: visual.kind is missing`);
         else issues.push(...visualIssues(beat.visual, `beat ${i}`));
 
@@ -460,7 +483,7 @@ export function scriptSurfaceText(script: MoneyScript): string {
         script.hookSaid,
         script.cta,
         script.ctaSaid,
-        ...(script.beats ?? []).flatMap((b) => [b.onScreen, b.say]),
+        ...(script.beats ?? []).flatMap((b) => [b.onScreen, b.say, b.caption]),
     ]
         .filter(Boolean)
         .join('\n');

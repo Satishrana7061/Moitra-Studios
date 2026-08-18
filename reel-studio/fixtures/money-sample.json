@@ -19,7 +19,8 @@
         "label": "your first buffer"
       },
       "startSec": 3.0,
-      "endSec": 9.5
+      "endSec": 9.5,
+      "caption": "Put ten thousand rupees aside before you invest anything."
     },
     {
       "onScreen": "Break it down daily",
@@ -29,7 +30,8 @@
         "label": "every day, 30 days"
       },
       "startSec": 9.5,
-      "endSec": 16.0
+      "endSec": 16.0,
+      "caption": "Keep it in a separate account from your salary."
     },
     {
       "onScreen": "Where it comes from",
@@ -42,7 +44,8 @@
         ]
       },
       "startSec": 16.0,
-      "endSec": 24.0
+      "endSec": 24.0,
+      "caption": "Only once that is done should you talk about investing."
     },
     {
       "onScreen": "Step 1 complete",
@@ -51,7 +54,8 @@
         "highlightStep": 1
       },
       "startSec": 24.0,
-      "endSec": 31.5
+      "endSec": 31.5,
+      "caption": "This is the first rung, not a shortcut to wealth."
     }
   ],
   "brand": {

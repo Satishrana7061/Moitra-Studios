@@ -39,9 +39,9 @@ const script: MoneyScript = {
     hook: 'Do this before investing',
     hookSaid: 'निवेश से पहले एक काम करो।',
     beats: [
-        { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
-        { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
-        { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', visual: { kind: 'ladder', highlightStep: 1 } },
+        { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', caption: 'Put ten thousand rupees aside before you invest anything.', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
+        { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', caption: 'Keep it in a separate account from your salary.', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
+        { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', caption: 'Only once that is done should you talk about investing.', visual: { kind: 'ladder', highlightStep: 1 } },
     ],
     cta: 'How big is your buffer?',
     ctaSaid: 'आपके पास कितना बफर है? कमेंट में बताओ।',
@@ -103,8 +103,10 @@ async function main() {
         storyboard.beats.every((b, i) => b.endSec > b.startSec && (i === 0 || b.startSec >= storyboard.beats[i - 1].endSec)));
     check('last beat ends within the audio', storyboard.beats[storyboard.beats.length - 1].endSec <= master.durationSec + 0.01);
     check('series bar draws the ENGLISH step title', storyboard.stepTitle === topic.stepTitleEn);
+    check('every beat carries a caption for muted viewers',
+        storyboard.beats.every((b: any) => (b.caption ?? '').trim().length > 0));
     check('nothing drawn contains Devanagari',
-        !/[ऀ-ॿ]/.test(JSON.stringify({ h: storyboard.hook, c: storyboard.cta, b: storyboard.beats.map(b => [b.onScreen, b.visual]) })));
+        !/[ऀ-ॿ]/.test(JSON.stringify({ h: storyboard.hook, c: storyboard.cta, b: storyboard.beats.map((b: any) => [b.onScreen, b.caption, b.visual]) })));
 
     console.log('\nthe font is actually in this checkout:');
     // The check that would have caught the first CI failure. public/fonts was

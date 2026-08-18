@@ -23,6 +23,18 @@ export const visualSpecSchema = z.discriminatedUnion('kind', [
 export const moneyBeatSchema = z.object({
   /** Big on-screen text. Six words max — enforced upstream by the generator. */
   onScreen: z.string().min(1),
+  /**
+   * The sound-off line. ENGLISH, a full sentence, shown as a caption.
+   *
+   * NOT a transcript: the voice speaks Hindi and the screen is English, so a
+   * literal transcript would need a Devanagari font back in the bundle and
+   * would look wrong at display sizes. This is the same message written for
+   * someone reading rather than listening.
+   *
+   * Optional so older storyboards still render — a beat without one simply
+   * shows no caption rather than failing.
+   */
+  caption: z.string().optional(),
   visual: visualSpecSchema,
   startSec: z.number().nonnegative(),
   endSec: z.number().positive(),
@@ -44,7 +56,8 @@ export const moneyStoryboardSchema = z.object({
     durationSec: z.number().positive(),
   }),
 
-  // No `captions` field. Per-word timings are still generated upstream -- they
+  // Per-beat `caption` above carries the sound-off message. Per-word timings
+  // are still generated upstream -- they
   // are what sets each beat's startSec/endSec -- but they are not rendered, so
   // the composition has no reason to receive them.
   brand: z

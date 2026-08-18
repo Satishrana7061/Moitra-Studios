@@ -20,6 +20,8 @@ export interface MoneyStoryboard {
     cta: string;
     beats: {
         onScreen: string;
+        /** English sound-off line, drawn as a caption. */
+        caption?: string;
         visual: Record<string, unknown>;
         startSec: number;
         endSec: number;
@@ -84,6 +86,7 @@ export function buildMoneyStoryboard(input: BuildInput): {
         const endSec = Math.max(startSec + MIN_BEAT_SEC, seg?.endSec ?? startSec + MIN_BEAT_SEC);
         return {
             onScreen: beat.onScreen,
+            caption: beat.caption,
             visual: beat.visual as unknown as Record<string, unknown>,
             startSec: Number(startSec.toFixed(3)),
             endSec: Number(endSec.toFixed(3)),

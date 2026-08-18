@@ -19,7 +19,8 @@
         "label": "on credit card dues"
       },
       "startSec": 2.0,
-      "endSec": 8.0
+      "endSec": 8.0,
+      "caption": "Put ten thousand rupees aside before you invest anything."
     },
     {
       "onScreen": "Minimum vs full",
@@ -31,7 +32,8 @@
         "bLabel": "paying the minimum"
       },
       "startSec": 8.0,
-      "endSec": 15.0
+      "endSec": 15.0,
+      "caption": "Keep it in a separate account from your salary."
     },
     {
       "onScreen": "How long it takes",
@@ -40,7 +42,8 @@
         "label": "6 months"
       },
       "startSec": 15.0,
-      "endSec": 21.0
+      "endSec": 21.0,
+      "caption": "Only once that is done should you talk about investing."
     },
     {
       "onScreen": "What to do",
@@ -53,7 +56,8 @@
         ]
       },
       "startSec": 21.0,
-      "endSec": 26.0
+      "endSec": 26.0,
+      "caption": "This is the first rung, not a shortcut to wealth."
     },
     {
       "onScreen": "You are on step 2",
@@ -62,7 +66,8 @@
         "highlightStep": 2
       },
       "startSec": 26.0,
-      "endSec": 30.0
+      "endSec": 30.0,
+      "caption": "Start today with whatever amount you can actually spare."
     }
   ],
   "brand": {

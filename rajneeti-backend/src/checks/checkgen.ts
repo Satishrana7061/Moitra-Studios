@@ -28,9 +28,9 @@ const script: MoneyScript = {
   hook: 'Do this before investing',
   hookSaid: 'निवेश से पहले एक काम करो।',
   beats: [
-    { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
-    { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
-    { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', visual: { kind: 'ladder', highlightStep: 1 } },
+    { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये अलग रखो।', caption: 'Put ten thousand rupees aside before you invest anything.', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
+    { onScreen: 'A separate account', say: 'इसे सैलरी खाते से अलग रखो।', caption: 'Keep it in a separate account from your salary.', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
+    { onScreen: 'Only then invest', say: 'ये होने के बाद ही निवेश की बात करो।', caption: 'Only once that is done should you talk about investing.', visual: { kind: 'ladder', highlightStep: 1 } },
   ],
   cta: 'How big is your buffer?',
   ctaSaid: 'आपके पास कितना बफर है? कमेंट में बताओ।',
@@ -173,9 +173,34 @@ async function main() {
   check('the SAME symbols are fine on screen',
     languageIssues({ ...script, hook: 'Save your first ₹10,000' }).length === 0);
 
+  console.log('\ncaptions carry the muted viewer:');
+  check('a valid script has no caption issues', structuralIssues(script).length === 0, structuralIssues(script).join('; '));
+
+  const noCaption = { ...script, beats: script.beats.map((b, i) => i === 1 ? { ...b, caption: '' } : b) };
+  check('a missing caption is rejected',
+    structuralIssues(noCaption).some(i => i.includes('muted viewer')));
+
+  const stubCaption = { ...script, beats: script.beats.map((b, i) => i === 0 ? { ...b, caption: 'Save money' } : b) };
+  check('a caption too short to stand alone is rejected',
+    structuralIssues(stubCaption).some(i => i.includes('too short')));
+
+  const longCaption = { ...script, beats: script.beats.map((b, i) => i === 0 ? { ...b, caption: 'word '.repeat(25).trim() } : b) };
+  check('a caption too long to read in the beat is rejected',
+    structuralIssues(longCaption).some(i => i.includes('too long')));
+
+  const hindiCaption = { ...script, beats: script.beats.map((b, i) => i === 0 ? { ...b, caption: 'दस हज़ार रुपये अलग रखो और फिर निवेश करो।' } : b) };
+  check('a Devanagari caption is caught — it is DRAWN, not spoken',
+    languageIssues(hindiCaption).some(i => i.includes('beat 0 caption')));
+
+  // The caption reaches a viewer, so it must go through the same compliance
+  // sweep as everything else — advice hidden only in the caption still ships.
+  const adviceInCaption = { ...script, beats: script.beats.map((b, i) => i === 0 ? { ...b, caption: 'Buy these shares today for a quick profit.' } : b) };
+  check('advice hidden in a caption is caught',
+    complianceViolations(scriptSurfaceText(adviceInCaption)).length > 0);
+
   console.log('\ncompliance sweep over a whole script:');
   check('clean script passes', complianceViolations(scriptSurfaceText(script)).length === 0);
-  const bad = { ...script, beats: [...script.beats, { onScreen: 'Take this', say: 'ये फंड 15% रिटर्न देता है।', visual: { kind: 'bigNumber' as const } }] };
+  const bad = { ...script, beats: [...script.beats, { onScreen: 'Take this', say: 'ये फंड 15% रिटर्न देता है।', caption: 'This fund gives fifteen percent returns every year.', visual: { kind: 'bigNumber' as const } }] };
   check('violating beat is caught via surface text', complianceViolations(scriptSurfaceText(bad)).length > 0);
   // The compliance sweep must see the SPOKEN text too, not just what is drawn —
   // a recommendation read aloud is still a recommendation.

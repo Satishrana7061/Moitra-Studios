@@ -6,6 +6,7 @@ import { money, moneyFonts, moneyType } from './lib/moneyTheme';
 import { MONEY_OUTRO_SEC, type MoneyStoryboard } from './lib/moneySchema';
 import { Visual } from './segments/Visuals';
 import { SeriesBar } from './layers/SeriesBar';
+import { CaptionBar } from './layers/CaptionBar';
 
 /**
  * Hisaab Kitab — the money composition.
@@ -18,7 +19,8 @@ import { SeriesBar } from './layers/SeriesBar';
  * Everything rendered is English. The Hindi lives only in the voiceover, which
  * is sent to ElevenLabs and never drawn — Devanagari read poorly at these
  * display sizes. Word-level timings are still produced upstream, because they
- * set the beat boundaries; they are simply no longer displayed as captions.
+ * set the beat boundaries. Each beat also carries an English `caption` — the
+ * sound-off version of what the voice is saying — rendered by CaptionBar.
  */
 
 const Background: React.FC<{ variant: 'a' | 'b' | 'c' }> = ({ variant }) => {
@@ -211,6 +213,9 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
         >
           <BeatText text={beat.onScreen} />
           <Visual spec={beat.visual} beatDurationSec={beat.endSec - beat.startSec} />
+          {beat.caption && (
+            <CaptionBar text={beat.caption} beatDurationSec={beat.endSec - beat.startSec} />
+          )}
         </Sequence>
       ))}
 

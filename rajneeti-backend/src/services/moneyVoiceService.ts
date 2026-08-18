@@ -132,17 +132,25 @@ export const stripAudioTags = (s: string): string =>
     s.replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
 
 /**
- * True for a timing token that is genuinely spoken rather than a tag.
+ * True for a timing token that came from a direction tag rather than the script.
  *
- * Holds because every spoken token in this channel is Devanagari or bare
- * punctuation: `languageIssues` rejects a `say` line containing no Devanagari,
- * and separately rejects digits and ₹/$/% in spoken lines. So a token carrying
- * Latin letters and no Devanagari can only have come from a tag. That is an
- * assumption about another module, so `checkgen` asserts it instead of trusting
- * it.
+ * Identified by the BRACKETS, which is the only thing that actually
+ * distinguishes a tag. The first version of this asked "is the token Latin with
+ * no Devanagari in it", reasoning that every spoken word in a Hindi channel is
+ * Devanagari — and that was wrong in the most ordinary way possible. The script
+ * prompt explicitly says to keep English where Indians really use it: SIP, EMI,
+ * credit card, CIBIL. So this quietly deleted "EMI" and "credit card" from the
+ * timing stream, the aligner could then no longer match the beat text against
+ * the words, and every cut in the episode silently fell back to a proportional
+ * guess. CI printed "Beat timings were approximate" and nothing else went wrong,
+ * which is exactly how expensive this class of bug is to notice.
+ *
+ * The assertion that should have caught it passed, because the fixture is pure
+ * Devanagari — the assumption was tested against data chosen to satisfy it.
+ * `checkgen` now checks it against a line carrying the loanwords the prompt asks
+ * for.
  */
-const isSpokenToken = (w: WordTiming): boolean =>
-    /[\u0900-\u097F]/.test(w.word) || /^[^\p{L}]*$/u.test(w.word);
+const isTagToken = (w: WordTiming): boolean => /[[\]]/.test(w.word);
 
 /**
  * Drops tag tokens out of the returned word timings.
@@ -154,7 +162,7 @@ const isSpokenToken = (w: WordTiming): boolean =>
  * fail, and fall back to a proportional split — losing the exact property v3
  * was adopted to improve, and losing it silently.
  */
-export const dropTagTimings = (words: WordTiming[]): WordTiming[] => words.filter(isSpokenToken);
+export const dropTagTimings = (words: WordTiming[]): WordTiming[] => words.filter((w) => !isTagToken(w));
 
 /**
  * How many seconds of audio the dropped tag tokens occupy.
@@ -171,7 +179,7 @@ export const dropTagTimings = (words: WordTiming[]): WordTiming[] => words.filte
  * probe reports it per tag.
  */
 export const tagAudibleSeconds = (words: WordTiming[]): number =>
-    words.filter((w) => !isSpokenToken(w)).reduce((sum, w) => sum + Math.max(0, w.end - w.start), 0);
+    words.filter(isTagToken).reduce((sum, w) => sum + Math.max(0, w.end - w.start), 0);
 
 /**
  * Builds the voiceover string with v3 direction woven in.

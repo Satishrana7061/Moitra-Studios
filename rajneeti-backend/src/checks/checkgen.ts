@@ -221,6 +221,15 @@ async function main() {
   // The probe proved tags come back inside the alignment stream. Everything
   // here is about making sure that costs us nothing.
 
+  // The end-to-end version of the same bug: a realistic Hindi line carrying the
+  // loanwords the prompt asks for has to come back out of the filter intact, or
+  // the aligner cannot match it and every cut in the episode becomes a guess.
+  const mixed = 'आपका EMI हर महीने, कट जाता है। credit card का बिल भी।';
+  const mixedStream = mixed.split(/\s+/).map((word, i) => ({ word, start: i * 0.4, end: i * 0.4 + 0.35 }));
+  check('a real Hindi line with English loanwords survives intact',
+    dropTagTimings(mixedStream).map((w) => w.word).join(' ') === mixed,
+    dropTagTimings(mixedStream).map((w) => w.word).join(' '));
+
   console.log('\npunctuation is how the voice is directed — measured at 3-4x more silence:');
   const flatSay = { ...script, beats: script.beats.map((b, i) => i === 1 ? { ...b, say: 'इसे सैलरी खाते से अलग रखो' } : b) };
   check('a say line with no internal pause is rejected',
@@ -285,11 +294,21 @@ async function main() {
   check('filtering restores the plain word sequence exactly',
     kept.map((w) => w.word).join(' ') === plain,
     kept.map((w) => w.word).join(' ').slice(0, 80));
-  // The assumption dropTagTimings rests on, asserted rather than trusted: no
-  // spoken token in this channel is Latin-only, so dropping Latin-only tokens
-  // can never eat real speech.
+  // This assertion used to pass against the fixture alone, which is pure
+  // Devanagari — so it confirmed an assumption using data chosen to satisfy it,
+  // and the real bug sailed through. The prompt tells the model to keep English
+  // where Indians actually use it, so those words are the case that matters.
   check('no genuinely spoken token would be dropped',
     plain.split(/\s+/).filter(Boolean).every((w) => dropTagTimings([{ word: w, start: 0, end: 1 }]).length === 1));
+  const loanwords = ['EMI', 'SIP', 'credit', 'card', 'CIBIL', 'ब्याज', 'महीने,', 'रखो।', '...'];
+  for (const w of loanwords) {
+    check(`"${w}" survives the tag filter — the prompt asks for these`,
+      dropTagTimings([{ word: w, start: 0, end: 1 }]).length === 1);
+  }
+  check('an actual tag token is still removed',
+    dropTagTimings([{ word: '[pause]', start: 0, end: 1 }]).length === 0);
+  check('...even split across tokens',
+    dropTagTimings([{ word: '[slows', start: 0, end: 1 }, { word: 'down]', start: 1, end: 2 }]).length === 0);
   check('audible-tag time is measurable', tagAudibleSeconds(fakeStream) > 0);
   check('...and is zero once the tags are silent',
     tagAudibleSeconds(fakeStream.map((w) => /^\[/.test(w.word) ? { ...w, end: w.start } : w)) === 0);

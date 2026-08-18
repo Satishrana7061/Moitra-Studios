@@ -131,6 +131,11 @@ async function main() {
 
     const boardPath = path.join(tmp, 'storyboard.json');
     fs.writeFileSync(boardPath, JSON.stringify(storyboard, null, 2));
+    // Kept where it can be picked up for a still-frame or safe-area pass, which
+    // otherwise needs a paid episode to produce a realistic board.
+    if (process.env.MONEY_BOARD_OUT) {
+        fs.writeFileSync(process.env.MONEY_BOARD_OUT, JSON.stringify(storyboard, null, 2));
+    }
 
     const mp4 = path.join(tmp, 'out.mp4');
     // Remotion downloads its own headless shell on first use. Some sandboxes

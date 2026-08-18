@@ -68,10 +68,20 @@ export const MONEY_VOICE_SETTINGS: VoiceSettings = {
  * so setting it to move this channel to v3 would drag the Rajneeti news
  * pipeline along with it. Two channels, two reads, two decisions.
  *
- * Default stays on v2 until a probe run confirms the tags below are silent
- * rather than spoken — see `tagAudibleSeconds`.
+ * v3 by measurement, not by preference. The probe settled both questions it
+ * had to:
+ *
+ *   - It returns word timings — 27 for the same line v2 returns 27 for. That
+ *     was the gate; without timings every cut and caption falls back to a guess.
+ *   - The direction tags are not spoken. Their characters occupy 7.7ms each
+ *     against 77ms for every character the voice actually says, and the tagged
+ *     take came back 0.1s SHORTER than the untagged one despite carrying 39
+ *     more characters. Had they been read aloud it would have been ~3s longer.
+ *
+ * Set MONEY_TTS_MODEL=eleven_multilingual_v2 to go back; nothing else changes,
+ * because the tags are only added for a model that accepts them.
  */
-export const MONEY_TTS_MODEL = process.env.MONEY_TTS_MODEL || 'eleven_multilingual_v2';
+export const MONEY_TTS_MODEL = process.env.MONEY_TTS_MODEL || 'eleven_v3';
 
 /** v3 reads inline [tags] as direction. v2 has no such concept and says them. */
 export const acceptsAudioTags = (modelId: string): boolean => /^eleven_v3/.test(modelId);
@@ -241,11 +251,19 @@ export async function speakMoneyScript(
     // passes. Anything above a few tenths of a second means stop and listen.
     const dropped = raw.wordTimings.length - wordTimings.length;
     if (dropped > 0) {
-        const audible = tagAudibleSeconds(raw.wordTimings);
+        // Compared as a RATE against this read's own speaking speed, not against
+        // a fixed number of seconds. A longer script carries more tags, so an
+        // absolute threshold would start crying wolf on exactly the episodes
+        // that are working fine.
+        const tagSec = tagAudibleSeconds(raw.wordTimings);
+        const spokenSec = wordTimings.reduce((a, w) => a + Math.max(0, w.end - w.start), 0);
+        const tagRate = tagSec / dropped;
+        const spokenRate = spokenSec / Math.max(1, wordTimings.length);
+        const ratio = tagRate > 0 ? spokenRate / tagRate : Infinity;
         console.log(
-            `[money] ${dropped} direction tag(s) removed from the timings, ` +
-                `occupying ${audible.toFixed(2)}s of alignment` +
-                (audible > 0.4 ? '  ⚠️  that is long enough to have been SPOKEN — listen before publishing' : ''),
+            `[money] ${dropped} direction tag(s) removed from the timings ` +
+                `(${tagSec.toFixed(2)}s, ${ratio.toFixed(1)}x faster than this read's own speech)` +
+                (ratio < 2 ? '  ⚠️  slow enough to have been SPOKEN — listen before publishing' : ''),
         );
     }
 

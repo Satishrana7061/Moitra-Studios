@@ -1,7 +1,10 @@
 import React from 'react';
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
 import { CONTENT } from '../lib/layout';
-import { focalGlow, money, moneyFonts, moneyType, softShadow } from '../lib/moneyTheme';
+import { CAPTION_TOP, focalGlow, money, moneyFonts, moneyType, softShadow } from '../lib/moneyTheme';
+
+/** Just below the beat text, which sits at y=300 and is at most two lines. */
+const VISUAL_TOP = 450;
 import type { VisualSpec } from '../lib/moneySchema';
 import { LADDER_STEPS } from '../lib/ladder';
 
@@ -40,6 +43,14 @@ const BigNumber: React.FC<{ value: string; label?: string }> = ({ value, label }
   const shown = target > 0 ? Math.round(target * eased).toLocaleString('en-IN') : null;
   const display = shown === null ? value : value.replace(digits, shown);
 
+  // The highlighter swipe. Drawn left to right like a real marker stroke, and
+  // it starts a beat AFTER the digits so it reads as someone marking a number
+  // that is already on the page — the gesture, not a background.
+  const swipe = interpolate(frame, [fps * 0.55, fps * 1.15], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
   return (
     <div style={{ textAlign: 'center', position: 'relative' }}>
       <div
@@ -47,22 +58,57 @@ const BigNumber: React.FC<{ value: string; label?: string }> = ({ value, label }
           position: 'absolute',
           inset: '-18% -10%',
           background: focalGlow(),
-          opacity: enter,
+          opacity: enter * 0.7,
         }}
       />
+      {/*
+        The digits get their own positioning context so the swipe can be sized
+        against THEM. Anchored to the outer block instead, it was measured
+        against the block's full height — digits plus the label underneath — and
+        sat low and short, reading as a misplaced rectangle rather than a stroke
+        over the number.
+      */}
       <div
         style={{
           position: 'relative',
-          fontFamily: moneyFonts.display,
-          fontSize: moneyType.bigNumber,
-          fontWeight: 800,
-          color: money.gold,
-          lineHeight: 1,
+          display: 'inline-block',
           transform: `scale(${0.86 + enter * 0.14})`,
-          letterSpacing: '-0.02em',
         }}
       >
-        {display}
+        {/*
+          On paper you do not recolour a figure to make it matter — you swipe
+          over it. Marker ends are never square and never fully opaque, so this
+          is a rounded, semi-transparent band that scales from its left edge.
+        */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '-4%',
+            right: '-4%',
+            top: '12%',
+            bottom: '10%',
+            background: money.accentSoft,
+            borderRadius: 12,
+            transformOrigin: 'left center',
+            transform: `scaleX(${swipe}) skewX(-2.5deg)`,
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            fontFamily: moneyFonts.display,
+            fontSize: moneyType.bigNumber,
+            fontWeight: 800,
+            // Ink. A ledger entry is written, not lit — at 190px the figure does
+            // not need a colour to dominate the frame, it needs contrast.
+            color: money.text,
+            lineHeight: 1,
+            letterSpacing: '-0.02em',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {display}
+        </div>
       </div>
       {label && (
         <div
@@ -170,8 +216,10 @@ const StepRow: React.FC<{ item: string; index: number }> = ({ item, index }) => 
           height: 56,
           flexShrink: 0,
           borderRadius: '50%',
-          background: money.gold,
-          color: money.bg,
+          background: money.accent,
+          // Ink, not money.bg. On the dark palette the page colour WAS the
+          // contrast; on cream it would be near-invisible against the accent.
+          color: money.text,
           fontFamily: moneyFonts.display,
           fontWeight: 800,
           fontSize: 32,
@@ -224,9 +272,14 @@ const Ladder: React.FC<{ highlightStep: number }> = ({ highlightStep }) => {
               gap: 18,
               padding: '14px 22px',
               borderRadius: 16,
-              background: active ? money.gold : done ? money.surface : 'transparent',
-              border: `2px solid ${active ? money.gold : money.surfaceEdge}`,
-              opacity: active ? 1 : done ? 0.85 : 0.4 * reveal + 0.1,
+              background: active ? money.accent : done ? money.surface : 'transparent',
+              border: `2px solid ${active ? money.accent : money.surfaceEdge}`,
+              // On the dark palette a pending rung at 0.1-0.5 alpha still read,
+              // because bright type on near-black starts from a huge contrast
+              // ratio. Ink on cream does not: the same values rendered as
+              // ghosts. Pending rungs are meant to be quiet, not invisible —
+              // they are the "there are six more steps" promise.
+              opacity: active ? 1 : done ? 0.9 : 0.45 * reveal + 0.35,
               transform: `scale(${active ? 0.96 + enter * 0.04 : 1})`,
             }}
           >
@@ -235,7 +288,7 @@ const Ladder: React.FC<{ highlightStep: number }> = ({ highlightStep }) => {
                 fontFamily: moneyFonts.display,
                 fontWeight: 800,
                 fontSize: 30,
-                color: active ? money.bg : money.textDim,
+                color: active ? money.text : money.textDim,
                 width: 34,
               }}
             >
@@ -245,8 +298,8 @@ const Ladder: React.FC<{ highlightStep: number }> = ({ highlightStep }) => {
               style={{
                 fontFamily: moneyFonts.display,
                 fontSize: 38,
-                color: active ? money.bg : money.text,
-                fontWeight: active ? 700 : 400,
+                color: money.text,
+                fontWeight: active ? 800 : 400,
               }}
             >
               {label}
@@ -286,7 +339,7 @@ const Clock: React.FC<{ label?: string; beatDurationSec: number }> = ({ label, b
           cy={190}
           r={r}
           fill="none"
-          stroke={money.gold}
+          stroke={money.accent}
           strokeWidth={26}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -335,13 +388,13 @@ export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = (
         position: 'absolute',
         left: CONTENT.left,
         width: CONTENT.width,
-        // Spans from just under the beat text down to just above the
-        // disclaimer, and centres within that. Sized for the caption-less
-        // layout: when captions occupied the lower third a 620px box sat about
-        // right, but without them the frame read top-heavy with a dead band
-        // below the visual.
-        top: 450,
-        height: 880,
+        // Spans from just under the beat text down to just above the CAPTION,
+        // and centres within that. Derived rather than typed: this box was a
+        // hardcoded 880px tall, sized for a layout that had no captions, and
+        // when captions returned it overlapped them by 150px — the plate landed
+        // squarely on the ladder's lit rung.
+        top: VISUAL_TOP,
+        height: CAPTION_TOP - VISUAL_TOP - 24,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -227,8 +227,12 @@ async function main() {
 
   check('v2 gets no tags at all — it would read them aloud',
     directedVoiceoverText(script, 'eleven_multilingual_v2') === plain);
-  check('the shipped default is a model that has been heard',
-    !acceptsAudioTags(MONEY_TTS_MODEL) || process.env.MONEY_TTS_MODEL !== undefined);
+  // Guards a typo more than a policy. MONEY_TTS_MODEL is a free-text env var,
+  // and a misspelling would not fail — ElevenLabs would fall back to its own
+  // default model and the episode would simply come back read by something we
+  // never probed, sounding wrong for no visible reason.
+  check('the shipped model is one the probe has actually exercised',
+    ['eleven_v3', 'eleven_multilingual_v2'].includes(MONEY_TTS_MODEL), MONEY_TTS_MODEL);
   check('v3 does get tags', directed !== plain && /\[/.test(directed));
   // The property the whole design rests on: direction changes delivery, never
   // words. If this drifts, the runtime guard throws AFTER the credits are spent.

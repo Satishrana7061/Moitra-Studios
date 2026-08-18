@@ -23,32 +23,63 @@ import { CaptionBar } from './layers/CaptionBar';
  * sound-off version of what the voice is saying — rendered by CaptionBar.
  */
 
+/**
+ * The page itself: a ruled ledger, which is what "hisaab kitab" means.
+ *
+ * Three layers, none of them decoration. The cream wash is the paper. The
+ * horizontal rules give the frame a structure to hang numbers on, so a figure
+ * reads as an ENTRY rather than as floating type. The red margin line down the
+ * left is the detail that makes it unmistakably an account book rather than
+ * generic notepaper — every register in India has one.
+ *
+ * The rules drift upward by a fraction of their own spacing across the whole
+ * reel. Enough that the ground is never perfectly still; far too slow to read
+ * as movement, which would fight the numbers.
+ */
 const Background: React.FC<{ variant: 'a' | 'b' | 'c' }> = ({ variant }) => {
   const frame = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
 
-  // A very slow drift so the ground is never perfectly still.
   const drift = interpolate(frame, [0, durationInFrames], [0, 1]);
   const angle = { a: 165, b: 200, c: 135 }[variant];
+  const RULE_GAP = 108;
 
   return (
     <AbsoluteFill
       style={{
-        background: `linear-gradient(${angle}deg, ${money.bgLift} 0%, ${money.bg} 55%, #04140F 100%)`,
+        background: `linear-gradient(${angle}deg, ${money.bgLift} 0%, ${money.bg} 60%, ${money.surface} 100%)`,
       }}
     >
+      {/* Ruled lines. */}
       <AbsoluteFill
         style={{
-          background: `radial-gradient(60% 40% at 50% ${28 + drift * 6}%, ${money.gold}14, transparent 70%)`,
+          backgroundImage: `repeating-linear-gradient(to bottom, transparent 0px, transparent ${RULE_GAP - 2}px, ${money.rule} ${RULE_GAP - 2}px, ${money.rule} ${RULE_GAP}px)`,
+          transform: `translateY(${-drift * RULE_GAP}px)`,
         }}
       />
-      {/* Faint grid, to read as considered rather than empty. */}
+
+      {/* The margin line, and the crease beside it where the page is bound. */}
+      <div
+        style={{
+          position: 'absolute',
+          left: SAFE_X - 28,
+          top: 0,
+          bottom: 0,
+          width: 3,
+          background: money.margin,
+          opacity: 0.34,
+        }}
+      />
+
+      {/*
+        Paper is never evenly lit. A warm vignette does the work a glow did on
+        the dark palette — it separates the centre without adding a colour the
+        page could not have.
+      */}
       <AbsoluteFill
         style={{
-          opacity: 0.05,
-          backgroundImage: `linear-gradient(${money.text} 1px, transparent 1px), linear-gradient(90deg, ${money.text} 1px, transparent 1px)`,
-          backgroundSize: '120px 120px',
-          transform: `translateY(${drift * -40}px)`,
+          background: `radial-gradient(72% 48% at 50% ${34 + drift * 4}%, ${money.accent}14, transparent 68%),
+                       radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(31,41,51,0.09) 100%)`,
         }}
       />
     </AbsoluteFill>
@@ -76,7 +107,7 @@ const HookCard: React.FC<{ text: string }> = ({ text }) => {
         fontWeight: 800,
         lineHeight: 1.18,
         color: money.text,
-        textShadow: '0 8px 30px rgba(0,0,0,0.6)',
+        textShadow: '0 2px 0 rgba(247, 241, 226, 0.9)',
         transform: `scale(${0.9 + enter * 0.1})`,
         opacity: enter,
       }}
@@ -104,7 +135,7 @@ const BeatText: React.FC<{ text: string }> = ({ text }) => {
         fontWeight: 800,
         lineHeight: 1.2,
         color: money.text,
-        textShadow: '0 6px 24px rgba(0,0,0,0.6)',
+        textShadow: '0 2px 0 rgba(247, 241, 226, 0.9)',
         transform: `translateY(${(1 - enter) * 26}px)`,
         opacity: enter,
       }}
@@ -142,7 +173,7 @@ const CtaCard: React.FC<{ text: string }> = ({ text }) => {
             marginTop: 36,
             fontFamily: moneyFonts.display,
             fontSize: 40,
-            color: money.gold,
+            color: money.accent,
             fontWeight: 700,
           }}
         >

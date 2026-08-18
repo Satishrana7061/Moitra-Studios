@@ -29,7 +29,13 @@ export const SeriesBar: React.FC<{
       color: money.textDim,
     }}
   >
-    <span style={{ color: money.gold, fontWeight: 700 }}>{seriesName}</span>
+    {/*
+      Ink, not the accent. On the dark palette the accent carried this line at
+      32px; on paper it measures about 2.6:1 against the ground, which is below
+      readable for text this size. The accent moves to the episode pill, where
+      it is a FILL and can be as saturated as it likes.
+    */}
+    <span style={{ color: money.text, fontWeight: 800 }}>{seriesName}</span>
     <span style={{ opacity: 0.4 }}>·</span>
     <span>Step {stepNumber}</span>
     <span style={{ opacity: 0.4 }}>·</span>
@@ -39,10 +45,12 @@ export const SeriesBar: React.FC<{
     <span
       style={{
         fontFamily: moneyFonts.display,
-        fontWeight: 700,
+        fontWeight: 800,
+        // Ink on the accent — the one saturated shape in the top third. The
+        // episode number is what turns a view into a follow ("there are 46 I
+        // missed"), so it is the element that earns the colour.
         color: money.text,
-        background: money.surface,
-        border: `2px solid ${money.surfaceEdge}`,
+        background: money.accent,
         borderRadius: 999,
         padding: '6px 20px',
       }}

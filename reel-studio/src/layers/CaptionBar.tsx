@@ -1,7 +1,7 @@
 import React from 'react';
 import { interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
 import { CANVAS, SAFE_BOTTOM, SAFE_X } from '../lib/layout';
-import { money, moneyFonts } from '../lib/moneyTheme';
+import { CAPTION, money, moneyFonts, softShadow } from '../lib/moneyTheme';
 
 /**
  * The sound-off channel.
@@ -58,7 +58,7 @@ export const CaptionBar: React.FC<{ text: string; beatDurationSec: number }> = (
         // Sits ABOVE the disclaimer, which itself sits above the platform
         // chrome line. Bottom-anchored so one- and two-line captions both grow
         // upward and neither can drift into the chrome.
-        bottom: SAFE_BOTTOM + 74,
+        bottom: SAFE_BOTTOM + CAPTION.liftAboveSafe,
         display: 'flex',
         justifyContent: 'center',
       }}
@@ -66,9 +66,9 @@ export const CaptionBar: React.FC<{ text: string; beatDurationSec: number }> = (
       <span
         style={{
           fontFamily: moneyFonts.display,
-          fontSize: 46,
+          fontSize: CAPTION.fontSize,
           fontWeight: 700,
-          lineHeight: 1.25,
+          lineHeight: CAPTION.lineHeight,
           textAlign: 'center',
           color: money.text,
           // A visible plate, not a text shadow. The caption sits over whatever
@@ -76,10 +76,10 @@ export const CaptionBar: React.FC<{ text: string; beatDurationSec: number }> = (
           // bright figure. The first version used the background colour itself,
           // which made the plate invisible and left the text floating.
           background: money.surface,
-          border: `2px solid ${money.surfaceEdge}`,
-          padding: '16px 30px',
+          border: `${CAPTION.borderWidth}px solid ${money.surfaceEdge}`,
+          padding: `${CAPTION.padY}px 30px`,
           borderRadius: 16,
-          boxShadow: '0 10px 34px rgba(0,0,0,0.45)',
+          boxShadow: softShadow,
           maxWidth: CANVAS.width - SAFE_X * 2 - 40,
           opacity,
         }}

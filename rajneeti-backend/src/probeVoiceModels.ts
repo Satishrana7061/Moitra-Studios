@@ -21,6 +21,9 @@
 
 import fs from 'fs';
 import path from 'path';
+import { spawnSync } from 'child_process';
+
+import { ffmpegBin } from './services/audioMixService.js';
 
 const KEY = process.env.ELEVENLABS_API_KEY;
 const VOICE = process.env.ELEVENLABS_VOICE_ID__MONEY || 'Ms9OTvWb99V6DwRHZn6q';
@@ -138,6 +141,30 @@ async function run(take: Take) {
     };
 }
 
+/**
+ * Where the read actually stops, measured from the audio.
+ *
+ * The alignment can say a tag was not spoken; only the waveform can say the
+ * direction did anything. If [pause] and [breathes] work, the tagged take has
+ * real silences the plain take does not — and pauses are most of what separates
+ * a human read from an even one.
+ *
+ * -34 dB and 160 ms are chosen to catch a deliberate beat while ignoring the
+ * micro-gaps between words, which sit well below that length.
+ */
+function pauses(file: string): { count: number; totalSec: number } {
+    const res = spawnSync(
+        ffmpegBin(),
+        ['-i', file, '-af', 'silencedetect=noise=-34dB:d=0.16', '-f', 'null', '-'],
+        { encoding: 'utf-8' },
+    );
+    const log = `${res.stdout ?? ''}${res.stderr ?? ''}`;
+    const durations = [...log.matchAll(/silence_duration:\s*([\d.]+)/g)].map((m) => Number(m[1]));
+    // The trailing silence after the last word is not a pause in the read.
+    const internal = durations.slice(0, Math.max(0, durations.length - 1));
+    return { count: internal.length, totalSec: internal.reduce((a, b) => a + b, 0) };
+}
+
 async function main() {
     if (!KEY) throw new Error('ELEVENLABS_API_KEY is not set.');
     fs.mkdirSync(OUT, { recursive: true });
@@ -146,6 +173,8 @@ async function main() {
     console.log('Word timings are the gate. A model that returns none cannot be');
     console.log('used here regardless of how it sounds — every cut and every');
     console.log('caption is placed from them.\n');
+
+    const summary: { label: string; sec: number; pauses: number; pauseSec: number }[] = [];
 
     for (const take of TAKES) {
         process.stdout.write(`${take.label.padEnd(16)} [${take.model}]  `);
@@ -161,16 +190,36 @@ async function main() {
                 `${r.words} words / ${r.chars} chars of timing, ${r.durationSec.toFixed(1)}s` +
                     (r.words === 0 ? '  ⚠️  NO TIMINGS — unusable' : ''),
             );
+
+            const p = r.audio ? pauses(file) : { count: 0, totalSec: 0 };
+            console.log(
+                `${''.padEnd(16)}   ${p.count} pause(s) of 160ms+, ${p.totalSec.toFixed(2)}s of held silence`,
+            );
+            summary.push({ label: take.label, sec: r.durationSec, pauses: p.count, pauseSec: p.totalSec });
+
             if (r.tagChars > 0) {
+                // The honest measure is a RATE, not a stopwatch. Run 1 reported
+                // 0.30s of tag alignment and an absolute threshold called that
+                // "borderline" — but 0.30s across 39 tag characters is 7.7ms
+                // each, against 77ms for every character the voice actually
+                // speaks. Ten times faster than speech is not speech. An
+                // absolute cut-off would also have scaled wrongly: a longer
+                // script carries more tags and would trip it while being just
+                // as silent.
+                const spokenChars = Math.max(1, r.chars - r.tagChars);
+                const spokenRate = (r.durationSec - r.tagSec) / spokenChars;
+                const tagRate = r.tagSec / r.tagChars;
+                const ratio = tagRate > 0 ? spokenRate / tagRate : Infinity;
                 const verdict =
-                    r.tagSec <= 0.15
-                        ? 'SILENT — direction only, safe to adopt'
-                        : r.tagSec <= 0.4
+                    ratio >= 4
+                        ? 'DIRECTION — far too fast to be speech, safe to adopt'
+                        : ratio >= 2
                           ? 'borderline — listen before adopting'
                           : '⚠️  AUDIBLE — the tags are being READ ALOUD, do not adopt tagged';
                 console.log(
-                    `${''.padEnd(16)}   tags occupy ${r.tagSec.toFixed(2)}s ` +
-                        `across ${r.tagChars} chars  →  ${verdict}`,
+                    `${''.padEnd(16)}   tags: ${r.tagSec.toFixed(2)}s over ${r.tagChars} chars ` +
+                        `= ${(tagRate * 1000).toFixed(1)}ms/char vs ${(spokenRate * 1000).toFixed(1)}ms/char spoken ` +
+                        `(${ratio.toFixed(1)}x)  →  ${verdict}`,
                 );
             }
         } catch (err: any) {
@@ -178,10 +227,27 @@ async function main() {
         }
     }
 
+    // The second proof, and the one that does not depend on the alignment being
+    // honest: identical words in both v3 takes, so if the tags were spoken the
+    // tagged take would be SECONDS longer. If instead it is the same length but
+    // holds more silence, the direction did exactly what it was asked to.
+    const plain = summary.find((t) => t.label === 'v3-plain');
+    const tagged = summary.find((t) => t.label === 'v3-tagged');
+    if (plain && tagged) {
+        console.log('\nv3 plain vs tagged — same words, so any extra length would be spoken tags:');
+        console.log(`  length   ${plain.sec.toFixed(1)}s -> ${tagged.sec.toFixed(1)}s  (${(tagged.sec - plain.sec >= 0 ? '+' : '')}${(tagged.sec - plain.sec).toFixed(1)}s)`);
+        console.log(`  pauses   ${plain.pauses} -> ${tagged.pauses}   held silence ${plain.pauseSec.toFixed(2)}s -> ${tagged.pauseSec.toFixed(2)}s`);
+        console.log(
+            tagged.sec - plain.sec > 1.0
+                ? '  ⚠️  materially longer — consistent with the tags being read aloud.'
+                : tagged.pauseSec > plain.pauseSec + 0.1
+                  ? '  ✅ same length, more silence — the direction landed where it was asked to.'
+                  : '  ⚠️  no extra silence — the tags are not being read, but they are not doing anything either.',
+        );
+    }
+
     console.log(`\nAudio written to ${OUT}. Judge naturalness by ear;`);
-    console.log('the timing counts above decide what is even allowed.\n');
-    console.log('If v3-tagged reports SILENT, set MONEY_TTS_MODEL=eleven_v3 and the');
-    console.log('daily pipeline picks up the direction with no other change.\n');
+    console.log('the measurements above decide what is even allowed.\n');
 }
 
 main().catch((err) => {

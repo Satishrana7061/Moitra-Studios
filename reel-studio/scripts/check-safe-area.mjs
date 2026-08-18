@@ -21,10 +21,31 @@ const CANVAS_HEIGHT = 1920;
 const SAFE_BOTTOM = 520;
 const SAFE_LINE = CANVAS_HEIGHT - SAFE_BOTTOM;
 
-/** Background is deep teal (luma ~30-45); text and numerals are 180+. */
-const LUMA_THRESHOLD = 110;
+/**
+ * "Content" is whatever DIFFERS from the page, in either direction.
+ *
+ * The first version of this looked for bright pixels, because the palette was
+ * bright type on a dark teal ground. That assumption was invisible until the
+ * palette became ink on cream — at which point the page itself is luma ~235 and
+ * every single row would have been reported as content, so the check would have
+ * failed everything and told us nothing about the safe area.
+ *
+ * A check whose correctness depends on the colour scheme is not much of a check.
+ * This measures deviation from the frame's own background instead, which works
+ * on either polarity and on whatever palette comes next.
+ */
+const CONTENT_DELTA = 45;
 /** Tolerate a few stray antialiased pixels per row. */
-const MIN_BRIGHT_PER_ROW = 3;
+const MIN_CONTENT_PER_ROW = 3;
+
+/** The page colour, taken as the most common luma in the frame. */
+function backgroundLuma(data) {
+  const hist = new Uint32Array(256);
+  for (let i = 0; i < data.length; i += 7) hist[data[i]]++;
+  let best = 0;
+  for (let v = 1; v < 256; v++) if (hist[v] > hist[best]) best = v;
+  return best;
+}
 
 const files = process.argv.slice(2).filter((f) => fs.existsSync(f));
 if (!files.length) {
@@ -41,27 +62,28 @@ for (const file of files) {
     .toBuffer({ resolveWithObject: true });
 
   const { width, height } = info;
+  const page = backgroundLuma(data);
   let lowestContent = null;
-  let brightBelow = 0;
+  let contentBelow = 0;
 
   for (let y = height - 1; y >= 0; y--) {
-    let bright = 0;
+    let content = 0;
     for (let x = 0; x < width; x += 3) {
-      if (data[y * width + x] > LUMA_THRESHOLD) bright++;
+      if (Math.abs(data[y * width + x] - page) > CONTENT_DELTA) content++;
     }
-    if (bright >= MIN_BRIGHT_PER_ROW) {
+    if (content >= MIN_CONTENT_PER_ROW) {
       if (lowestContent === null) lowestContent = y;
       // Scale the safe line if the frame was rendered at another size.
-      if (y >= Math.round((SAFE_LINE / CANVAS_HEIGHT) * height)) brightBelow += bright;
+      if (y >= Math.round((SAFE_LINE / CANVAS_HEIGHT) * height)) contentBelow += content;
     }
   }
 
-  const ok = brightBelow === 0;
+  const ok = contentBelow === 0;
   if (!ok) failed++;
   console.log(
     `  ${ok ? 'PASS' : 'FAIL'}  ${path.basename(file).padEnd(18)} ` +
-      `lowest content y=${lowestContent} (limit ${SAFE_LINE})` +
-      (ok ? '' : ` — ${brightBelow} bright px inside the UI band`),
+      `page luma ${page}, lowest content y=${lowestContent} (limit ${SAFE_LINE})` +
+      (ok ? '' : ` — ${contentBelow} content px inside the UI band`),
   );
 }
 

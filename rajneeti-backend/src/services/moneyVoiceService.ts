@@ -59,6 +59,151 @@ export const MONEY_VOICE_SETTINGS: VoiceSettings = {
     use_speaker_boost: true,
 };
 
+// ── v3 direction ─────────────────────────────────────────────────────────────
+
+/**
+ * Which model reads this channel.
+ *
+ * Pinned per call, never through ELEVENLABS_MODEL_ID: that env var is global,
+ * so setting it to move this channel to v3 would drag the Rajneeti news
+ * pipeline along with it. Two channels, two reads, two decisions.
+ *
+ * Default stays on v2 until a probe run confirms the tags below are silent
+ * rather than spoken — see `tagAudibleSeconds`.
+ */
+export const MONEY_TTS_MODEL = process.env.MONEY_TTS_MODEL || 'eleven_multilingual_v2';
+
+/** v3 reads inline [tags] as direction. v2 has no such concept and says them. */
+export const acceptsAudioTags = (modelId: string): boolean => /^eleven_v3/.test(modelId);
+
+/**
+ * The only tags this channel uses, and deliberately a short list.
+ *
+ * These four are the ones the probe actually sent and got audio back for. The
+ * tag set is not a documented closed list, so an untested one may simply be
+ * read aloud as a word — a failure that costs a full episode of credits and is
+ * audible only, never visible in a log. A fifth tag means probing it first.
+ */
+export const TAG_VOCABULARY = ['[thoughtful]', '[pause]', '[emphatic]', '[breathes]'] as const;
+
+/**
+ * Removes v3 audio tags from text.
+ *
+ * They are direction, not speech — but they live inside the text string, so
+ * anything comparing what we sent against what we meant has to ignore them.
+ */
+export const stripAudioTags = (s: string): string =>
+    s.replace(/\[[^\]]*\]/g, ' ').replace(/\s+/g, ' ').trim();
+
+/**
+ * True for a timing token that is genuinely spoken rather than a tag.
+ *
+ * Holds because every spoken token in this channel is Devanagari or bare
+ * punctuation: `languageIssues` rejects a `say` line containing no Devanagari,
+ * and separately rejects digits and ₹/$/% in spoken lines. So a token carrying
+ * Latin letters and no Devanagari can only have come from a tag. That is an
+ * assumption about another module, so `checkgen` asserts it instead of trusting
+ * it.
+ */
+const isSpokenToken = (w: WordTiming): boolean =>
+    /[\u0900-\u097F]/.test(w.word) || /^[^\p{L}]*$/u.test(w.word);
+
+/**
+ * Drops tag tokens out of the returned word timings.
+ *
+ * The probe caught this: the same line came back as 27 timed words plain and
+ * **31 with four audio tags**, the character count growing by exactly the
+ * tags' length. They sit in the alignment stream as though spoken. Left in,
+ * `beatTimingAligner` would try to match "[thoughtful]" against the script,
+ * fail, and fall back to a proportional split — losing the exact property v3
+ * was adopted to improve, and losing it silently.
+ */
+export const dropTagTimings = (words: WordTiming[]): WordTiming[] => words.filter(isSpokenToken);
+
+/**
+ * How many seconds of audio the dropped tag tokens occupy.
+ *
+ * This is the measurement that answers the question the probe left open. The
+ * tags come back inside the alignment — but that alone does not say whether
+ * they were VOCALISED. If v3 treats them as direction their spans collapse to
+ * near zero and this returns roughly 0. If it said "thoughtful" out loud, each
+ * occupies a real speaking duration and this returns something near a second.
+ *
+ * Cutting is safe either way, because the tokens are filtered before alignment.
+ * The audio is not: a read that says "pause" aloud is a ruined episode that
+ * every automated check still passes. So it is logged on every run, and the
+ * probe reports it per tag.
+ */
+export const tagAudibleSeconds = (words: WordTiming[]): number =>
+    words.filter((w) => !isSpokenToken(w)).reduce((sum, w) => sum + Math.max(0, w.end - w.start), 0);
+
+/**
+ * Builds the voiceover string with v3 direction woven in.
+ *
+ * Structure-aware on purpose. Given only the joined string there is no reliable
+ * way to find the sentence carrying the key figure — spoken lines spell their
+ * numbers in Hindi words, so there are no digits to search for. Given the
+ * script, the beat holding a `bigNumber` visual IS the beat about the number,
+ * by construction.
+ *
+ * Four placements, every one of them at a boundary between complete lines, so
+ * no beat's own word run is ever interrupted. That keeps each beat contiguous
+ * in the filtered timing stream, which is what the aligner walks.
+ *
+ *   [thoughtful]        opens the hook, setting the register before the provocation
+ *   [breathes]          after the hook, where the explanation begins
+ *   [pause] [emphatic]  before the beat carrying the number — silence, then hit it
+ *   [breathes]          before the CTA, where the read turns to the viewer
+ *
+ * Restrained by design: four or five marks across a forty-second read. Tagging
+ * every sentence produces a different artificial voice, not a human one.
+ *
+ * Stripping the result must return `voiceoverText(script)` exactly — asserted
+ * offline for every fixture, and enforced again at runtime by the drift guard.
+ */
+export function directedVoiceoverText(script: MoneyScript, modelId: string = MONEY_TTS_MODEL): string {
+    const plain = voiceoverText(script);
+    if (!acceptsAudioTags(modelId)) return plain;
+
+    const spoken = script.beats.filter((b) => (b.say ?? '').trim());
+    if (!spoken.length) return plain;
+
+    const hook = (script.hookSaid ?? '').trim();
+    const cta = (script.ctaSaid ?? '').trim();
+
+    // Falls back to the first beat rather than to no emphasis at all: emphasis
+    // in a defensible place beats a uniformly flat read.
+    const found = spoken.findIndex((b) => b.visual?.kind === 'bigNumber');
+    const numberAt = found >= 0 ? found : 0;
+
+    const parts: string[] = [];
+    if (hook) parts.push('[thoughtful]', hook, '[breathes]');
+    spoken.forEach((beat, i) => {
+        if (i === numberAt) {
+            // The [breathes] after the hook already supplies the gap, so a
+            // [pause] here as well would read as a stall rather than a beat.
+            if (!(i === 0 && hook)) parts.push('[pause]');
+            parts.push('[emphatic]');
+        }
+        parts.push((beat.say ?? '').trim());
+    });
+    if (cta) parts.push('[breathes]', cta);
+
+    const directed = parts.join(' ');
+
+    // Cheap, and worth it: a bug here spends real credits on a read that then
+    // trips the drift guard, so the failure arrives minutes later in CI with
+    // the audio already paid for.
+    if (stripAudioTags(directed) !== plain) {
+        throw new Error(
+            '[money] Direction changed the words, not just the delivery.\n' +
+                `  stripped: ${stripAudioTags(directed).slice(0, 160)}\n` +
+                `  expected: ${plain.slice(0, 160)}`,
+        );
+    }
+    return directed;
+}
+
 const letters = (s: string): string =>
     s.normalize('NFC').replace(/[^\p{L}\p{N}]/gu, '').toLowerCase();
 
@@ -72,15 +217,37 @@ export interface MoneyVoiceResult {
 export async function speakMoneyScript(
     script: MoneyScript,
     voiceId: string = MONEY_VOICE_ID,
+    modelId: string = MONEY_TTS_MODEL,
 ): Promise<MoneyVoiceResult> {
     const text = voiceoverText(script);
     if (!text.trim()) throw new Error('[money] Refusing to call TTS with an empty voiceover.');
 
-    const { audioBuffer, wordTimings, spokenText } = await generateAudioWithTimestamps(
-        text,
+    // Direction is added only for a model that understands it; on v2 this is
+    // the plain text unchanged, so the same script works on either.
+    const directed = directedVoiceoverText(script, modelId);
+
+    const raw = await generateAudioWithTimestamps(
+        directed,
         voiceId || undefined,
-        { normalizeNumerals: false, voiceSettings: MONEY_VOICE_SETTINGS },
+        { normalizeNumerals: false, voiceSettings: MONEY_VOICE_SETTINGS, modelId },
     );
+    const audioBuffer = raw.audioBuffer;
+    const spokenText = stripAudioTags(raw.spokenText);
+    const wordTimings = dropTagTimings(raw.wordTimings);
+
+    // Logged every run, because it is the only place the failure shows up
+    // outside of listening. Tags removed from the timings cost nothing; tags
+    // that were actually VOCALISED ruin the read while every check still
+    // passes. Anything above a few tenths of a second means stop and listen.
+    const dropped = raw.wordTimings.length - wordTimings.length;
+    if (dropped > 0) {
+        const audible = tagAudibleSeconds(raw.wordTimings);
+        console.log(
+            `[money] ${dropped} direction tag(s) removed from the timings, ` +
+                `occupying ${audible.toFixed(2)}s of alignment` +
+                (audible > 0.4 ? '  ⚠️  that is long enough to have been SPOKEN — listen before publishing' : ''),
+        );
+    }
 
     if (letters(spokenText) !== letters(text)) {
         throw new Error(

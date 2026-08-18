@@ -85,6 +85,8 @@ async function run(take: Take) {
     const chars: string[] = data.alignment?.characters ?? [];
     const starts: number[] = data.alignment?.character_start_times_seconds ?? [];
 
+    const ends: number[] = data.alignment?.character_end_times_seconds ?? [];
+
     // Characters are what the API returns; words are what the aligner needs.
     // Counting the word boundaries is the honest measure of whether beat
     // alignment would survive on this model.
@@ -96,12 +98,43 @@ async function run(take: Take) {
         prevSpace = isSpace;
     }
 
+    // The question the first probe run left open.
+    //
+    // Run 1 proved the tags come back INSIDE the alignment: 31 tokens tagged
+    // against 27 plain, and 176 characters against 133. What it could not say
+    // is whether they were merely aligned or actually VOCALISED. Dropping them
+    // from the timings makes the cuts safe either way — but if v3 read
+    // "thoughtful" out loud, the audio is ruined and every automated check
+    // still passes, because an MP4 of a bad read has the same streams as an
+    // MP4 of a good one.
+    //
+    // The alignment answers it directly. Sum the time spanned by the
+    // characters that sit between brackets. Direction collapses to about zero;
+    // a spoken word occupies a real span. So:
+    //
+    //   ~0.0s  -> tags are direction. Adopt v3 tagged.
+    //   >0.4s  -> tags are being read aloud. v3 plain only, no tags.
+    let inTag = false;
+    let tagSec = 0;
+    let tagChars = 0;
+    let tagStart = -1;
+    for (let i = 0; i < chars.length; i++) {
+        if (chars[i] === '[') { inTag = true; tagStart = starts[i] ?? 0; }
+        if (inTag) tagChars += 1;
+        if (chars[i] === ']') {
+            inTag = false;
+            tagSec += Math.max(0, (ends[i] ?? 0) - tagStart);
+        }
+    }
+
     return {
         ok: true as const,
         audio,
         chars: chars.length,
         words,
-        durationSec: starts.length ? starts[starts.length - 1] : 0,
+        tagSec,
+        tagChars,
+        durationSec: ends.length ? ends[ends.length - 1] : 0,
     };
 }
 
@@ -128,6 +161,18 @@ async function main() {
                 `${r.words} words / ${r.chars} chars of timing, ${r.durationSec.toFixed(1)}s` +
                     (r.words === 0 ? '  ⚠️  NO TIMINGS — unusable' : ''),
             );
+            if (r.tagChars > 0) {
+                const verdict =
+                    r.tagSec <= 0.15
+                        ? 'SILENT — direction only, safe to adopt'
+                        : r.tagSec <= 0.4
+                          ? 'borderline — listen before adopting'
+                          : '⚠️  AUDIBLE — the tags are being READ ALOUD, do not adopt tagged';
+                console.log(
+                    `${''.padEnd(16)}   tags occupy ${r.tagSec.toFixed(2)}s ` +
+                        `across ${r.tagChars} chars  →  ${verdict}`,
+                );
+            }
         } catch (err: any) {
             console.log(`FAILED — ${err.message}`);
         }
@@ -135,6 +180,8 @@ async function main() {
 
     console.log(`\nAudio written to ${OUT}. Judge naturalness by ear;`);
     console.log('the timing counts above decide what is even allowed.\n');
+    console.log('If v3-tagged reports SILENT, set MONEY_TTS_MODEL=eleven_v3 and the');
+    console.log('daily pipeline picks up the direction with no other change.\n');
 }
 
 main().catch((err) => {

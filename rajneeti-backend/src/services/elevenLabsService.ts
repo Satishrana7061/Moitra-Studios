@@ -48,6 +48,19 @@ export interface TtsOptions {
     normalizeNumerals?: boolean;
     /** Overrides the defaults below. */
     voiceSettings?: VoiceSettings;
+    /**
+     * Which ElevenLabs model reads the text.
+     *
+     * Passed per call rather than read from ELEVENLABS_MODEL_ID, because that
+     * env var is global: setting it to switch the money channel to v3 would
+     * silently switch the Rajneeti news pipeline too. Two channels, two reads,
+     * two decisions.
+     *
+     * Matters beyond voice quality — v3 interprets inline [tags] as direction,
+     * v2 has no such concept and would read them aloud. So whoever adds tags to
+     * the text is the same caller that must pin the model.
+     */
+    modelId?: string;
 }
 
 /** The news-reader defaults the Rajneeti pipeline has always used. */
@@ -142,7 +155,7 @@ export async function generateAudio(
             body: JSON.stringify({
                 text: normalizedText,
                 // Use multilingual v2 for proper Hindi/Hinglish pronunciation
-                model_id: process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
+                model_id: opts.modelId || process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
                 voice_settings: { ...NEWS_VOICE_SETTINGS, ...(opts.voiceSettings ?? {}) }
             })
         });
@@ -153,7 +166,7 @@ export async function generateAudio(
         }
 
         const arrayBuffer = await response.arrayBuffer();
-        console.log(`[ElevenLabs] Audio generated successfully (${arrayBuffer.byteLength} bytes) using eleven_multilingual_v2`);
+        console.log(`[ElevenLabs] Audio generated successfully (${arrayBuffer.byteLength} bytes) using ${opts.modelId || process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2'}`);
         return Buffer.from(arrayBuffer);
     } catch (e) {
         console.error("ElevenLabs Error:", e);
@@ -195,7 +208,7 @@ export async function generateAudioWithTimestamps(
             },
             body: JSON.stringify({
                 text: normalizedText,
-                model_id: process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
+                model_id: opts.modelId || process.env.ELEVENLABS_MODEL_ID || 'eleven_multilingual_v2',
                 voice_settings: { ...NEWS_VOICE_SETTINGS, ...(opts.voiceSettings ?? {}) }
             })
         });
@@ -316,7 +329,7 @@ async function fallbackWithEstimatedTimings(
     // estimated timings and the reported spokenText describe the same string
     // that was sent.
     const spokenText = opts.normalizeNumerals === false ? text : normalizeNumeralsForTTS(text);
-    const audioBuffer = await generateAudio(spokenText, voiceId, { normalizeNumerals: false });
+    const audioBuffer = await generateAudio(spokenText, voiceId, { normalizeNumerals: false, modelId: opts.modelId });
     const wordTimings = estimateWordTimingsFromText(spokenText, audioBuffer);
     return { audioBuffer, wordTimings, spokenText };
 }

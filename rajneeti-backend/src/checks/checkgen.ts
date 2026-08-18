@@ -9,6 +9,15 @@ import {
   type MoneyScript,
 } from '../services/moneyScriptGenerator.js';
 import { complianceViolations } from '../services/moneyCurriculum.js';
+import {
+  MONEY_TTS_MODEL,
+  TAG_VOCABULARY,
+  acceptsAudioTags,
+  directedVoiceoverText,
+  dropTagTimings,
+  stripAudioTags,
+  tagAudibleSeconds,
+} from '../services/moneyVoiceService.js';
 
 const P = (name: string, behaviour: 'ok'|'throw'|'empty'): Provider => ({
   name, enabled: true,
@@ -206,6 +215,81 @@ async function main() {
   // a recommendation read aloud is still a recommendation.
   const spokenAdvice = { ...script, ctaSaid: 'आज ही ये शेयर खरीदो।' };
   check('advice hidden in a spoken-only field is caught', complianceViolations(scriptSurfaceText(spokenAdvice)).length > 0);
+
+  // ── v3 direction ───────────────────────────────────────────────────────────
+  // The probe proved tags come back inside the alignment stream. Everything
+  // here is about making sure that costs us nothing.
+
+  console.log('\nv3 direction is added without changing the words:');
+  const V3 = 'eleven_v3';
+  const plain = voiceoverText(script);
+  const directed = directedVoiceoverText(script, V3);
+
+  check('v2 gets no tags at all — it would read them aloud',
+    directedVoiceoverText(script, 'eleven_multilingual_v2') === plain);
+  check('the shipped default is a model that has been heard',
+    !acceptsAudioTags(MONEY_TTS_MODEL) || process.env.MONEY_TTS_MODEL !== undefined);
+  check('v3 does get tags', directed !== plain && /\[/.test(directed));
+  // The property the whole design rests on: direction changes delivery, never
+  // words. If this drifts, the runtime guard throws AFTER the credits are spent.
+  check('stripping the direction returns the voiceover exactly',
+    stripAudioTags(directed) === plain,
+    stripAudioTags(directed) === plain ? '' : stripAudioTags(directed).slice(0, 80));
+  check('only probed tags are used',
+    (directed.match(/\[[^\]]*\]/g) ?? []).every((t) => (TAG_VOCABULARY as readonly string[]).includes(t)),
+    (directed.match(/\[[^\]]*\]/g) ?? []).join(' '));
+  check('the read is directed, not micromanaged',
+    (directed.match(/\[/g) ?? []).length <= 6, `${(directed.match(/\[/g) ?? []).length} tags`);
+  // [emphatic] belongs on the beat carrying the figure. In this fixture that is
+  // beat 0, the bigNumber — so it must sit immediately before that line.
+  check('the emphasis lands on the beat carrying the number',
+    directed.includes(`[emphatic] ${script.beats[0].say}`));
+  check('every tag is whitespace-separated, so none fuses to a Hindi word',
+    !/[^\s]\[/.test(directed) && !/\][^\s]/.test(directed));
+
+  console.log('\ntag tokens are filtered back out of the timings:');
+  // Built the way ElevenLabs returns them: split on whitespace, tags included,
+  // exactly the shape that made the probe report 31 words instead of 27.
+  const fakeStream = directed.split(/\s+/).filter(Boolean).map((word, i) => ({
+    word, start: i * 0.4, end: i * 0.4 + 0.35,
+  }));
+  const kept = dropTagTimings(fakeStream);
+  const tagCount = (directed.match(/\[/g) ?? []).length;
+  check('the tagged stream is longer by exactly the tag count',
+    fakeStream.length === plain.split(/\s+/).filter(Boolean).length + tagCount,
+    `${fakeStream.length} tagged vs ${plain.split(/\s+/).filter(Boolean).length} plain, ${tagCount} tags`);
+  check('filtering restores the plain word sequence exactly',
+    kept.map((w) => w.word).join(' ') === plain,
+    kept.map((w) => w.word).join(' ').slice(0, 80));
+  // The assumption dropTagTimings rests on, asserted rather than trusted: no
+  // spoken token in this channel is Latin-only, so dropping Latin-only tokens
+  // can never eat real speech.
+  check('no genuinely spoken token would be dropped',
+    plain.split(/\s+/).filter(Boolean).every((w) => dropTagTimings([{ word: w, start: 0, end: 1 }]).length === 1));
+  check('audible-tag time is measurable', tagAudibleSeconds(fakeStream) > 0);
+  check('...and is zero once the tags are silent',
+    tagAudibleSeconds(fakeStream.map((w) => /^\[/.test(w.word) ? { ...w, end: w.start } : w)) === 0);
+
+  // A script with no hook still has to produce a legal directed string — the
+  // generator can drop hookSaid and degrade to a shorter voiceover.
+  const noHook = { ...script, hookSaid: '' };
+  check('a hookless script still strips back exactly',
+    stripAudioTags(directedVoiceoverText(noHook, V3)) === voiceoverText(noHook));
+  const noNumberVisual = { ...script, beats: script.beats.map((b) => ({ ...b, visual: { kind: 'ladder' as const } })) };
+  check('a script with no bigNumber beat still emphasises somewhere',
+    directedVoiceoverText(noNumberVisual, V3).includes('[emphatic]'));
+
+  // In the fixture the number lands on beat 0, where the post-hook [breathes]
+  // already supplies the gap. When it lands later there is no such gap, so the
+  // silence has to be asked for — the branch that carries [pause] at all.
+  const lateNumber = {
+    ...script,
+    beats: script.beats.map((b, i) => ({ ...b, visual: (i === 2 ? { kind: 'bigNumber' as const, value: '₹10,000' } : { kind: 'ladder' as const }) })),
+  };
+  const lateDirected = directedVoiceoverText(lateNumber, V3);
+  check('a number arriving mid-read gets silence before it',
+    lateDirected.includes(`[pause] [emphatic] ${script.beats[2].say}`), lateDirected.slice(0, 90));
+  check('...and still strips back exactly', stripAudioTags(lateDirected) === voiceoverText(lateNumber));
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

@@ -133,8 +133,22 @@ async function main() {
     fs.writeFileSync(boardPath, JSON.stringify(storyboard, null, 2));
 
     const mp4 = path.join(tmp, 'out.mp4');
-    const res = spawnSync('npx', ['remotion', 'render', 'MoneyReel', mp4, `--props=${boardPath}`, '--log=error'],
-        { cwd: REEL_STUDIO, encoding: 'utf-8', env: process.env });
+    // Remotion downloads its own headless shell on first use. Some sandboxes
+    // block that host, which fails the render for a reason that has nothing to
+    // do with the reel. Where a Chromium is already on disk, point at it — the
+    // check is meant to catch OUR bugs, not the network's.
+    const localChrome = [
+        process.env.REMOTION_BROWSER_EXECUTABLE,
+        // The headless SHELL, not the full browser: Remotion launches with the
+        // old --headless flag, which current Chrome builds have removed.
+        '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell',
+    ].find((p) => p && fs.existsSync(p));
+    if (localChrome) console.log(`  (using ${localChrome})`);
+
+    const res = spawnSync('npx', [
+        'remotion', 'render', 'MoneyReel', mp4, `--props=${boardPath}`, '--log=error',
+        ...(localChrome ? [`--browser-executable=${localChrome}`] : []),
+    ], { cwd: REEL_STUDIO, encoding: 'utf-8', env: process.env });
 
     if (res.status !== 0) {
         console.log((res.stderr || res.stdout || '').slice(-2500));

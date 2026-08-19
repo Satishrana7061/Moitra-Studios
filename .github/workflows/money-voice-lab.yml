@@ -32,7 +32,10 @@ on:
           - script-only
           - episode
       topic_id:
-        description: 'Curriculum topic id, e.g. s1-01. Blank = first written topic.'
+        description: 'Curriculum topic id, e.g. s1-01. Blank = first written topic. In research-facts mode this is the STEP number, e.g. 2.'
+        required: false
+      fact_limit:
+        description: 'research-facts only: how many topics to research in one run. Default 10.'
         required: false
       voice_ids:
         description: 'Comma-separated ElevenLabs voice ids to compare (episode mode). Blank = account default.'
@@ -42,10 +45,19 @@ jobs:
   voice-lab:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # Needed only by research-facts, which commits its findings back to the
+    # branch. Every other mode reads and writes nothing to the repo.
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Keeps the token available for the research-facts push, and checks
+          # out the branch rather than the detached merge commit.
+          persist-credentials: true
+          ref: ${{ github.ref_name }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -84,19 +96,59 @@ jobs:
         run: npm run money:probe-facts
 
       # Fills in `facts` for topics that have none, using the search path the
-      # probe validated. Writes to content/money-ladder.json, so the diff is
-      # reviewed before it is committed — these become published claims.
+      # probe validated. Every claim carries a source URL and the date it was
+      # checked; anything the model could not cite is dropped rather than kept.
       - name: Research facts
         if: inputs.mode == 'research-facts'
         working-directory: ./rajneeti-backend
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          npm run money:research -- --limit 10 \
+          npm run money:research -- --limit ${{ inputs.fact_limit || '10' }} \
             ${{ inputs.topic_id && format('--step {0}', inputs.topic_id) || '' }}
 
-      - name: Upload the updated curriculum
+      # The findings have to survive the same gates as hand-written content
+      # before they are allowed to persist. A researched "fact" that breaks the
+      # compliance sweep is worse than no fact, because it looks sourced.
+      - name: Validate what was researched
         if: inputs.mode == 'research-facts'
+        working-directory: ./rajneeti-backend
+        run: npm run money:validate
+
+      # Committed back to the branch rather than left in an artifact.
+      #
+      # The artifact version meant someone had to download a zip, unpack it and
+      # copy one JSON file over by hand for the work to count for anything —
+      # which is how a step gets skipped, and the curriculum sat at 9 of 60
+      # topics for as long as that was the process. Research is slow and costs
+      # money per call, so losing a run to a missed download is expensive.
+      #
+      # It commits to the feature branch, never main, and nothing publishes
+      # without passing the approve page, so the diff is still reviewed by a
+      # person before any of it reaches an audience.
+      - name: Commit the researched facts
+        if: inputs.mode == 'research-facts'
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- content/money-ladder.json; then
+            echo "No new facts were written — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/money-ladder.json
+          git commit -m "Research facts for ${{ inputs.topic_id && format('step {0}', inputs.topic_id) || 'the next batch of topics' }}
+
+          Written by the fact researcher, which asks via web search and drops
+          any claim it cannot cite. Each entry carries its source and the date
+          it was checked.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          git push origin HEAD:${{ github.ref_name }}
+          echo "Committed to ${{ github.ref_name }}."
+
+      - name: Upload the updated curriculum
+        if: always() && inputs.mode == 'research-facts'
         uses: actions/upload-artifact@v4
         with:
           name: money-curriculum-${{ github.run_number }}

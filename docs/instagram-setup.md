@@ -80,32 +80,79 @@ for no benefit.
 That last step is missed more often than any other. Without it every API call
 returns a permissions error that does not mention testers at all.
 
-## Step 4 — The token (15 min) — the part that decides whether this keeps working
+## Step 4 — The token (15 min) — and the business-verification question
 
-Meta's ordinary user tokens expire after about 60 days. When one expires, both
-Instagram and Facebook stop posting on the same day, silently. **Use a System
-User token instead — it does not expire.**
+**You do not need to verify business details for this.** That is worth stating
+plainly, because Meta's own documentation makes it sound otherwise and the
+requirement is real — it just does not apply to what we are doing.
 
-1. business.facebook.com → **Business settings → Users → System users**.
-2. **Add** → name it `hisaab-kitab-publisher` → role **Admin**.
-3. **Add assets** → select your app and the new Facebook Page → grant **Full
-   control** on both.
-4. **Generate new token** → select your app → set expiry **Never** → tick:
+Meta has two access levels:
+
+| | What it is for | Business verification |
+|---|---|---|
+| **Standard Access** (default) | apps used only by people who have a **role** on the app — you, your own accounts | **Not required** |
+| **Advanced Access** | apps serving Instagram accounts you do **not** own or manage | Required, plus App Review |
+
+We only ever publish to your own account, and step 3 gave that account a role
+on the app (Instagram Tester). So this stays on Standard Access, in Development
+mode, and never needs business verification or App Review.
+
+> **This is why the System User token is NOT the path here.** System users live
+> inside a Meta Business portfolio, and that route does require business
+> verification first. An earlier version of this document recommended it, on the
+> strength of it never expiring. That was wrong for anyone who has not verified
+> a business, and verifying one to avoid a 60-day refresh is a bad trade.
+
+### Get a long-lived token instead
+
+1. developers.facebook.com → **Tools → Graph API Explorer**.
+2. Select your app. Under **User or Page**, choose **Get User Access Token**.
+3. Tick these permissions:
    - `instagram_basic`
    - `instagram_content_publish`
    - `pages_show_list`
    - `pages_read_engagement`
-5. Copy the token. **It is shown once.** Paste it somewhere safe immediately.
+4. **Generate Access Token** and sign in. What you now have is *short-lived* —
+   about an hour. Do not stop here.
+5. Exchange it for a long-lived one. In a browser, replacing the three values:
 
-> Do not paste the token into a chat, an issue, or a commit. If it leaks,
-> revoke it in Business settings and generate a new one — that is the only fix.
+   ```
+   https://graph.facebook.com/v21.0/oauth/access_token
+     ?grant_type=fb_exchange_token
+     &client_id=YOUR_APP_ID
+     &client_secret=YOUR_APP_SECRET
+     &fb_exchange_token=THE_SHORT_LIVED_TOKEN
+   ```
+
+   App ID and secret are in **App settings → Basic**. The response contains an
+   `access_token` valid for **60 days**.
+
+6. Use that long-lived token for step 5, and keep it — it is what goes into
+   GitHub.
+
+### The 60-day problem, and what the pipeline does about it
+
+A token that expires quietly is how these integrations actually die: posting
+stops, nothing errors visibly, and nobody notices for a fortnight.
+
+So the publish job checks the token's remaining life before every run and
+**fails loudly with the number of days left** once it drops under two weeks.
+You get a failed workflow run and an email while there is still time to act,
+rather than silence.
+
+To refresh, repeat step 4 — it takes about two minutes, roughly six times a
+year, and updating the secret is the whole job.
+
+> Do not paste the token into a chat, an issue, or a commit. If it leaks, go to
+> **App settings → Basic → Reset App Secret**, which invalidates every token
+> issued with it, then redo this step.
 
 ## Step 5 — Your Instagram user ID (2 min)
 
 This is a number, not your handle.
 
 1. developers.facebook.com → **Tools → Graph API Explorer**.
-2. Pick your app, paste the System User token into the token box.
+2. Pick your app, paste the long-lived token from step 4 into the token box.
 3. Run:
 
    ```
@@ -134,7 +181,7 @@ repository secret**. Add two:
 
 | Name | Value |
 |---|---|
-| `IG_TOKEN__MONEY` | the System User token from step 4 |
+| `IG_TOKEN__MONEY` | the long-lived token from step 4 |
 | `IG_USER_ID__MONEY` | the 17-digit number from step 5 |
 
 The names must match exactly, including the double underscore. The code reads
@@ -164,17 +211,18 @@ post to a real audience on my own.
 | What you see | What it means |
 |---|---|
 | `(#200) Permissions error` | Step 3.4 — the tester invite was never accepted inside Instagram |
-| `(#190) Invalid OAuth access token` | Token expired. If this happens at all you did not use a System User token; redo step 4 |
+| `(#190) Invalid OAuth access token` | The 60-day token expired, or the app secret was reset. Redo step 4 and update the secret |
 | `Media ID is not available` | Instagram is still fetching the video. The code already polls for this; if it persists the video URL is not publicly reachable |
 | `The video file is not supported` | Not our render — check the Supabase URL opens in a private browser window with no login |
 | Posts appear on the wrong account | Stop. `IG_USER_ID__MONEY` holds the Rajneeti id. The code cannot cause this; the secret is wrong |
 
 **A note on how it fails.** The token is the fragile part of any Meta
 integration, and the classic disaster is that it expires quietly and nobody
-notices for a fortnight. Two things guard against that here: the System User
-token has no expiry, and a 190 error is treated as fatal rather than logged and
-skipped. If publishing ever stops, you get a failed workflow run and an email,
-not silence.
+notices for a fortnight. Two things guard against that here. The publish job
+asks Meta how many days the token has left BEFORE it does anything, and fails
+with that number once it drops under two weeks. And a 190 error is treated as
+fatal rather than logged and skipped. If publishing ever stops, you get a failed
+run and an email, not silence.
 
 ---
 

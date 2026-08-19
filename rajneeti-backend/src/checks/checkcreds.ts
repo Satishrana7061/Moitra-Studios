@@ -1,3 +1,4 @@
+import { assertPublishable, RENEW_WITHIN_DAYS } from '../services/metaTokenHealth.js';
 /**
  * The one property worth asserting about two-channel credentials: a named
  * channel NEVER borrows another channel's token.
@@ -129,6 +130,29 @@ check('a path climbing out of the prefix is refused',
     storageKeyFromUrl(`${base}money/../pm-interview-x.mp4`) === null);
 check('an empty url is refused', storageKeyFromUrl('') === null);
 check('a foreign url is refused', storageKeyFromUrl('https://evil.example/automated-reels/money/x.mp4') === null);
+
+// ── Meta token expiry ────────────────────────────────────────────────────────
+// The setup guide used to recommend a System User token because it never
+// expires; that route needs a verified business portfolio, which is a bad trade
+// for a one-person channel. So the token lasts sixty days and something has to
+// be counting it.
+console.log('\nthe Meta token is checked before anything is published:');
+const scopes = ['instagram_basic', 'instagram_content_publish', 'pages_show_list'];
+const throws = (h: any) => { try { assertPublishable(h); return false; } catch { return true; } };
+
+check('a healthy token passes', !throws({ valid: true, daysLeft: 45, scopes, detail: '' }));
+check('a non-expiring token passes', !throws({ valid: true, daysLeft: null, scopes, detail: '' }));
+check('an expired token is refused', throws({ valid: true, daysLeft: -1, scopes, detail: '' }));
+check('an invalid token is refused', throws({ valid: false, daysLeft: null, scopes: [], detail: '' }));
+// Fatal, not a warning. A warning in a log nobody reads is exactly how a token
+// lapses; one skipped posting day beats weeks of silent nothing.
+check(`expiring inside ${RENEW_WITHIN_DAYS} days STOPS the run, while there is time to act`,
+  throws({ valid: true, daysLeft: RENEW_WITHIN_DAYS - 1, scopes, detail: '' }));
+check('...and just outside it does not', !throws({ valid: true, daysLeft: RENEW_WITHIN_DAYS + 1, scopes, detail: '' }));
+// The other silent killer: a token minted with the wrong boxes ticked, which
+// fails at the publish call with a message naming none of them.
+check('a token missing instagram_content_publish is refused',
+  throws({ valid: true, daysLeft: 40, scopes: ['instagram_basic', 'pages_show_list'], detail: '' }));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

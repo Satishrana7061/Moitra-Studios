@@ -11,6 +11,7 @@
 
 import { SocialUploadService } from './services/socialUploadService.js';
 import { resolveChannel, MetaTokenExpiredError } from './services/channelCredentials.js';
+import { assertPublishable, checkTokenHealth } from './services/metaTokenHealth.js';
 import {
     moneyDb,
     approvedEpisodes,
@@ -65,6 +66,18 @@ async function main() {
     // rather than halfway through, and it can never fall back to the Rajneeti
     // account — see channelCredentials.
     const creds = dryRun ? null : resolveChannel('money');
+
+    // Asked before a single upload starts. A long-lived Meta token lasts sixty
+    // days, and the way these integrations actually die is that it lapses
+    // quietly — posting stops, nothing throws anything a person sees, and it is
+    // noticed a fortnight later by accident. That failure hides well because
+    // "no new posts" is also what a quiet week looks like.
+    //
+    // Checking here rather than at the publish call means the run fails before
+    // it has half-uploaded anything, and with two weeks still on the clock.
+    if (creds) {
+        console.log(assertPublishable(await checkTokenHealth(creds.igToken)));
+    }
 
     let published = 0;
     for (const ep of episodes) {

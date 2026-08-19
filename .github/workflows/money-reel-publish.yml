@@ -13,9 +13,11 @@ on:
   #
   # To go live: uncomment the two lines below. That is the whole switch.
   #
+  # Must match the generate schedule, or approved reels sit unpublished on the
+  # days nothing runs. Mon/Wed/Fri — see money-reel-generate.yml for why.
   # schedule:
-  #   # 13:30 UTC = 19:00 IST.
-  #   - cron: '30 13 * * *'
+  #   # 13:30 UTC = 19:00 IST, Mon/Wed/Fri.
+  #   - cron: '30 13 * * 1,3,5'
   workflow_dispatch:
     inputs:
       dry_run:

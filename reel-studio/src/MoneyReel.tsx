@@ -263,6 +263,69 @@ const DisclaimerBar: React.FC<{ text: string }> = ({ text }) => (
   </div>
 );
 
+/**
+ * How long an outgoing beat stays on screen while the next one arrives.
+ *
+ * Short on purpose. Long enough that the page is never blank between beats;
+ * short enough that two visuals are never both legible, which would be worse
+ * than the cut it replaces.
+ */
+const HANDOVER_SEC = 0.26;
+
+/**
+ * Lifts the finished beat off the page as the next one is written in.
+ *
+ * The competitor study found one continuous build across 26 seconds against our
+ * cut-per-beat, and cutting is what makes a reel feel like a slideshow: each
+ * cut resets the viewer's attention instead of accumulating it. Their fix does
+ * not transfer directly — their five slots all held the same kind of thing,
+ * a paycheck split five ways, while our beats are a big number, then a
+ * comparison, then a sum, then the ladder, and four of those cannot share a
+ * 1080x1920 frame.
+ *
+ * What does transfer is the page. A ledger is filled top to bottom, so the
+ * outgoing entry rises and fades while the incoming one arrives from below —
+ * movement down a page rather than a change of slide. The beat timings are
+ * untouched; only the handover between them is.
+ */
+const BeatHandover: React.FC<{ durationSec: number; children: React.ReactNode }> = ({
+  durationSec,
+  children,
+}) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  // The beat's OWN length, passed in explicitly. useVideoConfig().durationInFrames
+  // inside a Sequence reports the whole composition — the mistake that once
+  // froze the clock sweep for an entire reel.
+  const ownEnd = Math.max(1, Math.round(durationSec * fps));
+  const handover = Math.max(1, Math.round(HANDOVER_SEC * fps));
+
+  const leaving = interpolate(frame, [ownEnd, ownEnd + handover], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+
+  // Opacity runs out well before the movement does, and the movement is far.
+  // A gentle fade in place was the first attempt and it produced a double
+  // exposure — both beats legible in the same centre of the same frame, which
+  // is worse than the cut it replaced. The outgoing entry has to read as
+  // LEAVING, not as dimming: gone by 60% of the window, and 190px up the page
+  // by the end of it.
+  const fade = Math.min(1, leaving / 0.6);
+
+  return (
+    <AbsoluteFill
+      style={{
+        opacity: 1 - fade,
+        transform: `translateY(${-leaving * 190}px)`,
+      }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
 export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
   loadFonts();
   const { fps } = useVideoConfig();
@@ -297,13 +360,19 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
         <Sequence
           key={`${beat.onScreen}-${i}`}
           from={sec(beat.startSec)}
-          durationInFrames={Math.max(1, sec(beat.endSec - beat.startSec))}
+          // Held HANDOVER_SEC past its own end so the outgoing beat is still on
+          // screen while the next writes in beneath it. Without the overlap
+          // there is a frame where the page is empty, which is what made the
+          // reel read as a slideshow.
+          durationInFrames={Math.max(1, sec(beat.endSec - beat.startSec) + sec(HANDOVER_SEC))}
         >
-          <BeatText text={beat.onScreen} />
-          <Visual spec={beat.visual} beatDurationSec={beat.endSec - beat.startSec} />
-          {beat.caption && (
-            <CaptionBar text={beat.caption} beatDurationSec={beat.endSec - beat.startSec} />
-          )}
+          <BeatHandover durationSec={beat.endSec - beat.startSec}>
+            <BeatText text={beat.onScreen} />
+            <Visual spec={beat.visual} beatDurationSec={beat.endSec - beat.startSec} />
+            {beat.caption && (
+              <CaptionBar text={beat.caption} beatDurationSec={beat.endSec - beat.startSec} />
+            )}
+          </BeatHandover>
         </Sequence>
       ))}
 

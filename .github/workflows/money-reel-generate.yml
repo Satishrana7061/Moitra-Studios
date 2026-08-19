@@ -12,9 +12,21 @@ on:
   #
   # To go live: uncomment the two lines below. That is the whole switch.
   #
+  # Still commented out — the Meta credentials for this channel do not exist
+  # yet, so a live schedule would generate reels that nothing can publish.
+  # Uncomment both this and the publish schedule together, once the account is
+  # set up.
+  #
+  # Mon/Wed/Fri rather than daily, decided on evidence. The competitor this
+  # format was studied against posts two or three times a week with visible
+  # craft in every frame, and the engagement that matters here (sends, not
+  # likes) comes from a reel being worth passing on — which is the first thing
+  # lost when the same machine has to fill seven slots a week. Three also makes
+  # the 64 written topics last about five months instead of two, and cuts the
+  # credit spend by well over half.
   # schedule:
-  #   # 01:30 UTC = 07:00 IST. Ready before the working day.
-  #   - cron: '30 1 * * *'
+  #   # 01:30 UTC = 07:00 IST, Mon/Wed/Fri. Ready before the working day.
+  #   - cron: '30 1 * * 1,3,5'
   workflow_dispatch:
     inputs:
       topic_id:

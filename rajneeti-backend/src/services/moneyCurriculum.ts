@@ -231,7 +231,7 @@ const COMPLIANCE_RULES: { name: string; pattern: RegExp; why: string }[] = [
         // Regulators and bureaus are deliberately absent from this list. "RBI
         // says", "your CIBIL score" and "UPI" are how you make a claim
         // checkable, not who you are steering money toward.
-        pattern: /\b(?:SBI|HDFC|ICICI|Axis\s*Bank|Kotak|IndusInd|Yes\s*Bank|IDFC|RBL|Bajaj\s*Fin(?:serv|ance)|Paytm|PhonePe|Slice|OneCard|American\s*Express|Amex|Citibank|Standard\s*Chartered|AU\s*Small)\b/i,
+        pattern: /\b(?:SBI|HDFC|ICICI|Axis\s*Bank|Kotak|IndusInd|Yes\s*Bank|IDFC|RBL|Bajaj\s*Fin(?:serv|ance)|Paytm|PhonePe|Slice|OneCard|American\s*Express|Amex|Citibank|Standard\s*Chartered|AU\s*Small|LIC|Max\s*Life|Tata\s*AIA|Bajaj\s*Allianz|Star\s*Health|Niva\s*Bupa|Care\s*Health|Aditya\s*Birla)\b/i,
         why: 'names a specific bank or issuer — give the figure, never the company',
     },
     {

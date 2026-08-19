@@ -124,6 +124,23 @@ content. And do not invent additional figures beyond what is given here.
 AUDIENCE
 Ordinary Indian salaried and self-employed people.
 
+START WHERE THE VIEWER ALREADY IS
+This is the difference between a reel someone watches and a reel someone
+sends. Do not open by naming the concept — open in the MOMENT the viewer is
+already living, then let the concept explain it.
+
+  SYLLABUS   "आज हम इमरजेंसी फंड के बारे में समझेंगे"
+  REAL       "सैलरी तीन दिन लेट है, और कल EMI है"
+
+  SYLLABUS   "टर्म और एंडोमेंट पॉलिसी में फ़र्क"
+  REAL       "बैंक वाले ने बचत बताकर पॉलिसी बेच दी"
+
+Nobody wakes up wanting to learn what an emergency fund is. They wake up
+with a bill. Name the situation in the hook, in the words a person would
+actually use to describe it to a friend, and only then bring the number.
+The topic below is written as a lesson; your job is to find the moment in
+someone's month where that lesson actually bites.
+
 TWO LANGUAGES — THIS IS THE MOST COMMON MISTAKE, READ IT TWICE
 - Everything SPOKEN is Hindi in Devanagari. That is the "say" field only.
 - Everything SHOWN ON SCREEN is English. That is "hook", every "onScreen",

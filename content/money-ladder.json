@@ -285,7 +285,29 @@
           "teaches": "हर लोन, कार्ड और EMI एक जगह लिखने से असली तस्वीर दिखती है — यही पहला कदम है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपका कुल कर्ज़ पता है?"
+          "cta": "आपका कुल कर्ज़ पता है?",
+          "facts": [
+            "If you take cash out on an SBI credit card, the interest-free period is Nil and finance charges of 3.75% per month, which is 45% per year, start from the date of cash withdrawal.",
+            "RBI says a credit card account is treated as a non-performing asset if the minimum amount due is not paid fully within 90 days from the payment due date in the statement.",
+            "RBI’s own illustration shows that on a credit card bill of ₹10,000 with interest of 2% per month and ₹50 of tax and charges, the minimum amount due cannot be less than ₹250 because the rules do not allow negative amortization."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/kfs/key-fact-statement.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.rbi.org.in/Scripts/BS_ViewMasterCirculars.aspx?Id=12658&Mode=0",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://systemhealth.rbi.org.in/Scripts/BS_ViewMasDirections.aspx_id%3D12300.html",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-02",
@@ -294,7 +316,29 @@
           "teaches": "सबसे छोटा कर्ज़ पहले चुकाने से हौसला मिलता है; सबसे ज़्यादा ब्याज वाला पहले चुकाने से पैसा बचता है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आप कौन सा तरीका चुनेंगे?"
+          "cta": "आप कौन सा तरीका चुनेंगे?",
+          "facts": [
+            "RBI says that if you do not clear the total credit card amount due by the due date, you lose the interest-free period and interest may be charged from the date of each transaction, so the costliest card balance should usually be attacked first.",
+            "CIBIL says credit card interest in India can be as high as 36% per year, which makes a high-rate card balance far more urgent than a small low-rate loan.",
+            "CIBIL’s example says that on a Rs. 1,000 credit card purchase at 3% per month, paying only the minimum due for 6 months makes the final payoff Rs. 1,560, or 56% more than the original spend."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQMDCreditCardandDebitCard.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.cibil.com/credit-cards",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.cibil.com/blog/failed-credit-card-payments",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-03",
@@ -305,7 +349,23 @@
             "5%"
           ],
           "visual": "compare",
-          "cta": "आपने कभी सिर्फ मिनिमम भरा है?"
+          "cta": "आपने कभी सिर्फ मिनिमम भरा है?",
+          "facts": [
+            "If you do not clear the total amount due by the payment due date, the interest-free credit period is lost and interest may be charged from the date of transaction on the outstanding amount, not just on the unpaid minimum due.",
+            "RBI says late payment fee and other delay charges after the due date can be levied only on the outstanding amount and not on the total amount due."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQMDCreditCardandDebitCard.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQMDCreditCardandDebitCard.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-04",
@@ -317,7 +377,29 @@
             "42%"
           ],
           "visual": "bigNumber",
-          "cta": "ये नंबर आपको पता था?"
+          "cta": "ये नंबर आपको पता था?",
+          "facts": [
+            "Axis Bank currently lists finance charges of 3.75% per month as 55.55% per annum on many of its retail credit cards, which shows that a '3.5% a month' style rate turns into well over 42% in a year when annualised the way card issuers disclose it.",
+            "SBI Card says its current finance charge is up to 3.75% per month or 45% per annum from the transaction date, so a monthly-looking rate can mean a 45% yearly card cost.",
+            "SBI Card says cash advances have a nil free-credit period and interest at 3.75% per month starts from the date of cash withdrawal, so the meter starts the same day you take cash out."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.axisbank.com/docs/default-source/ld/soc/credit-cards/mitc-credit-cards",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.sbicard.com/en/most-important-terms-and-conditions.page",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.sbicard.com/en/most-important-terms-and-conditions.page",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-05",
@@ -326,7 +408,29 @@
           "teaches": "प्रोसेसिंग फीस, बीमा और डाउन पेमेंट मिलाकर असली कीमत लिस्ट प्राइस से ज़्यादा होती है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपने EMI पर फोन लिया है?"
+          "cta": "आपने EMI पर फोन लिया है?",
+          "facts": [
+            "On SBI Card Merchant EMI transactions done on or after 13 July 2026, a ₹20,000 phone purchase on 24 months can carry a ₹169 processing fee and 17.00% annual interest on a monthly reducing balance, so the EMI cost is higher than the sticker price.",
+            "ICICI Bank says its debit card EMI service charges 16% annual interest for purchases at Myntra, MakeMyTrip, Paytm, Pine Labs and their merchant outlets, and it also says applicable processing fees will be charged unless waived in a promotion.",
+            "ICICI Bank says a Loan on Credit Card can block up to 90% of your unused credit limit and a one-time processing fee plus taxes is billed with the first EMI, so the amount you can spend later can fall even before you finish repaying the phone."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/personal/offers/merchant-emi-tnc.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.icici.bank.in/personal-banking/cards/debit-card/emi-on-debit-card/terms-and-condition",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.icici.bank.in/personal-banking/cards/credit-card/personal-loan-on-credit-card",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-06",
@@ -335,7 +439,29 @@
           "teaches": "BNPL लिस्ट में नहीं दिखता पर देनदारी है — इसे भी कर्ज़ की सूची में लिखें।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आप BNPL इस्तेमाल करते हैं?"
+          "cta": "आप BNPL इस्तेमाल करते हैं?",
+          "facts": [
+            "Under RBI’s digital lending rules, a borrower must get a cooling-off period of at least 3 days on a digital loan with a tenor of 7 days or more, during which they can exit by paying only the principal and proportionate APR with no penalty.",
+            "A lender’s check for a BNPL or other credit application can leave a CIBIL enquiry record with a unique 9–10-digit ECN when the lender accesses your CIBIL Score.",
+            "Recent payments on a loan or credit card can take up to 30 days to show up in your CIBIL Report after your bank or financial institution reports them, so a BNPL closure may still look outstanding for that period."
+          ],
+          "factSources": [
+            {
+              "source": "https://systemhealth.rbi.org.in/Scripts/NotificationUser.aspx_Id%3D12382%26Mode%3D0.html",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.cibil.com/enquiry",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://myscore.cibil.com/CreditView/creditEducation_freeReport_newUX.page",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-07",
@@ -344,7 +470,29 @@
           "teaches": "जब तक नया खर्च कार्ड पर चढ़ता रहेगा, बकाया कभी शून्य नहीं होगा।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आप कार्ड रोक पाएँगे?"
+          "cta": "आप कार्ड रोक पाएँगे?",
+          "facts": [
+            "If any balance from the previous month is still unpaid, SBI Card says the interest-free period is suspended, so new purchases also stop getting the usual 20 to 50 days free of interest.",
+            "SBI Card’s current finance charge is up to 3.75% per month, or 45% per year, from the transaction date when you do not pay the total amount due in full.",
+            "On SBI Card, an ATM cash withdrawal costs 2.5% or Rs. 500, whichever is higher, and also starts a 3.75% per month finance charge from the day you take the cash with no interest-free period."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.sbicard.com/en/most-important-terms-and-conditions.page",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.sbicard.com/en/most-important-terms-and-conditions.page",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.sbicard.com/en/personal/benefits/money-simplified/atm-cash.page",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            }
+          ]
         },
         {
           "id": "s2-08",
@@ -353,7 +501,29 @@
           "teaches": "बैलेंस ट्रांसफर सिर्फ ब्याज से राहत का समय देता है — मूल रकम तब भी चुकानी है।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपने कभी ट्रांसफर किया है?"
+          "cta": "आपने कभी ट्रांसफर किया है?",
+          "facts": [
+            "If you do not clear the total credit card amount due by the payment due date, the interest-free credit period is lost and interest may be charged from the date of transaction on the outstanding amount.",
+            "RBI says monthly credit card statements must prominently warn that paying only the minimum amount due can stretch repayment over years and you will pay interest on the remaining balance.",
+            "RBI’s home-loan consumer FAQ says many banks charge early repayment penalties up to 2-3% of the principal amount outstanding, while switchover or balance-transfer fees are generally charged as a percentage of the outstanding loan amount."
+          ],
+          "factSources": [
+            {
+              "source": "https://systemhealth.rbi.org.in/Scripts/FAQDisplay.aspx_Id%3D167%281%29.html",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://rbi.org.in/commonman/Hindi/Scripts/Notification.aspx?Id=1574",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://rbi.org.in/CommonPerson/english/scripts/FAQs.aspx?Id=701",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-09",
@@ -362,7 +532,29 @@
           "teaches": "किस्त में दिक्कत हो तो पहले बैंक से बात करें — विकल्प अक्सर मौजूद होते हैं।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपने कभी बैंक से बात की?"
+          "cta": "आपने कभी बैंक से बात की?",
+          "facts": [
+            "If your floating-rate personal loan EMI goes up, RBI says the lender must let you choose between a higher EMI, a longer tenure, or a mix of both, and must also allow part-prepayment or full prepayment at any point during the loan tenor.",
+            "RBI’s FAQ says that when rates reset on an equated-instalment personal loan, the borrower must be given the option to prepay either in part or in full at any point during the residual tenor.",
+            "For a restructured loan to be upgraded from NPA to standard in most cases, RBI requires at least 10% of the restructured principal debt plus any capitalised interest to be repaid, and the account cannot be upgraded before 1 year from the first payment due after restructuring."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12529",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQRFIR10012025.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/Scripts/BS_ViewMasterCirculars.aspx?Id=12171",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-10",
@@ -371,7 +563,29 @@
           "teaches": "बकाया ÷ हर महीने की अतिरिक्त रकम = वो तारीख जब आप आज़ाद होंगे।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपकी तारीख कौन सी है?"
+          "cta": "आपकी तारीख कौन सी है?",
+          "facts": [
+            "If you take an SBI Card cash advance, you pay a 2.5% fee with a ₹500 minimum and interest starts from the withdrawal date at 3.75% per month, so your debt-free date moves out from day one.",
+            "From 1 June 2025, HDFC Bank’s Purchase Card example shows that a ₹12,714 bill can still have a minimum amount due of only ₹4,314, which means paying just the minimum can leave ₹8,400 rolling into the next month.",
+            "RBI says banks must publish the Annual Percentage Rate for individual loans on their websites, so before you calculate your debt-free date you can check one official yearly cost figure instead of guessing from a monthly rate."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.sbicard.com/en/personal/benefits/money-simplified/atm-cash.page",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.hdfcbank.com/content/bbp/repositories/723fb80a-2dde-42a3-9793-7ae1be57c87f/?path=%2FPersonal%2FPay%2FCards%2FCredit+Card%2FCredit+Card+Landing+Page%2FManage+Your+Credit+Cards+PDFs%2FPurchase+Card_MITC.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.rbi.org.in/Scripts/NotificationUser.aspx?Id=9862",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-11",
@@ -382,7 +596,29 @@
             "42%"
           ],
           "visual": "compare",
-          "cta": "आप सहमत हैं?"
+          "cta": "आप सहमत हैं?",
+          "facts": [
+            "SBI Card says its cash advance has a free credit period of nil and finance charges of 3.35% per month, which is 40.2% per annum, from the date of withdrawal.",
+            "RBI requires card issuers to print a warning that making only the minimum payment every month can stretch repayment over months or years with compounded interest on your outstanding balance.",
+            "RBI says late payment charges on a credit card can be levied only when the account stays past due for more than 3 days, and only on the outstanding amount after the due date, not on the total amount due."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.sbicard.com/sbi-card-en/assets/docs/pdf/most-important-terms-and-conditions/English%20MITC.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": true
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/bs_circularindexdisplay.aspx/Scripts/BS_CircularIndexDisplay.aspx?Id=12620",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/bs_circularindexdisplay.aspx/Scripts/BS_CircularIndexDisplay.aspx?Id=12620",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-12",
@@ -391,7 +627,29 @@
           "teaches": "गोल्ड लोन का ब्याज आमतौर पर कार्ड से कम होता है, पर चूक पर सोना जा सकता है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आप क्या चुनेंगे?"
+          "cta": "आप क्या चुनेंगे?",
+          "facts": [
+            "For non-agricultural gold loans, RBI says the loan-to-value ratio cannot exceed 75%, so gold worth ₹1,00,000 cannot back a loan of more than ₹75,000.",
+            "RBI says this 75% cap must be maintained throughout the tenure of the gold loan on the total outstanding including accrued interest, so rising unpaid interest can itself push the loan into breach.",
+            "For urban co-operative banks using the bullet repayment gold loan scheme, RBI says interest is charged at monthly rests and the loan period cannot exceed 12 months."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/scripts/BS_ViewMasterCirculars.aspx?Id=9902",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/BS_ViewMasterCirculars.aspx?Id=9902",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=12827",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-13",
@@ -400,7 +658,29 @@
           "teaches": "गारंटर बनने पर चूक की ज़िम्मेदारी और असर आप पर भी आता है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपसे कभी गारंटर बनने को कहा गया?"
+          "cta": "आपसे कभी गारंटर बनने को कहा गया?",
+          "facts": [
+            "If you guarantee someone’s loan in India, your liability is co-extensive with the borrower’s liability under Section 128 of the Indian Contract Act, 1872, which means the lender can demand 100% of the guaranteed dues from you unless the contract says otherwise.",
+            "TransUnion CIBIL says any default by the main borrower on a loan where you are the guarantor will affect your CIBIL Score as well.",
+            "RBI’s guarantee recognition rules say the bank must have the right to receive payment from the guarantor without first taking legal action against the borrower for the money outstanding."
+          ],
+          "factSources": [
+            {
+              "source": "https://systemhealth.rbi.org.in/Scripts/BS_ViewMasDirections.aspx_id%3D12713%281%29.html",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.cibil.com/content/dam/cibil/consumer/cibil-score-and-report-brochure-1-9-25.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://rbi.org.in/upload/notification/pdfs/61023.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-14",
@@ -411,7 +691,29 @@
             "5"
           ],
           "visual": "steps",
-          "cta": "कितने आप पर लागू हैं?"
+          "cta": "कितने आप पर लागू हैं?",
+          "facts": [
+            "If you pay less than the total amount due on a credit card bill, the interest-free period is lost and interest may be charged from the date of transaction on the outstanding amount.",
+            "A credit card account can be treated as a non-performing asset if the minimum amount due is not paid in full within 90 days from the payment due date mentioned in the statement.",
+            "A lender must give you a Key Facts Statement showing the Annual Percentage Rate, which is the all-inclusive cost of the loan, before a retail or MSME term loan is disbursed."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQMDCreditCardandDebitCard.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/BS_ViewMasterCirculars.aspx?Id=12821",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/NotificationUser.aspx?Id=12827",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-15",
@@ -420,7 +722,29 @@
           "teaches": "स्कोर भरोसे का रिकॉर्ड है — समय पर भुगतान का इतिहास, आय नहीं।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपने स्कोर चेक किया है?"
+          "cta": "आपने स्कोर चेक किया है?",
+          "facts": [
+            "A CIBIL Score is a 3-digit number from 300 to 900 that is calculated from the credit history in your CIBIL Report, not from your salary or income.",
+            "In India you are entitled to one free full credit report including your credit score from each credit information company once in every calendar year, which means up to 4 free reports a year across the 4 RBI-licensed bureaus.",
+            "Credit institutions are directed by RBI to update borrowers’ credit information with credit bureaus on a fortnightly basis, as on the 15th and the last day of each month."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.cibil.com/faq/understand-your-credit-score-and-report",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://rbi.org.in/commonperson/English/Scripts/Notification.aspx?Id=1884",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://systemhealth.rbi.org.in/Scripts/FS_Notification.aspx_Id%3D12718%26fn%3D14%26Mode%3D0.html",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-16",
@@ -429,7 +753,29 @@
           "teaches": "वसूली के तय नियम हैं — समय, जगह और व्यवहार की सीमाएँ तय हैं।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "क्या आपको ये पता था?"
+          "cta": "क्या आपको ये पता था?",
+          "facts": [
+            "For overdue loans, RBI says a bank or its recovery agent must not call you before 8:00 a.m. or after 7:00 p.m.",
+            "RBI’s banking recovery-agent rules say agents should carry the bank’s authorization letter plus an identity card, and the notice should include the recovery agency’s telephone numbers.",
+            "RBI’s banking recovery-agent rules say banks should ensure there is a tape recording of calls made by recovery agents to customers and vice versa."
+          ],
+          "factSources": [
+            {
+              "source": "https://systemhealth.rbi.org.in/Scripts/NotificationUser.aspx_Id%3D12378%26Mode%3D0.html",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/BS_ViewMasterCirculars.aspx?Id=9902",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/scripts/BS_ViewMasterCirculars.aspx?Id=9902",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-17",
@@ -438,7 +784,29 @@
           "teaches": "शिक्षा लोन की शर्तें और मोहलत अलग होती है — इसे कार्ड जैसा न मानें।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपके पास एजुकेशन लोन है?"
+          "cta": "आपके पास एजुकेशन लोन है?",
+          "facts": [
+            "For education loans up to ₹4 lakh, banks must not take collateral security at all.",
+            "SBI says its student loan repayment starts 1 year after the course ends and the loan is then repaid over up to 15 years, so this is not a swipe-now, pay-next-month product like a credit card.",
+            "SBI states that if you do not pay interest during study and moratorium, the accrued interest for that whole period is added to the principal before EMI is fixed."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/scripts/faqview.aspx/Scripts/FAQView.aspx?Id=150",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://sbi.co.in/web/personal-banking/loans/education-loans/student-loan-scheme",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://sbi.co.in/web/personal-banking/loans/education-loans/student-loan-scheme",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-18",
@@ -447,7 +815,29 @@
           "teaches": "बोनस, रिफंड या साइड इनकम सीधे बकाया पर लगाने से महीनों बचते हैं।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपकी अतिरिक्त आय कहाँ जाती है?"
+          "cta": "आपकी अतिरिक्त आय कहाँ जाती है?",
+          "facts": [
+            "If you make only a partial credit card payment by the due date, the interest-free period is lost and interest may be charged from the date of transaction on the outstanding amount, so using any bonus or refund to clear the full bill can stop new interest immediately.",
+            "For cash advances on a credit card, interest is charged from the date of transaction until the date of payment, so side income used the same week cuts interest days one-for-one.",
+            "RBI says borrowers on EMI-based floating-rate personal loans must be given the option to prepay either in part or in full at any point during the tenor, which means a bonus can legally be pushed straight into principal instead of waiting for the next big reset."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQMDCreditCardandDebitCard.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.axisbank.com/docs/default-source/default-document-library/mitc-credit-cards.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/Scripts/BS_ViewMasDirections.aspx?id=12529",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-19",
@@ -456,7 +846,29 @@
           "teaches": "पुराना खाता बंद करने से इतिहास छोटा हो सकता है — इस्तेमाल कम रखना बेहतर है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आप क्या करेंगे?"
+          "cta": "आप क्या करेंगे?",
+          "facts": [
+            "CIBIL says your score can be hurt by the number of accounts you close, so shutting an old card can lower your score even after you have fully paid it off.",
+            "CIBIL says the age of your credit is measured from the date your oldest credit account was opened, so closing your oldest card can make your credit history look shorter.",
+            "CIBIL says a credit utilisation ratio above 30% can start to drag down your scores, so keeping an old card open with a zero balance can help by leaving more unused limit on your report."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.cibil.com/contact-us-faq",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.cibil.com/contact-us-faq",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.cibil.com/blog/some-of-the-common-credit-mistakes-to-avoid",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         },
         {
           "id": "s2-20",
@@ -465,7 +877,29 @@
           "teaches": "कर्ज़ खत्म होते ही जो EMI जाती थी, वो अब आपकी बचत बन सकती है।",
           "keyNumbers": [],
           "visual": "ladder",
-          "cta": "आपकी आखिरी EMI कब है?"
+          "cta": "आपकी आखिरी EMI कब है?",
+          "facts": [
+            "If your floating-rate personal loan rate resets upward, RBI now requires lenders to give you the option to prepay part or all of the remaining loan at any point during the residual tenor, so the EMI you just finished can legally become a prepayment instead of dead cash flow.",
+            "After you fully repay and settle a personal loan, the lender must return your original property documents and remove registered charges within 30 days, and if the delay is their fault they must pay you ₹5,000 for each day of delay.",
+            "For EMI-based floating-rate personal loans, RBI requires lenders to send quarterly statements showing at least the EMI amount, principal and interest recovered till date, number of EMIs left, and the annualized interest rate for the tenor of the loan."
+          ],
+          "factSources": [
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQRFIR10012025.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://rbi.org.in/Scripts/NotificationUser.aspx?Id=12535&Mode=0",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            },
+            {
+              "source": "https://www.rbi.org.in/commonman/Upload/English/FAQs/PDFs/FAQRFIR10012025.pdf",
+              "checkedOn": "2026-08-19",
+              "volatile": false
+            }
+          ]
         }
       ]
     },

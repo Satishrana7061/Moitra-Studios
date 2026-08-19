@@ -7,6 +7,7 @@ import { MONEY_OUTRO_SEC, type MoneyStoryboard } from './lib/moneySchema';
 import { Visual } from './segments/Visuals';
 import { SeriesBar } from './layers/SeriesBar';
 import { CaptionBar } from './layers/CaptionBar';
+import { Rupee } from './layers/Rupee';
 
 /**
  * Hisaab Kitab — the money composition.
@@ -354,6 +355,16 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
       {/* Hook holds until the first beat begins. */}
       <Sequence durationInFrames={sec(board.beats[0]?.startSec ?? 3)}>
         <HookCard text={board.hook} />
+        {/*
+          Rupee draws himself under the hook while the question hangs. There is
+          room here and nowhere else — a beat frame is committed from the series
+          bar to the disclaimer, and a figure squeezed in there would cost the
+          numbers their size. Delayed a beat so the words land first; he is the
+          reaction to the hook, not competition for it.
+        */}
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 860, display: 'flex', justifyContent: 'center' }}>
+          <Rupee pose="thinking" delaySec={0.55} size={300} />
+        </div>
       </Sequence>
 
       {board.beats.map((beat, i) => (
@@ -378,6 +389,10 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
 
       <Sequence from={sec(ctaStart)} durationInFrames={sec(MONEY_OUTRO_SEC)}>
         <CtaCard text={board.cta} />
+        {/* Same figure, cheering, on the card that asks for the comment. */}
+        <div style={{ position: 'absolute', left: 0, right: 0, top: 1010, display: 'flex', justifyContent: 'center' }}>
+          <Rupee pose="cheering" delaySec={0.25} size={250} />
+        </div>
       </Sequence>
 
       {/*

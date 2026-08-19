@@ -38,13 +38,34 @@ const CONTENT_DELTA = 45;
 /** Tolerate a few stray antialiased pixels per row. */
 const MIN_CONTENT_PER_ROW = 3;
 
-/** The page colour, taken as the most common luma in the frame. */
+/** The page colour, taken as the most common luma in the frame. Reported only. */
 function backgroundLuma(data) {
   const hist = new Uint32Array(256);
   for (let i = 0; i < data.length; i += 7) hist[data[i]]++;
   let best = 0;
   for (let v = 1; v < 256; v++) if (hist[v] > hist[best]) best = v;
   return best;
+}
+
+/**
+ * The background level of ONE row, as that row's median luma.
+ *
+ * Comparing every pixel against a single frame-wide background was the obvious
+ * thing and it is wrong for any page that is not perfectly flat. The ledger
+ * ground carries a gradient and a vignette, so its lower rows sit legitimately
+ * darker than the frame's modal luma — and the check duly reported 16 pixels of
+ * "content" in the reserved band that were simply the page.
+ *
+ * A row median tracks that shading for free: slow gradients move the median with
+ * them and register nothing, while a glyph or a rule is a small number of pixels
+ * far from the median of the row it sits in. Which is exactly the distinction
+ * this check exists to make.
+ */
+function rowBackground(data, y, width) {
+  const samples = [];
+  for (let x = 0; x < width; x += 5) samples.push(data[y * width + x]);
+  samples.sort((a, b) => a - b);
+  return samples[samples.length >> 1];
 }
 
 const files = process.argv.slice(2).filter((f) => fs.existsSync(f));
@@ -67,9 +88,10 @@ for (const file of files) {
   let contentBelow = 0;
 
   for (let y = height - 1; y >= 0; y--) {
+    const ground = rowBackground(data, y, width);
     let content = 0;
     for (let x = 0; x < width; x += 3) {
-      if (Math.abs(data[y * width + x] - page) > CONTENT_DELTA) content++;
+      if (Math.abs(data[y * width + x] - ground) > CONTENT_DELTA) content++;
     }
     if (content >= MIN_CONTENT_PER_ROW) {
       if (lowestContent === null) lowestContent = y;

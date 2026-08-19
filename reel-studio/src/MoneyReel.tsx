@@ -58,7 +58,7 @@ const Background: React.FC<{ variant: 'a' | 'b' | 'c' }> = ({ variant }) => {
         }}
       />
 
-      {/* The margin line, and the crease beside it where the page is bound. */}
+      {/* The margin line. */}
       <div
         style={{
           position: 'absolute',
@@ -68,6 +68,63 @@ const Background: React.FC<{ variant: 'a' | 'b' | 'c' }> = ({ variant }) => {
           width: 3,
           background: money.margin,
           opacity: 0.34,
+        }}
+      />
+
+      {/*
+        The bound edge. A ledger is a BOOK, and the strip where the page is
+        stitched in is the detail that says so — flat cream with rules could be
+        a printed form, but a shadowed gutter and a row of stitch marks could
+        only be a diary. Left side, outside the safe area, so it costs no space.
+      */}
+      <div
+        style={{
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 26,
+          background: `linear-gradient(to right, rgba(31,41,51,0.16), rgba(31,41,51,0.04) 60%, transparent)`,
+        }}
+      />
+      {/*
+        Stitches stop at the platform-UI line rather than running the full page.
+        A real diary's would carry on, but everything below that line is painted
+        over by Instagram's chrome, so those stitches would be invisible to the
+        viewer while still counting as ink inside the reserved band — which is
+        exactly what check-safe-area.mjs flagged on the first attempt. It cannot
+        tell page furniture from content, and it should not have to: the rule is
+        that nothing is drawn down there.
+      */}
+      {Array.from({ length: 7 }).map((_, i) => (
+        <div
+          key={i}
+          style={{
+            position: 'absolute',
+            left: 11,
+            top: 150 + i * ((CANVAS.height - SAFE_BOTTOM - 220) / 6),
+            width: 4,
+            height: 34,
+            borderRadius: 2,
+            background: money.text,
+            opacity: 0.18,
+          }}
+        />
+      ))}
+
+      {/*
+        Paper grain. Real paper is fibrous, and a perfectly flat fill is the
+        single biggest tell that a "notebook" was made in a browser. Two very
+        low-opacity repeating gradients at odd angles read as tooth without
+        costing a texture file or a decode — and staying under ~4% keeps it
+        below the threshold where it starts competing with the numbers, which
+        are what the frame is for.
+      */}
+      <AbsoluteFill
+        style={{
+          opacity: 0.035,
+          backgroundImage: `repeating-linear-gradient(37deg, ${money.text} 0px, transparent 1px, transparent 3px),
+                            repeating-linear-gradient(122deg, ${money.text} 0px, transparent 1px, transparent 4px)`,
         }}
       />
 

@@ -52,6 +52,11 @@ export interface ScriptBeat {
         bLabel?: string;
         items?: string[];
         highlightStep?: number;
+        /** compound: what a monthly amount becomes, under a stated assumption. */
+        monthly?: string;
+        years?: number;
+        rate?: string;
+        invested?: string;
         /** worked: the number the viewer owns, and what is done to it. */
         base?: string;
         baseLabel?: string;
@@ -128,7 +133,7 @@ label for the idea; the spoken line is natural Hindi that explains it. A viewer
 hears Hindi and reads English at the same time, and both must stand alone.
 
 For the spoken Hindi: plain, warm, everyday speech. Keep English words only
-where Indians genuinely use them (SIP, EMI, credit card, CIBIL). Never
+where Indians genuinely use them (EMI, credit card, CIBIL, subscription). Never
 condescending, never guilt-tripping.
 
 LENGTH
@@ -154,6 +159,13 @@ STRUCTURE
                   steps     (items: 2-4 short lines)
                   ladder    (highlightStep: 1-7, the step this episode belongs to)
                   clock     (optional label) — only for durations
+                  compound  (monthly, years, rate, result, invested)
+                            — what a monthly amount becomes over time. ONLY on
+                              topics that permit it; you are told below if this
+                              one does. "rate" MUST be written as an assumption
+                              ("assuming 10% a year"), never as a promise, and
+                              "invested" is what the viewer actually put in, so
+                              it can be seen next to what came out.
                   worked    (base, baseLabel, op, result, resultLabel)
                             — ONE number the viewer owns, with the arithmetic
                               done where they can see it. Example:
@@ -233,10 +245,26 @@ the viewer is already reading it elsewhere in the same frame. On a ladder beat,
 write the IDEA the ladder cannot express: what this rung buys you, or what
 comes after it.
 
-COMPLIANCE — THIS IS NOT OPTIONAL
+${topic.illustrativeReturns ? `COMPOUNDING IS PERMITTED ON THIS EPISODE — AND ONLY LIKE THIS
+This topic may use ONE "compound" beat. It is the most powerful thing this
+channel can show, and the fastest way to get it in legal trouble, so:
+
+- NEVER name what the money goes into. Not a mutual fund, not a SIP, not a
+  scheme, not a fund house, not "the market". The lesson is what compounding
+  DOES, not where to put money. Say "अगर ये पैसा हर महीने निवेश होता रहे" —
+  the mechanism, never the vehicle.
+- Write the rate as an assumption every time it is said or shown:
+  "assuming 10% a year" / "मान लीजिए दस प्रतिशत सालाना". Never "you will get".
+- Say what was put IN as well as what came out. A number without its input is
+  a promise; a number beside its input is arithmetic.
+- Never say the viewer should do it. Show what the maths does and stop.
+
+` : ''}COMPLIANCE — THIS IS NOT OPTIONAL
 This channel is financial EDUCATION, not investment advice. Under SEBI rules an
 unregistered educator may explain what things are, and may NOT:
 - name any specific stock, mutual fund, scheme, bank product or company
+- tell the viewer to put money INTO any product, even a generic one like a SIP
+  or a mutual fund (explaining what one IS is fine; steering money in is not)
 - state or imply any return figure or performance ("12% रिटर्न", "अच्छा रिटर्न देता है")
 - use any share price, index level or market data
 - tell the viewer to buy, sell, invest in or avoid anything specific
@@ -445,6 +473,21 @@ function visualIssues(visual: ScriptBeat['visual'], at: string): string[] {
         }
         case 'clock':
             return [];
+        case 'compound':
+            return [
+                ...need('monthly', Boolean(visual.monthly?.trim())),
+                ...need('rate', Boolean(visual.rate?.trim())),
+                ...need('result', Boolean(visual.result?.trim())),
+                ...need('invested', Boolean(visual.invested?.trim())),
+                ...need('years', Number.isInteger(visual.years) && (visual.years as number) > 0),
+                // The rate has to READ as an assumption on screen. "10% a year"
+                // is a claim; "assuming 10% a year" is arithmetic. That single
+                // word is most of what separates education from a performance
+                // claim, so it is required rather than encouraged.
+                ...(/assum|maan|मान/i.test(visual.rate ?? '')
+                    ? []
+                    : [`${at}: visual.rate must be written as an assumption, e.g. "assuming 10% a year" — got "${visual.rate}"`]),
+            ];
         case 'worked':
             return [
                 ...need('base', Boolean(visual.base?.trim())),
@@ -560,6 +603,22 @@ export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): s
             }
         }
     });
+
+    // Compounding may only appear on a topic written for it. Without this the
+    // model would reach for a growth rate on any savings topic — it is the most
+    // persuasive move available — and each time it did, the episode would carry
+    // a performance claim the channel is not registered to make.
+    const compounds = (script.beats ?? []).filter((b) => b.visual?.kind === 'compound');
+    if (compounds.length && !topic?.illustrativeReturns) {
+        issues.push(
+            'a beat draws a growth rate, but this topic is not flagged for it — ' +
+                'set "illustrativeReturns": true on the topic in money-ladder.json, ' +
+                'or teach the mechanism without a rate',
+        );
+    }
+    if (compounds.length > 1) {
+        issues.push('more than one beat draws a growth rate; one illustration per episode');
+    }
 
     // ONE number the viewer owns, with the arithmetic done where they can see
     // it. This is what makes a reel worth sending: a stated fact is interesting,

@@ -42,6 +42,7 @@ const script: MoneyScript = {
         { onScreen: 'Ten thousand', say: 'दस हज़ार रुपये... अलग रखो।', caption: 'Put ten thousand rupees aside before you invest anything.', visual: { kind: 'bigNumber', value: '₹10,000', label: 'Starter buffer' } },
         { onScreen: 'A separate account', say: 'इसे सैलरी खाते से, अलग रखो।', caption: 'Keep it in a separate account from your salary.', visual: { kind: 'compare', a: 'Savings', b: 'Salary', aLabel: 'Untouched', bLabel: 'Spent' } },
         { onScreen: 'What waiting costs', say: 'पचास हज़ार के बकाया पर... साल भर में इक्कीस हज़ार ब्याज लगता है।', caption: 'A fifty thousand rupee balance costs twenty one thousand in a year.', visual: { kind: 'worked', base: '₹50,000', baseLabel: 'Card balance', op: '× 42% a year', result: '₹21,000', resultLabel: 'Interest, in one year' } },
+        { onScreen: 'Twenty years later', say: 'पंद्रह सौ रुपये हर महीने... बीस साल में ग्यारह लाख से ऊपर हो जाते हैं।', caption: 'Fifteen hundred a month becomes over eleven lakh in twenty years.', visual: { kind: 'compound', monthly: '₹1,500', years: 20, rate: 'assuming 10% a year', result: '₹11,48,545', invested: '₹3,60,000' } },
         { onScreen: 'Only then invest', say: 'ये होने के बाद ही, निवेश की बात करो।', caption: 'Only once that is done should you talk about investing.', visual: { kind: 'ladder', highlightStep: 1 } },
     ],
     cta: 'How big is your buffer?',
@@ -65,8 +66,11 @@ function fakeTimings(text: string, wordsPerSec = 2.6): WordTiming[] {
 }
 
 async function main() {
-    const topic = getAllTopics().find((t) => t.id === script.topicId);
-    if (!topic) throw new Error(`Fixture topic ${script.topicId} is no longer in the curriculum.`);
+    const base = getAllTopics().find((t) => t.id === script.topicId);
+    if (!base) throw new Error(`Fixture topic ${script.topicId} is no longer in the curriculum.`);
+    // Flagged, because the fixture exercises a compound beat and the gate would
+    // otherwise refuse it — which is the gate working, not a fixture problem.
+    const topic = { ...base, illustrativeReturns: true };
 
     console.log('script passes its own gates:');
     check('no structural issues', structuralIssues(script, topic).length === 0, structuralIssues(script, topic).join('; '));

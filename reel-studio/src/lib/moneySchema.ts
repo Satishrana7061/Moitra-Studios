@@ -31,6 +31,29 @@ export const visualSpecSchema = z.discriminatedUnion('kind', [
    * `op` is written the way a person would say it out loud ("× 5%", "− ₹2,000",
    * "÷ 12"), not as a formula.
    */
+  /**
+   * Compounding, shown as arithmetic — the only place a growth rate may appear.
+   *
+   * This is the channel's strongest idea (a subscription bundle, invested, over
+   * twenty years) and also its largest compliance risk, so the two are bound
+   * together in one component rather than left to a prompt to get right.
+   *
+   * `rate` is drawn on screen as a stated ASSUMPTION, never a promise, and
+   * `invested` is drawn beside the result so the viewer always sees what was put
+   * in next to what came out. No product is ever named — the vehicle is not the
+   * lesson, the compounding is. `moneyCurriculum` refuses this visual on any
+   * topic not explicitly flagged for it, and the composition swaps in a stronger
+   * disclaimer whenever it appears.
+   */
+  z.object({
+    kind: z.literal('compound'),
+    monthly: z.string(),
+    years: z.number().int().positive(),
+    /** Written as an assumption, e.g. "assuming 10% a year". */
+    rate: z.string(),
+    result: z.string(),
+    invested: z.string(),
+  }),
   z.object({
     kind: z.literal('worked'),
     base: z.string(),

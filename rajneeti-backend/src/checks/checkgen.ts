@@ -383,6 +383,48 @@ async function main() {
     console.log('  n/a   every written topic now carries numbers — nothing to exempt');
   }
 
+  // ── compounding: the strongest idea and the largest exposure ───────────────
+  console.log('\ncompounding is allowed as arithmetic, never as a recommendation:');
+
+  // SEBI's circular PERMITS explaining what these products are — that is general
+  // financial awareness. It restricts steering money into them. The first
+  // version of this rule flagged both, and an existing test caught it.
+  for (const [text, blocked] of [
+    ['SIP का मतलब क्या है', false],
+    ['म्यूचुअल फंड कैसे काम करता है', false],
+    ['SIP में निवेश करो', true],
+    ['invest in mutual funds every month', true],
+    ['म्यूचुअल फंड में पैसा डालो', true],
+    ['assuming 10% a year, this becomes 11 lakh', false],
+    ['credit card पर बयालीस प्रतिशत ब्याज लगता है', false],
+  ] as [string, boolean][]) {
+    check(`${blocked ? 'blocked' : 'allowed'}: "${text.slice(0, 34)}"`,
+      (complianceViolations(text).length > 0) === blocked);
+  }
+
+  const compoundBeat = {
+    onScreen: 'Twenty years later',
+    say: 'पंद्रह सौ रुपये हर महीने... बीस साल में ग्यारह लाख से ऊपर हो जाते हैं।',
+    caption: 'Fifteen hundred a month becomes over eleven lakh in twenty years.',
+    visual: { kind: 'compound' as const, monthly: '₹1,500', years: 20, rate: 'assuming 10% a year', result: '₹11,48,545', invested: '₹3,60,000' },
+  };
+  const withCompound = { ...script, beats: [...script.beats, compoundBeat] };
+  const flagged = { ...(getAllTopics().find((t) => t.id === 's1-01')!), illustrativeReturns: true };
+
+  check('a growth rate on an unflagged topic is refused',
+    structuralIssues(withCompound, getAllTopics().find((t) => t.id === 's1-01')).some((i) => i.includes('not flagged')));
+  check('...and permitted on a topic written for it',
+    !structuralIssues(withCompound, flagged).some((i) => i.includes('not flagged')));
+
+  // The one word that separates arithmetic from a promise.
+  const bareRate = { ...script, beats: [...script.beats, { ...compoundBeat, visual: { ...compoundBeat.visual, rate: '10% a year' } }] };
+  check('a rate stated as fact rather than assumption is refused',
+    structuralIssues(bareRate, flagged).some((i) => i.includes('written as an assumption')));
+
+  const twoRates = { ...script, beats: [...script.beats, compoundBeat, { ...compoundBeat, onScreen: 'And again' }] };
+  check('two growth rates in one episode is refused',
+    structuralIssues(twoRates, flagged).some((i) => i.includes('one illustration per episode')));
+
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
 }

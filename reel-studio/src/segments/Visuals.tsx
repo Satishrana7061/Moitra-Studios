@@ -493,6 +493,127 @@ const Worked: React.FC<{
   );
 };
 
+/**
+ * Compounding, and the only visual permitted to draw a growth rate.
+ *
+ * Built so the honest framing is structural rather than editorial. Three things
+ * are always on screen together and none of them is optional: the assumption the
+ * number rests on, what the viewer actually put in, and what the maths gives
+ * back. A result shown alone is a promise; a result shown beside its input and
+ * its assumption is arithmetic.
+ *
+ * The result counts up over about a second. That is not decoration — the gap
+ * between "you put in ₹3.6 lakh" and the figure climbing past it IS the lesson,
+ * and a number that simply appears does not show the gap opening.
+ */
+const Compound: React.FC<{
+  monthly: string;
+  years: number;
+  rate: string;
+  result: string;
+  invested: string;
+}> = ({ monthly, years, rate, result, invested }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const enter = useEnter();
+
+  const digits = result.replace(/[^\d]/g, '');
+  const target = Number(digits || '0');
+  const progress = interpolate(frame, [fps * 0.5, fps * 1.6], [0, 1], {
+    extrapolateLeft: 'clamp',
+    extrapolateRight: 'clamp',
+  });
+  const eased = 1 - Math.pow(1 - progress, 3);
+  const shownResult =
+    target > 0 ? result.replace(digits, Math.round(target * eased).toLocaleString('en-IN')) : result;
+
+  const line = (delay: number) =>
+    spring({ frame: frame - Math.round(delay * fps), fps, config: { damping: 16, mass: 0.5, stiffness: 140 } });
+
+  const row = (v: number): React.CSSProperties => ({ opacity: v, transform: `translateY(${(1 - v) * 16}px)` });
+
+  return (
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+      <div style={{ ...row(line(0)), fontFamily: moneyFonts.display, fontSize: 78, fontWeight: 800, color: money.text }}>
+        {monthly}
+      </div>
+      <div style={{ ...row(line(0.15)), fontFamily: moneyFonts.display, fontSize: moneyType.compareLabel, color: money.textDim }}>
+        a month, for {years} years
+      </div>
+
+      {/*
+        The assumption, drawn every time and never as small print. This is what
+        separates an illustration from a performance claim, so it is a first-class
+        element of the layout rather than a footnote someone could later shrink.
+      */}
+      <div
+        style={{
+          ...row(line(0.3)),
+          marginTop: 14,
+          fontFamily: moneyFonts.display,
+          fontSize: 34,
+          fontWeight: 700,
+          color: money.cost,
+          border: `2px dashed ${money.cost}`,
+          borderRadius: 10,
+          padding: '6px 18px',
+        }}
+      >
+        {rate}
+      </div>
+
+      <div
+        style={{
+          width: '68%',
+          height: 5,
+          background: money.text,
+          opacity: 0.8,
+          borderRadius: 3,
+          transformOrigin: 'left center',
+          transform: `scaleX(${line(0.45)})`,
+          margin: '22px 0 18px',
+        }}
+      />
+
+      <div style={{ ...row(line(0.6)), position: 'relative', display: 'inline-block' }}>
+        <div
+          style={{
+            position: 'absolute',
+            left: '-5%',
+            right: '-5%',
+            top: '10%',
+            bottom: '12%',
+            background: money.accentSoft,
+            borderRadius: 12,
+            transformOrigin: 'left center',
+            transform: `scaleX(${line(0.85)}) skewX(-2.5deg)`,
+          }}
+        />
+        <div
+          style={{
+            position: 'relative',
+            fontFamily: moneyFonts.display,
+            fontSize: 132,
+            fontWeight: 800,
+            color: money.text,
+            lineHeight: 1.02,
+            letterSpacing: '-0.02em',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {shownResult}
+        </div>
+      </div>
+
+      {/* What went in, always beside what came out. */}
+      <div style={{ ...row(line(0.75)), marginTop: 10, fontFamily: moneyFonts.display, fontSize: moneyType.compareLabel, color: money.textDim }}>
+        you put in {invested}
+      </div>
+      <div style={{ opacity: enter * 0 }} />
+    </div>
+  );
+};
+
 export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = ({
   spec,
   beatDurationSec,
@@ -509,6 +630,16 @@ export const Visual: React.FC<{ spec: VisualSpec; beatDurationSec: number }> = (
         return <Ladder highlightStep={spec.highlightStep} />;
       case 'clock':
         return <Clock label={spec.label} beatDurationSec={beatDurationSec} />;
+      case 'compound':
+        return (
+          <Compound
+            monthly={spec.monthly}
+            years={spec.years}
+            rate={spec.rate}
+            result={spec.result}
+            invested={spec.invested}
+          />
+        );
       case 'worked':
         return (
           <Worked

@@ -701,7 +701,7 @@
       "title": "निवेश की आदत",
       "titleEn": "Investing habit",
       "goal": "हर महीने अपने आप, बिना सोचे।",
-      "outlineOnly": true,
+      "outlineOnly": false,
       "plannedTopics": [
         "SIP का मतलब क्या है",
         "कंपाउंडिंग को आसान भाषा में समझें",
@@ -712,7 +712,86 @@
         "लक्ष्य के हिसाब से अवधि चुनना",
         "टिप्स और भरोसे लायक जानकारी में फर्क"
       ],
-      "topics": []
+      "topics": [
+        {
+          "id": "s5-01",
+          "title": "आपके subscriptions, बीस साल बाद",
+          "hookIdea": "हर महीने पंद्रह सौ. बीस साल में?",
+          "teaches": "छोटी मासिक रकम भी लंबे समय में बहुत बड़ी बन जाती है — यही कंपाउंडिंग है।",
+          "keyNumbers": [
+            "₹1,500",
+            "₹11,48,545",
+            "₹3,60,000"
+          ],
+          "visual": "compound",
+          "illustrativeReturns": true,
+          "cta": "आपके कितने subscriptions चल रहे हैं?",
+          "facts": [
+            "A typical Indian household runs 3-4 paid subscriptions, together around ₹1,500 a month",
+            "₹1,500 a month for 20 years is ₹3,60,000 of your own money paid in",
+            "At an assumed 10% a year compounded monthly, that same ₹1,500 a month becomes ₹11,48,545 in 20 years"
+          ]
+        },
+        {
+          "id": "s5-02",
+          "title": "एक subscription, दस साल",
+          "hookIdea": "सिर्फ़ एक. छह सौ उनचास रुपये.",
+          "teaches": "एक अकेला subscription भी दस साल में लाख से ऊपर बन सकता है।",
+          "keyNumbers": [
+            "₹649",
+            "₹1,34,052",
+            "₹77,880"
+          ],
+          "visual": "compound",
+          "illustrativeReturns": true,
+          "cta": "कौन सा subscription आप सच में इस्तेमाल करते हैं?",
+          "facts": [
+            "₹649 a month for 10 years is ₹77,880 paid in",
+            "At an assumed 10% a year compounded monthly, ₹649 a month becomes ₹1,34,052 in 10 years",
+            "The gap between what you put in and what it becomes is the compounding, not the saving"
+          ]
+        },
+        {
+          "id": "s5-03",
+          "title": "पाँच साल देर से शुरू करने की कीमत",
+          "hookIdea": "पच्चीस या तीस? फ़र्क ग्यारह लाख का.",
+          "teaches": "देर से शुरू करने का नुकसान रकम का नहीं, समय का होता है।",
+          "keyNumbers": [
+            "₹2,000",
+            "₹26,75,781",
+            "₹15,31,394",
+            "₹11,44,387"
+          ],
+          "visual": "compound",
+          "illustrativeReturns": true,
+          "cta": "आप कब शुरू कर सकते हैं?",
+          "facts": [
+            "₹2,000 a month from age 25 to 50 is 25 years and ₹6,00,000 paid in",
+            "At an assumed 10% a year, starting at 25 gives ₹26,75,781 by 50; starting at 30 gives ₹15,31,394",
+            "Those five years cost ₹11,44,387 — while only ₹1,20,000 less was actually paid in"
+          ]
+        },
+        {
+          "id": "s5-04",
+          "title": "रोज़ के सौ रुपये, पंद्रह साल",
+          "hookIdea": "एक चाय और सिगरेट जितना. रोज़.",
+          "teaches": "रोज़ की छोटी आदत महीने की बड़ी रकम बनती है, और सालों में उससे भी बड़ी।",
+          "keyNumbers": [
+            "₹100",
+            "₹3,000",
+            "₹12,53,773",
+            "₹5,40,000"
+          ],
+          "visual": "compound",
+          "illustrativeReturns": true,
+          "cta": "आपका रोज़ का सौ रुपया कहाँ जाता है?",
+          "facts": [
+            "₹100 a day is ₹3,000 a month and ₹5,40,000 over 15 years",
+            "At an assumed 10% a year compounded monthly, ₹3,000 a month becomes ₹12,53,773 in 15 years",
+            "More than half of that figure is growth rather than money you paid in"
+          ]
+        }
+      ]
     },
     {
       "step": 6,

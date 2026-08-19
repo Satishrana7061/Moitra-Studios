@@ -254,7 +254,20 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
         <CtaCard text={board.cta} />
       </Sequence>
 
-      <DisclaimerBar text={board.brand.disclaimer} />
+      {/*
+        A reel that draws a growth rate says so, in its own words, for its whole
+        length. Derived from the storyboard rather than left to whoever writes
+        the brand block: the protection and the thing it protects against are
+        then impossible to separate, and no future edit can drop one while
+        keeping the other.
+      */}
+      <DisclaimerBar
+        text={
+          board.beats.some((b) => b.visual?.kind === 'compound')
+            ? 'Illustration only — returns are not guaranteed and can be negative'
+            : board.brand.disclaimer
+        }
+      />
     </AbsoluteFill>
   );
 };

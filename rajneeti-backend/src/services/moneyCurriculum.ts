@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CURRICULUM_PATH = path.resolve(__dirname, '..', '..', '..', 'content', 'money-ladder.json');
 
-export type VisualKind = 'bigNumber' | 'ladder' | 'compare' | 'steps' | 'clock' | 'worked';
+export type VisualKind = 'bigNumber' | 'ladder' | 'compare' | 'steps' | 'clock' | 'worked' | 'compound';
 
 export interface Topic {
     id: string;
@@ -33,6 +33,17 @@ export interface Topic {
      * which is both the SEBI line and the more interesting material anyway.
      */
     facts?: string[];
+    /**
+     * Permits this topic to draw a growth rate, via the `compound` visual.
+     *
+     * Off everywhere unless deliberately set. Compounding is the channel's
+     * strongest idea and its largest compliance exposure, and the difference
+     * between education and a performance claim is entirely in the framing — so
+     * the framing is enforced rather than requested. A topic carrying this flag
+     * must satisfy every protection in `illustrationIssues`; a topic without it
+     * cannot use the visual at all.
+     */
+    illustrativeReturns?: boolean;
     visual: VisualKind;
     cta: string;
 }
@@ -91,7 +102,7 @@ export interface ScheduledTopic extends Topic {
     order: number;
 }
 
-const VISUAL_KINDS: VisualKind[] = ['bigNumber', 'ladder', 'compare', 'steps', 'clock', 'worked'];
+const VISUAL_KINDS: VisualKind[] = ['bigNumber', 'ladder', 'compare', 'steps', 'clock', 'worked', 'compound'];
 
 let cached: Curriculum | null = null;
 
@@ -180,6 +191,33 @@ const COMPLIANCE_RULES: { name: string; pattern: RegExp; why: string }[] = [
         // NSE/BSE-style all-caps tickers, and common recommendation shorthand.
         pattern: /\b(NSE|BSE)\s*:\s*[A-Z]{2,}|\b[A-Z]{4,}\s*(?:के शेयर|shares?)\b/,
         why: 'named security — prohibited outside registered advice',
+    },
+    {
+        name: 'named-product',
+        // The single most important line for this channel, and it was missing.
+        // SEBI's concern is unregistered people steering money toward specific
+        // products; a compounding lesson that names no vehicle is education,
+        // and the same lesson with "invest this in a mutual fund" attached is
+        // not. The prompt used to list SIP as an approved loanword, which
+        // invited exactly this.
+        // Narrower than the first attempt, and a test caught why. SEBI's
+        // circular explicitly PERMITS explaining what a SIP or a mutual fund
+        // is — that is general financial awareness. What it restricts is
+        // steering money into one. So the product name alone is fine and only
+        // becomes a violation next to an instruction to put money in.
+        //
+        //   allowed:   "SIP का मतलब क्या है"        (what a SIP means)
+        //   violation: "SIP में निवेश करो"          (put money into a SIP)
+        pattern: new RegExp(
+            [
+                '(?:mutual\\s*funds?|म्यूचुअल|\\bSIPs?\\b|एसआईपी|\\bELSS\\b|index\\s*funds?|इंडेक्स\\s*फंड)' +
+                    '[^।.\\n]{0,28}(?:invest|निवेश|डाल|लगा\\s*द|खरीद|buy|put\\s+(?:your\\s+)?money)',
+                '(?:invest|निवेश|डाल|लगा\\s*द|खरीद|buy|put\\s+(?:your\\s+)?money)' +
+                    '[^।.\\n]{0,28}(?:mutual\\s*funds?|म्यूचुअल|\\bSIPs?\\b|एसआईपी|\\bELSS\\b|index\\s*funds?|इंडेक्स\\s*फंड)',
+            ].join('|'),
+            'i',
+        ),
+        why: 'steers money into a named product — explain the mechanism, never the vehicle',
     },
     {
         name: 'price-prediction',

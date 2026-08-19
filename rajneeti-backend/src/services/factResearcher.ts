@@ -115,7 +115,12 @@ Find up to THREE current, checkable facts about Indian consumer finance that
 would make this topic concrete and surprising. Search for each one.
 
 Respond with STRICT JSON only, no markdown fences:
-{"facts":[{"text":"one plain English sentence including the figure","volatile":true}]}
+{"facts":[{"text":"one plain English sentence including the figure","source":"https://the-page-you-took-it-from","volatile":true}]}
+
+"source" is REQUIRED and must be the actual URL you read the figure on — the
+specific page, not a homepage, and not a search result. A fact without a real
+source URL is unusable here and will be discarded, so if you cannot give one,
+leave the fact out entirely.
 
 Set "volatile" true when the number resets on a schedule (a quarterly rate, an
 annual limit) and false when it is structural and stable (how interest is
@@ -125,7 +130,7 @@ If there are no solid citable facts for this topic, return {"facts":[]}.`;
 
     const { text, sources } = await searchAsk(prompt);
 
-    let parsed: { facts?: { text?: string; volatile?: boolean }[] };
+    let parsed: { facts?: { text?: string; source?: string; volatile?: boolean }[] };
     try {
         const cleaned = text.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
         // The model sometimes wraps JSON in prose despite instructions.
@@ -140,23 +145,46 @@ If there are no solid citable facts for this topic, return {"facts":[]}.`;
     const checkedOn = new Date().toISOString().slice(0, 10);
     const primary = sources.map(cleanUrl);
 
-    return (parsed.facts ?? [])
-        .map((f) => (f?.text ?? '').trim())
-        .filter(Boolean)
-        .map((textLine, i): ResearchedFact => ({
-            text: textLine,
-            // Citations come back for the response as a whole rather than per
-            // fact, so the first is attached and the rest are kept reachable by
-            // ordering. Better than dropping them.
-            source: primary[i] ?? primary[0] ?? '',
+    const raw = (parsed.facts ?? []).filter((f) => (f?.text ?? '').trim());
+
+    const facts = raw
+        .map((f, i): ResearchedFact => ({
+            text: (f.text ?? '').trim(),
+            // The model's own reported URL first, annotations second.
+            //
+            // Annotations alone did not work, and the reason was a contradiction
+            // in this very function: OpenAI attaches url_citation annotations to
+            // spans of PROSE, and the prompt above demands strict JSON. A
+            // JSON-only reply has no prose to annotate, so `sources` came back
+            // empty every time and all twenty topics of a run were discarded as
+            // "uncited" — after paying for twenty web searches. The requirement
+            // and the output format were mutually exclusive as written.
+            source: cleanUrl((f.source ?? '').trim()) || primary[i] || primary[0] || '',
             checkedOn,
-            volatile: Boolean((parsed.facts ?? [])[i]?.volatile),
+            volatile: Boolean(f.volatile),
         }))
         .filter((f) => {
-            if (f.source) return true;
-            // No citation means it did not really look it up. Per the probe,
-            // that is precisely the case where the answer is a year out of date.
-            console.warn(`[facts] ${topic.id}: dropping an uncited claim — "${f.text.slice(0, 60)}…"`);
+            // Still dropped without a source. The probe showed that an answer
+            // the model will not cite is exactly the one that is a year stale,
+            // and a wrong number is worse for this channel than no number. But
+            // it must be possible to SUPPLY one, which is what changed.
+            if (/^https?:\/\/\S+\.\S+/.test(f.source)) return true;
+            console.warn(
+                `[facts] ${topic.id}: dropping an uncited claim — "${f.text.slice(0, 60)}…"` +
+                    (f.source ? ` (source "${f.source.slice(0, 40)}" is not a usable URL)` : ' (no source given)'),
+            );
             return false;
         });
+
+    // Distinguishing these two was not cosmetic. The old message said "no
+    // citable facts — this topic is about behaviour, not numbers" whenever
+    // nothing survived, which blamed the TOPIC for what was a bug in this
+    // function, and made a run that found twenty good facts and discarded all
+    // of them look like a correct and uninteresting result.
+    if (!facts.length && raw.length) {
+        console.warn(
+            `[facts] ${topic.id}: found ${raw.length} claim(s) but kept none — every one lacked a usable source.`,
+        );
+    }
+    return facts;
 }

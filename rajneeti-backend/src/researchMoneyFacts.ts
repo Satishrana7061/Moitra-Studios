@@ -51,7 +51,13 @@ async function main() {
             const facts = await researchTopic(topic);
             if (!facts.length) {
                 empty += 1;
-                console.log('   (no citable facts — this topic is about behaviour, not numbers)\n');
+                // Deliberately does NOT claim to know why. The previous wording
+                // asserted the topic was "about behaviour, not numbers", which
+                // read as a considered finding and was in fact the only thing
+                // this branch could ever say — including on a run that found
+                // twenty solid facts and discarded every one to a bug. The
+                // per-topic warnings above give the real reason.
+                console.log('   (nothing kept — see the reason above)\n');
                 continue;
             }
             for (const f of facts) {

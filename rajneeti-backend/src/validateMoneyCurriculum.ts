@@ -15,6 +15,7 @@ import {
     curriculumStats,
     getAllTopics,
 } from './services/moneyCurriculum.js';
+import { storedScriptIssues } from './services/moneyScriptGenerator.js';
 
 const curriculum = loadCurriculum();
 const stats = curriculumStats(curriculum);
@@ -39,6 +40,30 @@ for (const step of curriculum.steps) {
 // Facts coverage. Not a pass/fail: a topic with no facts still renders, but it
 // produces the generic script that made the first episode forgettable, so the
 // list is printed to be worked down rather than ignored.
+// Stored scripts face exactly the gates a generated one does — structural,
+// language split, compliance — but ONCE, over a static file, instead of on
+// every episode against a fresh guess. That is the whole saving of writing them
+// by hand, and it would be undone by checking them any less strictly: a
+// hand-written script is just as able to put English in a `say` line or a
+// return figure on screen.
+const scriptProblems: string[] = [];
+for (const topic of getAllTopics()) {
+    for (const issue of storedScriptIssues(topic)) {
+        scriptProblems.push(`   [${topic.id}] ${issue}`);
+    }
+}
+if (scriptProblems.length) {
+    console.log(`\n❌ ${scriptProblems.length} problem(s) in written scripts:`);
+    console.log(scriptProblems.join('\n'));
+}
+
+console.log(`\n📊 ${stats.topicsWithScript}/${stats.writtenTopics} topics have a written script (the rest still need a model).`);
+if (stats.topicsNeedingScript.length) {
+    const s1 = stats.topicsNeedingScript.slice(0, 12).join(', ');
+    const m1 = stats.topicsNeedingScript.length - 12;
+    console.log(`   Still generated: ${s1}${m1 > 0 ? ` … +${m1} more` : ''}`);
+}
+
 console.log(`\n📊 ${stats.topicsWithFacts}/${stats.writtenTopics} topics carry real facts.`);
 if (stats.topicsNeedingFacts.length) {
     const shown = stats.topicsNeedingFacts.slice(0, 12).join(', ');
@@ -67,9 +92,16 @@ if (stale.length) {
     console.log('   Re-run the research step for these before they are published again.');
 }
 
-if (issues.length === 0) {
+if (issues.length === 0 && scriptProblems.length === 0) {
     console.log('\n✅ No validation or compliance issues.\n');
     process.exit(0);
+}
+
+// A written script that breaks a rule must fail the file, not the run. By the
+// time a bad one is caught mid-episode the voice credits are already spent.
+if (scriptProblems.length && issues.length === 0) {
+    console.error(`\n❌ ${scriptProblems.length} problem(s) in written scripts, listed above.\n`);
+    process.exit(1);
 }
 
 console.error(`\n❌ ${issues.length} issue(s):`);

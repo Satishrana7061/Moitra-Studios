@@ -9,6 +9,8 @@ import {
   structuralIssues,
   checkableClaims,
   hasNumericMaterial,
+  getStoredScript,
+  storedScriptIssues,
   FREE_TIER_MODELS,
   SCRIPT_MODEL,
   FALLBACK_MODEL,
@@ -463,6 +465,43 @@ async function main() {
   const twoRates = { ...script, beats: [...script.beats, compoundBeat, { ...compoundBeat, onScreen: 'And again' }] };
   check('two growth rates in one episode is refused',
     structuralIssues(twoRates, flagged).some((i) => i.includes('one illustration per episode')));
+
+  // ── written scripts ────────────────────────────────────────────────────────
+  // The daily run now prefers a script written into the curriculum and calls a
+  // model only when there is none — because an external API in the critical
+  // path is the fragility that killed the news channel, and a zero OpenAI
+  // balance proved it by stopping a run outright.
+  //
+  // The saving is that these checks run ONCE over a static file instead of on
+  // every episode against a fresh guess. It would be undone by checking any
+  // less strictly, so a hand-written script faces exactly the same gates.
+  console.log('\nwritten scripts face the same gates as generated ones:');
+  const written = getAllTopics().find((t) => Array.isArray((t.script as any)?.beats));
+  check('at least one topic has a written script', Boolean(written), written?.id);
+
+  if (written) {
+    check('...and it passes every gate', storedScriptIssues(written).length === 0,
+      storedScriptIssues(written).join('; '));
+    check('...and the pipeline can read it back', Boolean(getStoredScript(written)?.beats.length));
+
+    const bend = (mutate: (c: any) => void): boolean => {
+      const clone = JSON.parse(JSON.stringify(written.script));
+      mutate(clone);
+      return storedScriptIssues({ ...written, script: clone } as any).length > 0;
+    };
+    for (const [label, mutate] of [
+      ['English in a spoken line', (c: any) => { c.beats[0].say = 'Six hundred rupees leaves quietly.'; }],
+      ['Devanagari in a drawn line', (c: any) => { c.beats[0].onScreen = 'हर महीने'; }],
+      ['a spoken line with no pause mark', (c: any) => { c.beats[0].say = 'हर महीने छह सौ रुपये कट जाते हैं'; }],
+      ['a rupee symbol in a spoken line', (c: any) => { c.beats[0].say = '₹599 हर महीने, कट जाते हैं।'; }],
+      ['a return figure', (c: any) => { c.beats[0].caption = 'This fund gives 15% returns every year.'; }],
+      ['a named bank', (c: any) => { c.beats[0].caption = 'Your SBI card charges this every month.'; }],
+      ['a worked sum with no numbers', (c: any) => { c.beats[1].visual.result = 'a lot more'; }],
+      ['a missing caption', (c: any) => { c.beats[2].caption = ''; }],
+    ] as [string, (c: any) => void][]) {
+      check(`a written script with ${label} is rejected`, bend(mutate));
+    }
+  }
 
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);

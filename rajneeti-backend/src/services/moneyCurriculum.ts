@@ -44,6 +44,21 @@ export interface Topic {
      * cannot use the visual at all.
      */
     illustrativeReturns?: boolean;
+    /**
+     * The finished script, written by hand rather than generated per run.
+     *
+     * The daily pipeline used to call a model here, and that made an external
+     * API a dependency of every episode — which is precisely the fragility that
+     * killed the news channel. It can be out of credits, rate limited, or
+     * quietly worse after a model update, and each of those stops the channel.
+     * (It did: a zero OpenAI balance took down a run, and the fallback built
+     * for that case turned out to be a dead branch.)
+     *
+     * Written once, checked once, reused forever. Typed as `unknown` because
+     * the real shape is `MoneyScript`, which lives in moneyScriptGenerator —
+     * and that module imports this one. `getStoredScript` does the narrowing.
+     */
+    script?: unknown;
     visual: VisualKind;
     cta: string;
 }
@@ -335,6 +350,13 @@ export function curriculumStats(curriculum: Curriculum = loadCurriculum()) {
         /** Topics carrying real facts. The rest will produce generic scripts. */
         topicsWithFacts: withFacts.length,
         topicsNeedingFacts: written.filter((t) => !(t.facts?.length ?? 0)).map((t) => t.id),
+        // Reported the same way as facts, because it is the same kind of debt:
+        // a topic without a written script still falls back to a model, which
+        // is the dependency this channel is getting rid of.
+        topicsWithScript: written.filter((t) => Array.isArray((t.script as any)?.beats)).length,
+        topicsNeedingScript: written
+            .filter((t) => !Array.isArray((t.script as any)?.beats))
+            .map((t) => t.id),
         writtenTopics: written.length,
         outlinedTopics: outlined,
         stepsWritten: curriculum.steps.filter((s) => !s.outlineOnly).length,

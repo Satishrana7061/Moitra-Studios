@@ -17,7 +17,13 @@ import { spawnSync } from 'child_process';
 
 import { getAllTopics, getNextTopic, type ScheduledTopic } from './services/moneyCurriculum.js';
 import { moneyDb, usedTopicIds, lastEpisodeNo, uploadVideo, recordEpisode } from './services/moneyEpisodeStore.js';
-import { generateMoneyScript, voiceoverText, type MoneyScript } from './services/moneyScriptGenerator.js';
+import {
+    generateMoneyScript,
+    getStoredScript,
+    storedScriptIssues,
+    voiceoverText,
+    type MoneyScript,
+} from './services/moneyScriptGenerator.js';
 import { speakMoneyScript } from './services/moneyVoiceService.js';
 import { masterVoiceover, measureLoudness } from './services/audioMixService.js';
 import { buildMoneyStoryboard } from './services/moneyStoryboardBuilder.js';
@@ -79,7 +85,36 @@ async function main() {
     console.log(`   Step ${topic.stepNumber} (${topic.stepTitleEn}) · visual: ${topic.visual}\n`);
 
     // 1. Script
-    const script: MoneyScript = await generateMoneyScript(topic);
+    // The stored script first, and a model only when there is none.
+    //
+    // The daily run has no business depending on an external API. The
+    // curriculum already carries the hook, the lesson, the numbers, the facts
+    // and the closing question — a model only expanded those into beats, and
+    // charged the whole channel's uptime for it. A zero OpenAI balance stopped
+    // a run outright, and the fallback built for exactly that case turned out
+    // to be a dead branch.
+    const stored = getStoredScript(topic);
+    let script: MoneyScript;
+
+    if (stored) {
+        // Re-checked here as well as in money:validate. The file can be edited
+        // between the two, and a bad script that reaches this point has already
+        // cost the voice credits by the time anyone notices.
+        const issues = storedScriptIssues(topic);
+        if (issues.length) {
+            throw new Error(
+                `[money] The stored script for ${topic.id} does not pass its own gates:\n  - ${issues.join('\n  - ')}`,
+            );
+        }
+        console.log(`[money] Using the written script for ${topic.id} — no model call.`);
+        script = stored;
+    } else {
+        console.log(
+            `[money] ${topic.id} has no written script yet, falling back to a model. ` +
+                'This is the path that depends on an external API being up and funded.',
+        );
+        script = await generateMoneyScript(topic);
+    }
     fs.writeFileSync(path.join(outDir, 'script.json'), JSON.stringify(script, null, 2));
 
     console.log('\n── Script ──');

@@ -684,6 +684,57 @@ export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): s
     return issues;
 }
 
+// ── Stored scripts ───────────────────────────────────────────────────────────
+
+/**
+ * The script written into the curriculum for this topic, if there is one.
+ *
+ * This is now the primary path, and calling a model is the exception. The daily
+ * run has no business depending on an external API: the curriculum already
+ * carries the hook, the lesson, the numbers, the facts and the closing
+ * question, so the only thing a model added was expanding those into beats —
+ * at the cost of making every episode contingent on someone else's uptime,
+ * billing and model updates.
+ *
+ * Returns null rather than throwing when the topic has no script yet, so the
+ * two sources can coexist while the 72 are written.
+ */
+export function getStoredScript(topic: ScheduledTopic): MoneyScript | null {
+    const raw = topic.script as Partial<MoneyScript> | undefined;
+    if (!raw || typeof raw !== 'object' || !Array.isArray(raw.beats) || !raw.beats.length) return null;
+    return {
+        topicId: topic.id,
+        hook: raw.hook ?? '',
+        hookSaid: raw.hookSaid ?? '',
+        beats: raw.beats,
+        cta: raw.cta ?? '',
+        // Falls back to the curriculum's own closing question, which every
+        // topic already has — one less thing to repeat in each script.
+        ctaSaid: raw.ctaSaid ?? topic.cta,
+        numericClaims: checkableClaims(raw.numericClaims ?? []),
+    };
+}
+
+/**
+ * Everything wrong with a stored script, using the same gates a generated one
+ * must pass.
+ *
+ * Deliberately the SAME functions rather than a parallel set. The whole saving
+ * of pre-writing is that these run once over a static file instead of on every
+ * episode against a fresh guess — but a weaker check would trade the saving for
+ * a regression, and a hand-written script is just as capable of putting English
+ * in a `say` line or a return figure on screen.
+ */
+export function storedScriptIssues(topic: ScheduledTopic): string[] {
+    const script = getStoredScript(topic);
+    if (!script) return [];
+    return [
+        ...structuralIssues(script, topic),
+        ...languageIssues(script),
+        ...complianceViolations(scriptSurfaceText(script)).map((v) => `${v.rule}: ${v.why}`),
+    ];
+}
+
 /** Every piece of text that will reach a viewer, for the compliance sweep. */
 export function scriptSurfaceText(script: MoneyScript): string {
     return [

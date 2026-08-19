@@ -109,7 +109,64 @@
           "cta": "आपके कितने ऑटो-डेबिट चल रहे हैं?",
           "facts": [
             "One ₹599 subscription is ₹7,188 over a year"
-          ]
+          ],
+          "script": {
+            "hook": "The subscription you forgot",
+            "hookSaid": "एक subscription, जो आपको याद भी नहीं।",
+            "beats": [
+              {
+                "onScreen": "Monthly feels small",
+                "say": "हर महीने छह सौ रुपये... कट जाते हैं, चुपचाप।",
+                "caption": "About six hundred rupees leaves your account quietly every month.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹599",
+                  "label": "Every month"
+                }
+              },
+              {
+                "onScreen": "Twelve months later",
+                "say": "साल भर में ये, सात हज़ार से ऊपर बैठता है।",
+                "caption": "Over twelve months that adds up to more than seven thousand rupees.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹599",
+                  "baseLabel": "Every month",
+                  "op": "× 12 months",
+                  "result": "₹7,188",
+                  "resultLabel": "In one year"
+                }
+              },
+              {
+                "onScreen": "Check your auto-debits",
+                "say": "आज बैंक ऐप खोलो, और auto-debit की लिस्ट देखो।",
+                "caption": "Open your bank app today and look at the list of auto-debits.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Open your bank app",
+                    "Find every auto-debit",
+                    "Cancel one you do not use"
+                  ]
+                }
+              },
+              {
+                "onScreen": "One is enough",
+                "say": "सिर्फ़ एक बंद करो... बाकी रहने दो।",
+                "caption": "Cancel just one you never use. Leave the rest alone.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 1
+                }
+              }
+            ],
+            "cta": "How many are you paying for?",
+            "ctaSaid": "आपके कितने subscription चल रहे हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹599",
+              "₹7,188"
+            ]
+          }
         },
         {
           "id": "s1-07",

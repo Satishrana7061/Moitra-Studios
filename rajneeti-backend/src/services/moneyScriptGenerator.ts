@@ -5,10 +5,15 @@
  * Two things make this different from the Rajneeti dialogue generator:
  *
  * 1. The model fallback actually works. conversationPipeline.ts:188-242 has
- *    `if (openaiKey) { ...throw... } else if (geminiKey)`, so the Gemini path
- *    only runs when OpenAI is UNCONFIGURED -- the one case where it is useless.
- *    A transient OpenAI 5xx kills the whole run. Here each provider is tried in
- *    turn and only an all-providers-failed condition throws.
+ *    `if (openaiKey) { ...throw... } else if (geminiKey)`, so the fallback path
+ *    only runs when the primary is UNCONFIGURED -- the one case where it is
+ *    useless. A transient 5xx kills the whole run. Here each provider is tried
+ *    in turn and only an all-providers-failed condition throws.
+ *
+ *    Both providers are OpenAI models on the free 2.5M/day mini allowance. A
+ *    Gemini fallback used to sit in the second slot for a key that does not
+ *    exist, which is worse than no fallback: it turned a billing failure into
+ *    a confusing parse error instead of a clear one.
  *
  * 2. Output is compliance-linted before it is returned. SEBI's January 2025
  *    circular separates permitted "general financial awareness" from
@@ -17,7 +22,7 @@
  *    and a second violation fails the run rather than publishing.
  */
 
-import { OPENAI_API_KEY, GEMINI_API_KEY } from '../config.js';
+import { OPENAI_API_KEY } from '../config.js';
 import {
     complianceViolations,
     loadCurriculum,
@@ -86,6 +91,44 @@ const MAX_ONSCREEN_WORDS = 6;
 const MIN_BEATS = 3;
 const MAX_BEATS = 5;
 const MAX_SCRIPT_ATTEMPTS = 3;
+
+/**
+ * OpenAI models this channel is allowed to use, and why the list exists.
+ *
+ * The account gets 2.5M tokens a day free across the mini/nano tier, and only
+ * 250K across gpt-5.4 and its siblings. Script generation was defaulting to
+ * gpt-5.4 — the expensive one — for a job that is JSON formatting against an
+ * extremely prescriptive prompt. It does not need the reasoning, and a single
+ * day of fact research on that tier ran 675K tokens and cost real money.
+ *
+ * At ~2,900 tokens of prompt and 3,000 of output, a worst-case three-attempt
+ * episode is roughly 20K. Three reels a week is ~60K a week against 2.5M a day.
+ *
+ * `checkgen` asserts the configured model is on this list, so a future edit
+ * that reaches for the expensive one fails the suite rather than the invoice.
+ */
+export const FREE_TIER_MODELS = [
+    'gpt-5.4-mini',
+    'gpt-5.4-nano',
+    'gpt-5-mini',
+    'gpt-5-nano',
+    'gpt-4.1-mini',
+    'gpt-4.1-nano',
+    'gpt-4o-mini',
+] as const;
+
+export const SCRIPT_MODEL = process.env.OPENAI_MODEL || 'gpt-5.4-mini';
+
+/**
+ * The second attempt, on a different model rather than a different vendor.
+ *
+ * The Gemini fallback is gone because there is no Gemini key — it was a dead
+ * branch that turned a billing failure into a confusing parse error. But a lone
+ * provider plus a retry loop is not resilience, and the reason a fallback
+ * existed in the first place was that a transient failure should not kill a
+ * run. This one is on the same free allowance, so it costs nothing to keep.
+ */
+export const FALLBACK_MODEL = process.env.OPENAI_FALLBACK_MODEL || 'gpt-4.1-mini';
 
 const buildPrompt = (topic: ScheduledTopic, violationsToFix: string[] = []): string => {
     const series = loadCurriculum().series;
@@ -314,8 +357,8 @@ Respond with STRICT JSON only. No markdown fences, no commentary.
 
 export type Provider = { name: string; enabled: boolean; run: (prompt: string) => Promise<string> };
 
-const openAiProvider = (): Provider => ({
-    name: 'openai/gpt-5.4',
+const openAiProvider = (model: string): Provider => ({
+    name: `openai/${model}`,
     enabled: Boolean(OPENAI_API_KEY || process.env.OPENAI_API_KEY),
     run: async (prompt: string) => {
         const key = OPENAI_API_KEY || process.env.OPENAI_API_KEY;
@@ -323,16 +366,16 @@ const openAiProvider = (): Provider => ({
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
             body: JSON.stringify({
-                model: process.env.OPENAI_MODEL || 'gpt-5.4',
+                model,
                 messages: [
                     { role: 'system', content: 'You output strict JSON only.' },
                     { role: 'user', content: prompt },
                 ],
                 response_format: { type: 'json_object' },
-                // Headroom for the same reason as Gemini above: gpt-5.4 is a
-                // reasoning model and its thinking is charged against this
-                // ceiling, so a limit sized for the visible output alone
-                // silently truncates the JSON.
+                // Headroom, because a reasoning model's thinking is charged
+                // against this ceiling — so a limit sized for the visible
+                // output alone truncates the JSON silently, which cost a run
+                // and looked like a formatting bug.
                 max_completion_tokens: 3000,
                 temperature: 0.6,
             }),
@@ -344,56 +387,21 @@ const openAiProvider = (): Provider => ({
     },
 });
 
-const geminiProvider = (): Provider => ({
-    name: 'gemini-2.5-flash',
-    enabled: Boolean(GEMINI_API_KEY || process.env.GEMINI_API_KEY),
-    run: async (prompt: string) => {
-        const key = GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-        const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`,
-            {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }],
-                    generationConfig: {
-                        temperature: 0.6,
-                        // Both numbers below exist because of one real failure.
-                        // When OpenAI ran out of credits the fallback fired
-                        // correctly and then died on "Unterminated string in
-                        // JSON at position 191" — the response was truncated,
-                        // not malformed. gemini-2.5-flash REASONS by default
-                        // and those thinking tokens are charged against
-                        // maxOutputTokens, so it spent the budget thinking and
-                        // was cut off partway through the script.
-                        //
-                        // A fallback that only works when the primary works is
-                        // not a fallback, and this one had never actually been
-                        // exercised until the day it was needed.
-                        maxOutputTokens: 4096,
-                        responseMimeType: 'application/json',
-                        // Nothing here needs deliberation — the writing quality
-                        // comes from the prompt, and the job is to emit JSON.
-                        thinkingConfig: { thinkingBudget: 0 },
-                    },
-                }),
-                signal: AbortSignal.timeout(60_000),
-            },
-        );
-        if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 300)}`);
-        const data = await res.json();
-        return data.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
-    },
-});
 
 /**
  * Tries each configured provider in order. Unlike the Rajneeti generator, a
  * failure in the first provider falls through to the next instead of throwing.
  */
 export async function callModel(prompt: string, injected?: Provider[]): Promise<string> {
-    const providers = (injected ?? [openAiProvider(), geminiProvider()]).filter((p) => p.enabled);
+    // Two models, one vendor, both on the free 2.5M/day allowance. The old
+    // second provider was Gemini, for which no key exists — a dead branch that
+    // turned a billing failure into a confusing parse error rather than
+    // catching it. A lone provider plus a retry loop is not resilience, so the
+    // fallback stays; it just has to be one that exists and costs nothing.
+    const providers = (injected ?? [openAiProvider(SCRIPT_MODEL), openAiProvider(FALLBACK_MODEL)])
+        .filter((p) => p.enabled);
     if (!providers.length) {
-        throw new Error('[money] Neither OPENAI_API_KEY nor GEMINI_API_KEY is configured.');
+        throw new Error('[money] OPENAI_API_KEY is not configured.');
     }
 
     const failures: string[] = [];

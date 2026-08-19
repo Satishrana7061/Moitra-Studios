@@ -124,7 +124,13 @@ async function callOpenAI(prompt: string): Promise<AIVerdict | null> {
                 'Authorization': `Bearer ${OPENAI_API_KEY}`,
             },
             body: JSON.stringify({
-                model: 'gpt-5.4',
+                // Moved off gpt-5.4 for cost, not for quality: that tier gets
+                // 250K tokens a day free against 2.5M on mini, and it was
+                // being exhausted elsewhere. This belongs to the PAUSED
+                // Rajneeti reel pipeline, so nothing runs on it today —
+                // override with OPENAI_MODEL if fact-checking quality drops
+                // when those reels are switched back on.
+                model: process.env.OPENAI_MODEL || 'gpt-5.4-mini',
                 messages: [
                     { role: 'system', content: 'You are a strict, impartial Indian political fact-checker. Output ONLY valid JSON.' },
                     { role: 'user', content: prompt }

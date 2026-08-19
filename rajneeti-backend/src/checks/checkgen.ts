@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import {
   callModel,
   scriptSurfaceText,
@@ -6,6 +9,9 @@ import {
   structuralIssues,
   checkableClaims,
   hasNumericMaterial,
+  FREE_TIER_MODELS,
+  SCRIPT_MODEL,
+  FALLBACK_MODEL,
   type Provider,
   type MoneyScript,
 } from '../services/moneyScriptGenerator.js';
@@ -76,8 +82,41 @@ async function main() {
     await callModel('p', []);
     check('no providers configured -> throws', false);
   } catch (e: any) {
-    check('no providers configured -> throws', e.message.includes('Neither'));
+    check('no providers configured -> throws', e.message.includes('OPENAI_API_KEY is not configured'));
   }
+
+  // ── cost ───────────────────────────────────────────────────────────────────
+  // The account gets 2.5M tokens a day free on the mini/nano tier and only 250K
+  // on gpt-5.4. Script generation was defaulting to the expensive one, and a
+  // day of fact research on it ran 675K tokens and cost real money. A billing
+  // mistake surfaces on a dashboard a fortnight later, so it needs a tripwire
+  // in the suite instead.
+  console.log('\nstaying inside the free tier:');
+  check('the script model is on the free mini tier',
+    (FREE_TIER_MODELS as readonly string[]).includes(SCRIPT_MODEL), SCRIPT_MODEL);
+  check('so is the fallback',
+    (FREE_TIER_MODELS as readonly string[]).includes(FALLBACK_MODEL), FALLBACK_MODEL);
+  check('the fallback is a different model from the primary', SCRIPT_MODEL !== FALLBACK_MODEL);
+
+  // The larger of the two mistakes: OpenAI was doing the web searching, which
+  // burns input tokens faster than anything else here — on the expensive tier.
+  // Research is done with tools that cost the user nothing and whose sources
+  // get verified before they are written, not after.
+  const srcDir = path.resolve(fileURLToPath(import.meta.url), '..', '..');
+  const offenders: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      // Assembled at runtime rather than written literally, because otherwise
+      // this scanner matches its own source and reports itself as an offender.
+      else if (entry.name.endsWith('.ts') && new RegExp(['web', 'search'].join('_')).test(fs.readFileSync(full, 'utf-8'))) {
+        offenders.push(path.relative(srcDir, full));
+      }
+    }
+  };
+  walk(srcDir);
+  check('no code asks OpenAI to run a web search', offenders.length === 0, offenders.join(', '));
 
   console.log('\nvoiceover derivation (cannot drift from beats):');
   const vo = voiceoverText(script);

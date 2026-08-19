@@ -79,7 +79,6 @@ jobs:
         working-directory: ./rajneeti-backend
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
           # The cloned channel voice. Not a secret, but kept beside the keys so it
           # can be swapped without a code change. Falls back to the rented

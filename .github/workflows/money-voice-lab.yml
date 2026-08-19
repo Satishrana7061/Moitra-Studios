@@ -67,6 +67,10 @@ jobs:
         working-directory: ./rajneeti-backend
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          # The cloned channel voice. Not a secret, but kept beside the keys so it
+          # can be swapped without a code change. Falls back to the rented
+          # voice when unset, and the run logs which one it used.
+          ELEVENLABS_VOICE_ID__MONEY: ${{ secrets.ELEVENLABS_VOICE_ID__MONEY }}
         run: npm run money:voices
 
       # Asks the same questions with and without web search, so we can see
@@ -107,6 +111,10 @@ jobs:
         working-directory: ./rajneeti-backend
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          # The cloned channel voice. Not a secret, but kept beside the keys so it
+          # can be swapped without a code change. Falls back to the rented
+          # voice when unset, and the run logs which one it used.
+          ELEVENLABS_VOICE_ID__MONEY: ${{ secrets.ELEVENLABS_VOICE_ID__MONEY }}
         run: npm run money:probe-voice -- --out ../out/voice
 
       - name: Upload voice samples
@@ -167,6 +175,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          # The cloned channel voice. Not a secret, but kept beside the keys so it
+          # can be swapped without a code change. Falls back to the rented
+          # voice when unset, and the run logs which one it used.
+          ELEVENLABS_VOICE_ID__MONEY: ${{ secrets.ELEVENLABS_VOICE_ID__MONEY }}
           TOPIC_ARG: ${{ inputs.topic_id && format('--topic {0}', inputs.topic_id) || '--index 0' }}
           VOICE_IDS: ${{ inputs.voice_ids }}
         run: |

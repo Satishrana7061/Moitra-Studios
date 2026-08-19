@@ -36,7 +36,29 @@ import { voiceoverText, type MoneyScript } from './moneyScriptGenerator.js';
  * missing env var would silently fall back to ElevenLabs' default voice —
  * a wrong voice that still produces a publishable-looking reel.
  */
-export const MONEY_VOICE_ID = process.env.ELEVENLABS_VOICE_ID__MONEY || 'Ms9OTvWb99V6DwRHZn6q';
+export const RENTED_FALLBACK_VOICE_ID = 'Ms9OTvWb99V6DwRHZn6q';
+export const MONEY_VOICE_ID = process.env.ELEVENLABS_VOICE_ID__MONEY || RENTED_FALLBACK_VOICE_ID;
+
+/**
+ * Says out loud which voice is about to speak.
+ *
+ * The fallback above is deliberate — a missing voice id should not fail a run —
+ * but silence about it is not. Setting the secret and still hearing the rented
+ * voice, with nothing in the log to explain it, is a genuinely baffling
+ * afternoon. (The env var was read here for a whole session while no workflow
+ * actually passed it through, which is exactly this failure.)
+ */
+const announceVoice = (voiceId: string): void => {
+    if (voiceId === RENTED_FALLBACK_VOICE_ID) {
+        console.log(
+            '[money] Speaking with the RENTED stock voice. To use the channel\'s own ' +
+                'cloned voice, set the ELEVENLABS_VOICE_ID__MONEY secret — see ' +
+                'docs/voice-clone-setup.md.',
+        );
+    } else {
+        console.log(`[money] Speaking with the channel's own voice (${voiceId}).`);
+    }
+};
 
 /**
  * Tuned away from the news-reader defaults, which is what made the first
@@ -272,6 +294,8 @@ export async function speakMoneyScript(
 ): Promise<MoneyVoiceResult> {
     const text = voiceoverText(script);
     if (!text.trim()) throw new Error('[money] Refusing to call TTS with an empty voiceover.');
+
+    announceVoice(voiceId);
 
     // Direction is added only for a model that understands it; on v2 this is
     // the plain text unchanged, so the same script works on either.

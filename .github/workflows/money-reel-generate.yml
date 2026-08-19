@@ -69,6 +69,10 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
+          # The cloned channel voice. Not a secret, but kept beside the keys so it
+          # can be swapped without a code change. Falls back to the rented
+          # voice when unset, and the run logs which one it used.
+          ELEVENLABS_VOICE_ID__MONEY: ${{ secrets.ELEVENLABS_VOICE_ID__MONEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |

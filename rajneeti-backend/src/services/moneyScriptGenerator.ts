@@ -329,7 +329,11 @@ const openAiProvider = (): Provider => ({
                     { role: 'user', content: prompt },
                 ],
                 response_format: { type: 'json_object' },
-                max_completion_tokens: 1200,
+                // Headroom for the same reason as Gemini above: gpt-5.4 is a
+                // reasoning model and its thinking is charged against this
+                // ceiling, so a limit sized for the visible output alone
+                // silently truncates the JSON.
+                max_completion_tokens: 3000,
                 temperature: 0.6,
             }),
             signal: AbortSignal.timeout(60_000),
@@ -354,8 +358,23 @@ const geminiProvider = (): Provider => ({
                     contents: [{ parts: [{ text: prompt }] }],
                     generationConfig: {
                         temperature: 0.6,
-                        maxOutputTokens: 2048,
+                        // Both numbers below exist because of one real failure.
+                        // When OpenAI ran out of credits the fallback fired
+                        // correctly and then died on "Unterminated string in
+                        // JSON at position 191" — the response was truncated,
+                        // not malformed. gemini-2.5-flash REASONS by default
+                        // and those thinking tokens are charged against
+                        // maxOutputTokens, so it spent the budget thinking and
+                        // was cut off partway through the script.
+                        //
+                        // A fallback that only works when the primary works is
+                        // not a fallback, and this one had never actually been
+                        // exercised until the day it was needed.
+                        maxOutputTokens: 4096,
                         responseMimeType: 'application/json',
+                        // Nothing here needs deliberation — the writing quality
+                        // comes from the prompt, and the job is to emit JSON.
+                        thinkingConfig: { thinkingBudget: 0 },
                     },
                 }),
                 signal: AbortSignal.timeout(60_000),
@@ -709,7 +728,19 @@ export async function generateMoneyScript(topic: ScheduledTopic): Promise<MoneyS
         try {
             script = parseScript(raw, topic);
         } catch (err: any) {
-            if (attempt === MAX_SCRIPT_ATTEMPTS) throw new Error(`[money] Script JSON unparseable: ${err.message}`);
+            if (attempt === MAX_SCRIPT_ATTEMPTS) {
+                // Says WHICH provider and shows the end of what came back.
+                // "Unterminated string in JSON at position 191" on its own gave
+                // no hint that the cause was a truncated response from the
+                // fallback model rather than bad JSON from the primary — and
+                // truncation is obvious the moment you can see the tail.
+                const tail = (raw ?? '').trimEnd().slice(-120);
+                throw new Error(
+                    `[money] Script JSON unparseable: ${err.message}\n` +
+                        `  ${raw?.length ?? 0} chars received, ending: …${tail}\n` +
+                        '  A response that stops mid-string is a token limit, not a formatting problem.',
+                );
+            }
             violationsToFix = ['Previous output was not valid JSON. Return strict JSON only.'];
             continue;
         }

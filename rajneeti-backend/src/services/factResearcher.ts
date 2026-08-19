@@ -56,7 +56,14 @@ RULES, IN ORDER OF IMPORTANCE
    card cash advance starts charging interest the same day, with no
    interest-free period" is.
 
-5. If you cannot find a solid current source for a claim, return fewer facts.
+5. NEVER name the bank, card issuer or company in the fact text — no "SBI",
+   "HDFC", "Axis", "Bajaj". Cite their page as the source by all means, but
+   write the claim as "a major Indian card issuer" or "a large Indian bank".
+   The rate is the lesson; whose product it is never is, and naming them turns
+   education into something a company can object to. Regulators and bureaus are
+   different and SHOULD be named: "RBI says", "your CIBIL score".
+
+6. If you cannot find a solid current source for a claim, return fewer facts.
    Returning nothing is correct and expected for some topics. Never pad.
 
 Write each fact as ONE plain English sentence a person could repeat out loud.

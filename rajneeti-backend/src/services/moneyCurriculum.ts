@@ -220,6 +220,21 @@ const COMPLIANCE_RULES: { name: string; pattern: RegExp; why: string }[] = [
         why: 'steers money into a named product — explain the mechanism, never the vehicle',
     },
     {
+        name: 'named-issuer',
+        // The prompt has always promised not to "name any specific stock,
+        // mutual fund, scheme, bank product or company", and nothing enforced
+        // it — so the fact researcher cheerfully returned "an SBI credit card
+        // charges 3.75% per month". Precise, correct, sourced, and exactly the
+        // thing that turns education into something a named company can object
+        // to. The RATE is the lesson; whose card it is never is.
+        //
+        // Regulators and bureaus are deliberately absent from this list. "RBI
+        // says", "your CIBIL score" and "UPI" are how you make a claim
+        // checkable, not who you are steering money toward.
+        pattern: /\b(?:SBI|HDFC|ICICI|Axis\s*Bank|Kotak|IndusInd|Yes\s*Bank|IDFC|RBL|Bajaj\s*Fin(?:serv|ance)|Paytm|PhonePe|Slice|OneCard|American\s*Express|Amex|Citibank|Standard\s*Chartered|AU\s*Small)\b/i,
+        why: 'names a specific bank or issuer — give the figure, never the company',
+    },
+    {
         name: 'price-prediction',
         pattern: /(target price|टारगेट प्राइस|will (?:rise|fall|double)|दोगुना हो जाएगा|बढ़ेगा ही)/i,
         why: 'implies a future price',
@@ -291,6 +306,19 @@ export function validateCurriculum(curriculum: Curriculum = loadCurriculum()): V
                     at(field, `compliance/${v.rule}: ${v.why}`);
                 }
             }
+
+            // Facts were exempt from the sweep, and they are the LEAST safe
+            // field in the file: the others were written by a person, while
+            // these arrive from a web search and go straight into the prompt as
+            // the material the episode is built around. A researched claim that
+            // breaks a rule does not stay in the curriculum — it gets written
+            // into a script, spoken aloud, and shown to the reviewer as a
+            // sourced figure.
+            (topic.facts ?? []).forEach((fact, i) => {
+                for (const v of complianceViolations(fact)) {
+                    at(`facts[${i}]`, `compliance/${v.rule}: ${v.why} — "${fact.slice(0, 60)}…"`);
+                }
+            });
         }
     }
 

@@ -503,6 +503,44 @@ async function main() {
     }
   }
 
+  // ── the character's timing ─────────────────────────────────────────────────
+  // Twice an animation was written that could never be seen: a blink whose
+  // first firing fell after the character had left, and a third pose scheduled
+  // at 1.75s inside a 1.53s window. Both were correct in the source and simply
+  // absent from the video — the least detectable kind of wrong, because
+  // everything renders, every check passes, and the thing just is not there.
+  //
+  // Mirrored from MoneyReel/Rupee rather than imported: reel-studio is a
+  // separate package this one does not build against. A drift between them
+  // makes this check wrong, which is why the numbers are named here.
+  console.log('\nthe character actually appears in the window it is given:');
+  const DRAW_SEC = 0.85;
+  const appearances: [string, number, number, number[]][] = [
+    // name, window, delay, pose times
+    ['hook', 3.07, 0.3, [0, 0.8, 1.35]],
+    ['closing card', 2.5, 0.15, [0, 0.45, 1.0]],
+  ];
+  for (const [name, windowSec, delaySec, poses] of appearances) {
+    const perf = windowSec - delaySec - DRAW_SEC;
+    check(`${name} leaves time to perform`, perf > 1, `${perf.toFixed(2)}s`);
+    for (const at of poses) {
+      // 0.15s of grace so a pose is not merely reached but held long enough to
+      // register as a change rather than a flicker.
+      check(`  ...its pose at ${at}s is on screen`, at < perf - 0.15, `window ${perf.toFixed(2)}s`);
+    }
+  }
+  // The blink cycle, with the offset that puts the first one early.
+  const blinkOpen = (t: number) => {
+    const phase = ((t + 2.3) % 3.1) / 3.1;
+    return phase > 0.9 ? Math.abs(Math.cos(((phase - 0.9) / 0.1) * Math.PI)) : 1;
+  };
+  for (const [name, windowSec, delaySec] of appearances) {
+    const perf = windowSec - delaySec - DRAW_SEC;
+    let closed = 0;
+    for (let f = 0; f < 30 * perf; f++) if (blinkOpen(f / 30) < 0.5) closed++;
+    check(`${name}: the eyes blink at least once`, closed > 0, `${closed} frames closed`);
+  }
+
   console.log(`\n${pass} passed, ${fail} failed`);
   process.exit(fail ? 1 : 0);
 }

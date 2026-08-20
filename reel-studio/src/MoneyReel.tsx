@@ -362,8 +362,23 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
           numbers their size. Delayed a beat so the words land first; he is the
           reaction to the hook, not competition for it.
         */}
+        {/*
+          A performance, not a pose. He draws himself in — ink appearing in the
+          margin, which is the identity — then thinks about the question and is
+          caught out by it. The reaction is the point: the hook exists to create
+          a question in the viewer's mind, and a figure visibly having that
+          question is the cheapest way to say so.
+        */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 860, display: 'flex', justifyContent: 'center' }}>
-          <Rupee pose="thinking" delaySec={0.55} size={300} />
+          <Rupee
+            delaySec={0.3}
+            size={300}
+            sequence={[
+              { pose: 'thinking', atSec: 0 },
+              { pose: 'surprised', atSec: 0.8 },
+              { pose: 'worried', atSec: 1.35 },
+            ]}
+          />
         </div>
       </Sequence>
 
@@ -389,9 +404,23 @@ export const MoneyReel: React.FC<MoneyStoryboard> = (board) => {
 
       <Sequence from={sec(ctaStart)} durationInFrames={sec(MONEY_OUTRO_SEC)}>
         <CtaCard text={board.cta} />
-        {/* Same figure, cheering, on the card that asks for the comment. */}
+        {/*
+          He walks on from the left, points at the question, then celebrates.
+          Entering rather than appearing matters here: the closing card is the
+          ask, and a figure arriving draws the eye to it at exactly the moment
+          the viewer is deciding whether to reply.
+        */}
         <div style={{ position: 'absolute', left: 0, right: 0, top: 1010, display: 'flex', justifyContent: 'center' }}>
-          <Rupee pose="cheering" delaySec={0.25} size={250} />
+          <Rupee
+            delaySec={0.15}
+            size={250}
+            enterFrom={-190}
+            sequence={[
+              { pose: 'walking', atSec: 0 },
+              { pose: 'pointing', atSec: 0.45 },
+              { pose: 'celebrating', atSec: 1.0 },
+            ]}
+          />
         </div>
       </Sequence>
 

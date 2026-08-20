@@ -4051,7 +4051,57 @@
           "teaches": "बीमा और निवेश दो अलग काम हैं; एक ही प्रोडक्ट में मिलाने पर दोनों कमज़ोर पड़ते हैं — कवर कम और पैसा फँसा हुआ।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपको भी ऐसी पॉलिसी बेची गई है?"
+          "cta": "आपको भी ऐसी पॉलिसी बेची गई है?",
+          "script": {
+            "hook": "They called it an investment",
+            "hookSaid": "बैंक वाले ने... इसे बचत बताया था।",
+            "beats": [
+              {
+                "onScreen": "Two jobs, one product",
+                "say": "बीमा और निवेश... दो अलग काम हैं।",
+                "caption": "Insurance and investing are two different jobs entirely.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Kept separate",
+                  "b": "Mixed together",
+                  "aLabel": "Both work properly",
+                  "bLabel": "Both work badly"
+                }
+              },
+              {
+                "onScreen": "Small cover, locked money",
+                "say": "कवर कम मिलता है... और पैसा फँस जाता है।",
+                "caption": "You get a small cover, and the money gets locked in for years.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Ask what the cover amount is",
+                    "Ask when you can exit",
+                    "Ask what the charges are"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Ask one question",
+                "say": "एक सवाल पूछो... कितना कवर, कितने प्रीमियम में?",
+                "caption": "Ask one question: how much cover, for how much premium?",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹50,000",
+                  "baseLabel": "Yearly premium",
+                  "op": "buys what cover?",
+                  "result": "₹5,00,000",
+                  "resultLabel": "Often only this much"
+                }
+              }
+            ],
+            "cta": "Were you sold one of these?",
+            "ctaSaid": "आपको भी ऐसी पॉलिसी बेची गई है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹50,000",
+              "₹5,00,000"
+            ]
+          }
         },
         {
           "id": "s4-02",
@@ -4060,7 +4110,57 @@
           "teaches": "टर्म प्लान में पूरा प्रीमियम कवर खरीदता है, इसलिए उसी रकम में कई गुना बड़ा कवर मिलता है।",
           "keyNumbers": [],
           "visual": "worked",
-          "cta": "आपका कवर आपकी सालाना कमाई से कितने गुना है?"
+          "cta": "आपका कवर आपकी सालाना कमाई से कितने गुना है?",
+          "script": {
+            "hook": "Same premium, ten times cover",
+            "hookSaid": "उतना ही प्रीमियम... दस गुना कवर।",
+            "beats": [
+              {
+                "onScreen": "Where the premium goes",
+                "say": "टर्म प्लान में... पूरा प्रीमियम कवर खरीदता है।",
+                "caption": "In a term plan, the entire premium buys cover and nothing else.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Term plan",
+                  "b": "Mixed plan",
+                  "aLabel": "All of it buys cover",
+                  "bLabel": "Part buys cover"
+                }
+              },
+              {
+                "onScreen": "The same money, more cover",
+                "say": "बारह हज़ार सालाना... एक करोड़ का कवर।",
+                "caption": "Twelve thousand a year can buy around one crore of cover.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹12,000",
+                  "baseLabel": "Yearly premium",
+                  "op": "buys roughly",
+                  "result": "₹1,00,00,000",
+                  "resultLabel": "Term cover"
+                }
+              },
+              {
+                "onScreen": "Ten times your income",
+                "say": "सालाना कमाई का... कम से कम दस गुना।",
+                "caption": "Aim for at least ten times your annual income as cover.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Take your annual income",
+                    "Multiply by ten",
+                    "That is your minimum cover"
+                  ]
+                }
+              }
+            ],
+            "cta": "How many times your income?",
+            "ctaSaid": "आपका कवर कमाई से कितने गुना है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹12,000",
+              "₹1,00,00,000"
+            ]
+          }
         },
         {
           "id": "s4-03",
@@ -4069,7 +4169,50 @@
           "teaches": "कैशलेस मना होने की वजहें तय होती हैं — वेटिंग पीरियड, रूम रेंट लिमिट, नॉन-मेडिकल आइटम। पहले से पता हो तो झटका नहीं लगता।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपके साथ कभी क्लेम में दिक्कत हुई?"
+          "cta": "आपके साथ कभी क्लेम में दिक्कत हुई?",
+          "script": {
+            "hook": "Cashless was refused",
+            "hookSaid": "काउंटर पर बोला... ये कवर नहीं है।",
+            "beats": [
+              {
+                "onScreen": "There are fixed reasons",
+                "say": "मना करने की वजहें... तय होती हैं।",
+                "caption": "The reasons for refusal are fixed, and you can check them in advance.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Waiting period not over",
+                    "Room rent above the cap",
+                    "Non-medical items"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Cashless is not the only route",
+                "say": "कैशलेस मना हुआ... तो रीइम्बर्समेंट बचा है।",
+                "caption": "If cashless is refused, reimbursement is still available to you.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Cashless",
+                  "b": "Reimbursement",
+                  "aLabel": "Hospital bills the insurer",
+                  "bLabel": "You pay, then claim back"
+                }
+              },
+              {
+                "onScreen": "Keep every paper",
+                "say": "हर बिल, हर पर्चा... सब सँभालकर रखो।",
+                "caption": "Keep every bill and every prescription. All of it.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Usually 15 to 30 days to file"
+                }
+              }
+            ],
+            "cta": "Have you faced a claim issue?",
+            "ctaSaid": "आपके साथ कभी क्लेम में दिक्कत हुई? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s4-04",
@@ -4078,7 +4221,53 @@
           "teaches": "कॉरपोरेट कवर नौकरी से बँधा होता है और अक्सर परिवार के लिए कम पड़ता है — अपना अलग कवर उसी दिन काम आता है जिस दिन नौकरी नहीं रहती।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपका कवर सिर्फ़ कंपनी वाला है?"
+          "cta": "आपका कवर सिर्फ़ कंपनी वाला है?",
+          "script": {
+            "hook": "Your cover ends with the job",
+            "hookSaid": "नौकरी गई... तो कवर भी गया।",
+            "beats": [
+              {
+                "onScreen": "It belongs to the company",
+                "say": "वो पॉलिसी आपकी नहीं... कंपनी की है।",
+                "caption": "That policy is not yours. It belongs to your employer.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Your own policy",
+                  "b": "Company cover",
+                  "aLabel": "Stays with you",
+                  "bLabel": "Ends on your last day"
+                }
+              },
+              {
+                "onScreen": "The worst possible timing",
+                "say": "जिस दिन नौकरी जाती है... उसी दिन कवर भी।",
+                "caption": "The day you lose the job is the day you lose the cover.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Both gone the same day"
+                }
+              },
+              {
+                "onScreen": "Buy your own too",
+                "say": "कंपनी वाला रहने दो... अपना अलग भी लो।",
+                "caption": "Keep the company one. Buy a personal policy alongside it.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹5,00,000",
+                  "baseLabel": "Personal cover",
+                  "op": "costs roughly",
+                  "result": "₹9,000",
+                  "resultLabel": "A year, in your thirties"
+                }
+              }
+            ],
+            "cta": "Is yours only from work?",
+            "ctaSaid": "आपका कवर सिर्फ़ कंपनी वाला है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹5,00,000",
+              "₹9,000"
+            ]
+          }
         },
         {
           "id": "s4-05",
@@ -4087,7 +4276,57 @@
           "teaches": "रूम रेंट कैप होने पर पूरा बिल उसी अनुपात में कटता है — सिर्फ़ कमरे का किराया नहीं, इलाज का खर्च भी।",
           "keyNumbers": [],
           "visual": "worked",
-          "cta": "आपकी पॉलिसी में रूम रेंट लिमिट है?"
+          "cta": "आपकी पॉलिसी में रूम रेंट लिमिट है?",
+          "script": {
+            "hook": "The room rent cap cuts everything",
+            "hookSaid": "रूम रेंट की लिमिट... पूरा बिल काटती है।",
+            "beats": [
+              {
+                "onScreen": "Not just the room",
+                "say": "सिर्फ़ कमरे का किराया नहीं... पूरा इलाज कटता है।",
+                "caption": "It does not reduce only the room charge. It reduces the entire bill.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Within the cap",
+                  "b": "Above the cap",
+                  "aLabel": "Full bill paid",
+                  "bLabel": "Everything cut in proportion"
+                }
+              },
+              {
+                "onScreen": "Everything scales down",
+                "say": "डॉक्टर, ऑपरेशन, दवाई... सब उसी अनुपात में।",
+                "caption": "Doctor's fees, surgery, medicines — all cut by the same proportion.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹2,00,000",
+                  "baseLabel": "Hospital bill",
+                  "op": "× 60% cap ratio",
+                  "result": "₹1,20,000",
+                  "resultLabel": "All the insurer pays"
+                }
+              },
+              {
+                "onScreen": "Check yours today",
+                "say": "पॉलिसी खोलो... और रूम रेंट लिमिट देखो।",
+                "caption": "Open your policy today and look for the room rent limit.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Find 'room rent'",
+                    "Look for a cap or a percentage",
+                    "Prefer no cap at all"
+                  ]
+                }
+              }
+            ],
+            "cta": "Does yours have a cap?",
+            "ctaSaid": "आपकी पॉलिसी में रूम रेंट लिमिट है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,00,000",
+              "₹1,20,000"
+            ]
+          }
         },
         {
           "id": "s4-06",
@@ -4096,7 +4335,50 @@
           "teaches": "हर पॉलिसी में शुरुआती वेटिंग पीरियड और पहले से मौजूद बीमारियों का अलग पीरियड होता है; उसी दौरान ज़्यादातर क्लेम अटकते हैं।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपने पॉलिसी की शर्तें कभी पढ़ी हैं?"
+          "cta": "आपने पॉलिसी की शर्तें कभी पढ़ी हैं?",
+          "script": {
+            "hook": "The lines nobody reads",
+            "hookSaid": "वो शर्तें... जो कभी नहीं पढ़ीं।",
+            "beats": [
+              {
+                "onScreen": "Two waiting periods",
+                "say": "एक शुरुआती... और एक पुरानी बीमारियों का।",
+                "caption": "There is an initial waiting period, and a separate one for pre-existing illness.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "30 days initial waiting",
+                    "2 to 4 years for pre-existing",
+                    "Specific illnesses listed separately"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Most claims fail here",
+                "say": "ज़्यादातर क्लेम... इसी दौरान अटकते हैं।",
+                "caption": "Most rejected claims fall inside one of these periods.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Two to four years"
+                }
+              },
+              {
+                "onScreen": "The clock starts at purchase",
+                "say": "घड़ी उसी दिन शुरू होती है... जिस दिन पॉलिसी ली।",
+                "caption": "The clock starts the day you buy, which is why buying early matters.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Bought at 30",
+                  "b": "Bought at 45",
+                  "aLabel": "Waiting done by 34",
+                  "bLabel": "Waiting done by 49"
+                }
+              }
+            ],
+            "cta": "Have you read your policy?",
+            "ctaSaid": "आपने पॉलिसी की शर्तें कभी पढ़ी हैं? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s4-07",
@@ -4105,7 +4387,50 @@
           "teaches": "रिश्ते के दबाव में ली गई पॉलिसी अक्सर ज़रूरत से नहीं, कमीशन से तय होती है — फ़ैसला ज़रूरत देखकर करें, रिश्ता देखकर नहीं।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपने कभी दबाव में पॉलिसी ली है?"
+          "cta": "आपने कभी दबाव में पॉलिसी ली है?",
+          "script": {
+            "hook": "The agent is your relative",
+            "hookSaid": "एजेंट रिश्तेदार है... मना कैसे करें?",
+            "beats": [
+              {
+                "onScreen": "Two decisions, not one",
+                "say": "एक फ़ैसला रिश्ते का... दूसरा पैसों का।",
+                "caption": "There are two decisions here. One is about the relationship, one is about money.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Need decides",
+                  "b": "Relationship decides",
+                  "aLabel": "You get the right cover",
+                  "bLabel": "You get their commission"
+                }
+              },
+              {
+                "onScreen": "Ask the same questions",
+                "say": "उनसे भी वही सवाल पूछो... जो किसी और से पूछते।",
+                "caption": "Ask them exactly the questions you would ask a stranger.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "How much cover?",
+                    "What is excluded?",
+                    "What is the claim ratio?"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Buy the right one from them",
+                "say": "अगर सही प्रोडक्ट है... तो उन्हीं से लो।",
+                "caption": "If they have the right product, buy it from them. Just do not skip the questions.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 4
+                }
+              }
+            ],
+            "cta": "Have you bought under pressure?",
+            "ctaSaid": "आपने कभी दबाव में पॉलिसी ली है? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s4-08",
@@ -4114,7 +4439,54 @@
           "teaches": "प्रीमियम रुकने पर पॉलिसी लैप्स होती है और शुरुआती सालों में जमा रकम का बड़ा हिस्सा वापस नहीं मिलता।",
           "keyNumbers": [],
           "visual": "bigNumber",
-          "cta": "आपकी कोई पॉलिसी लैप्स हुई है?"
+          "cta": "आपकी कोई पॉलिसी लैप्स हुई है?",
+          "script": {
+            "hook": "You stopped paying. Now what?",
+            "hookSaid": "प्रीमियम रुक गया... अब क्या होगा?",
+            "beats": [
+              {
+                "onScreen": "The policy lapses",
+                "say": "प्रीमियम रुका... तो कवर भी रुक जाता है।",
+                "caption": "When the premium stops, the cover stops with it.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Grace period is usually 15-30 days"
+                }
+              },
+              {
+                "onScreen": "Early years lose the most",
+                "say": "शुरुआती सालों में... जमा रकम का बड़ा हिस्सा वापस नहीं मिलता।",
+                "caption": "In the early years, much of what you paid does not come back.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,00,000",
+                  "baseLabel": "Paid over 2 years",
+                  "op": "surrender value",
+                  "result": "₹30,000",
+                  "resultLabel": "Often only this"
+                }
+              },
+              {
+                "onScreen": "Revive, or let it go",
+                "say": "या तो रिवाइव करो... या साफ़ फ़ैसला लो।",
+                "caption": "Either revive it inside the window, or make a clean decision to stop.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Check the revival window",
+                    "Compare the cost of reviving",
+                    "Decide, do not drift"
+                  ]
+                }
+              }
+            ],
+            "cta": "Has a policy of yours lapsed?",
+            "ctaSaid": "आपकी कोई पॉलिसी लैप्स हुई है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,00,000",
+              "₹30,000"
+            ]
+          }
         }
       ]
     },
@@ -4153,7 +4525,65 @@
             "A typical Indian household runs 3-4 paid subscriptions, together around ₹1,500 a month",
             "₹1,500 a month for 20 years is ₹3,60,000 of your own money paid in",
             "At an assumed 10% a year compounded monthly, that same ₹1,500 a month becomes ₹11,48,545 in 20 years"
-          ]
+          ],
+          "script": {
+            "hook": "Your subscriptions, 20 years on",
+            "hookSaid": "आपके subscriptions... बीस साल बाद।",
+            "beats": [
+              {
+                "onScreen": "Fifteen hundred a month",
+                "say": "तीन चार subscription... मिलाकर करीब पंद्रह सौ।",
+                "caption": "Three or four subscriptions together come to about fifteen hundred a month.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹1,500",
+                  "label": "Every month, quietly"
+                }
+              },
+              {
+                "onScreen": "What you actually pay in",
+                "say": "बीस साल में... तीन लाख साठ हज़ार आपकी जेब से।",
+                "caption": "Over twenty years that is three lakh sixty thousand of your own money.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,500",
+                  "baseLabel": "Every month",
+                  "op": "× 240 months",
+                  "result": "₹3,60,000",
+                  "resultLabel": "Paid in"
+                }
+              },
+              {
+                "onScreen": "What compounding does",
+                "say": "वही पैसा निवेश होता रहे... तो ग्यारह लाख से ऊपर।",
+                "caption": "If that same money were invested instead, the maths gives over eleven lakh.",
+                "visual": {
+                  "kind": "compound",
+                  "monthly": "₹1,500",
+                  "years": 20,
+                  "rate": "assuming 10% a year",
+                  "result": "₹11,48,545",
+                  "invested": "₹3,60,000"
+                }
+              },
+              {
+                "onScreen": "Cancel one, not all",
+                "say": "सब बंद मत करो... एक बंद करो।",
+                "caption": "Do not cancel all of them. Cancel the one you never open.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 5
+                }
+              }
+            ],
+            "cta": "How many are you paying for?",
+            "ctaSaid": "आपके कितने subscription चल रहे हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,500",
+              "₹3,60,000",
+              "₹11,48,545"
+            ]
+          }
         },
         {
           "id": "s5-02",
@@ -4172,7 +4602,56 @@
             "₹649 a month for 10 years is ₹77,880 paid in",
             "At an assumed 10% a year compounded monthly, ₹649 a month becomes ₹1,34,052 in 10 years",
             "The gap between what you put in and what it becomes is the compounding, not the saving"
-          ]
+          ],
+          "script": {
+            "hook": "One subscription, ten years",
+            "hookSaid": "सिर्फ़ एक subscription... दस साल।",
+            "beats": [
+              {
+                "onScreen": "Six hundred a month",
+                "say": "एक अकेला subscription... छह सौ उनचास रुपये।",
+                "caption": "A single subscription at six hundred and forty nine rupees a month.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹649",
+                  "label": "Just one of them"
+                }
+              },
+              {
+                "onScreen": "Ten years of it",
+                "say": "दस साल में... सतहत्तर हज़ार आठ सौ अस्सी।",
+                "caption": "Ten years of that is seventy seven thousand eight hundred and eighty.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹649",
+                  "baseLabel": "Every month",
+                  "op": "× 120 months",
+                  "result": "₹77,880",
+                  "resultLabel": "Paid in"
+                }
+              },
+              {
+                "onScreen": "The gap is the lesson",
+                "say": "निवेश होता रहे... तो एक लाख चौंतीस हज़ार।",
+                "caption": "Invested instead, the maths gives one lakh thirty four thousand.",
+                "visual": {
+                  "kind": "compound",
+                  "monthly": "₹649",
+                  "years": 10,
+                  "rate": "assuming 10% a year",
+                  "result": "₹1,34,052",
+                  "invested": "₹77,880"
+                }
+              }
+            ],
+            "cta": "Which one do you actually use?",
+            "ctaSaid": "कौन सा subscription आप सच में इस्तेमाल करते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹649",
+              "₹77,880",
+              "₹1,34,052"
+            ]
+          }
         },
         {
           "id": "s5-03",
@@ -4192,7 +4671,58 @@
             "₹2,000 a month from age 25 to 50 is 25 years and ₹6,00,000 paid in",
             "At an assumed 10% a year, starting at 25 gives ₹26,75,781 by 50; starting at 30 gives ₹15,31,394",
             "Those five years cost ₹11,44,387 — while only ₹1,20,000 less was actually paid in"
-          ]
+          ],
+          "script": {
+            "hook": "Waiting five years costs this",
+            "hookSaid": "पाँच साल की देरी... कितनी महँगी?",
+            "beats": [
+              {
+                "onScreen": "Two thousand a month",
+                "say": "दोनों ही... दो हज़ार महीना डालते हैं।",
+                "caption": "Both people put in two thousand rupees a month. Same amount.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Starts at 25",
+                  "b": "Starts at 30",
+                  "aLabel": "25 years of it",
+                  "bLabel": "20 years of it"
+                }
+              },
+              {
+                "onScreen": "The one who started early",
+                "say": "पच्चीस से शुरू किया... छब्बीस लाख।",
+                "caption": "Starting at twenty five, the maths gives twenty six lakh by fifty.",
+                "visual": {
+                  "kind": "compound",
+                  "monthly": "₹2,000",
+                  "years": 25,
+                  "rate": "assuming 10% a year",
+                  "result": "₹26,75,781",
+                  "invested": "₹6,00,000"
+                }
+              },
+              {
+                "onScreen": "Five years, eleven lakh",
+                "say": "पाँच साल की देरी... ग्यारह लाख का फ़र्क।",
+                "caption": "Five years of delay costs eleven lakh, on just one lakh twenty less paid in.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹26,75,781",
+                  "baseLabel": "Starting at 25",
+                  "op": "− ₹15,31,394 at 30",
+                  "result": "₹11,44,387",
+                  "resultLabel": "The cost of waiting"
+                }
+              }
+            ],
+            "cta": "When can you start?",
+            "ctaSaid": "आप कब शुरू कर सकते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,000",
+              "₹26,75,781",
+              "₹11,44,387"
+            ]
+          }
         },
         {
           "id": "s5-04",
@@ -4212,7 +4742,56 @@
             "₹100 a day is ₹3,000 a month and ₹5,40,000 over 15 years",
             "At an assumed 10% a year compounded monthly, ₹3,000 a month becomes ₹12,53,773 in 15 years",
             "More than half of that figure is growth rather than money you paid in"
-          ]
+          ],
+          "script": {
+            "hook": "A hundred rupees a day",
+            "hookSaid": "रोज़ के सौ रुपये... पंद्रह साल।",
+            "beats": [
+              {
+                "onScreen": "One tea and a snack",
+                "say": "एक चाय और नाश्ता... रोज़ का सौ।",
+                "caption": "A tea and a snack. That is a hundred rupees a day.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹100",
+                  "label": "Every day"
+                }
+              },
+              {
+                "onScreen": "Three thousand a month",
+                "say": "महीने का तीन हज़ार... साल का छत्तीस हज़ार।",
+                "caption": "That is three thousand a month, thirty six thousand a year.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹100",
+                  "baseLabel": "Every day",
+                  "op": "× 30 days",
+                  "result": "₹3,000",
+                  "resultLabel": "Every month"
+                }
+              },
+              {
+                "onScreen": "Fifteen years of it",
+                "say": "पंद्रह साल तक निवेश होता रहे... तो बारह लाख से ऊपर।",
+                "caption": "Invested for fifteen years, the maths gives over twelve lakh.",
+                "visual": {
+                  "kind": "compound",
+                  "monthly": "₹3,000",
+                  "years": 15,
+                  "rate": "assuming 10% a year",
+                  "result": "₹12,53,773",
+                  "invested": "₹5,40,000"
+                }
+              }
+            ],
+            "cta": "Where does your ₹100 go?",
+            "ctaSaid": "आपका रोज़ का सौ रुपया कहाँ जाता है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹100",
+              "₹3,000",
+              "₹12,53,773"
+            ]
+          }
         }
       ]
     },

@@ -483,6 +483,8 @@ async function main() {
     check('...and it passes every gate', storedScriptIssues(written).length === 0,
       storedScriptIssues(written).join('; '));
     check('...and the pipeline can read it back', Boolean(getStoredScript(written)?.beats.length));
+    check('...and it contains a worked sum for the fault tests to bend',
+      (written.script as any).beats.some((b: any) => b.visual?.kind === 'worked'), written.id);
 
     const bend = (mutate: (c: any) => void): boolean => {
       const clone = JSON.parse(JSON.stringify(written.script));
@@ -496,8 +498,16 @@ async function main() {
       ['a rupee symbol in a spoken line', (c: any) => { c.beats[0].say = '₹599 हर महीने, कट जाते हैं।'; }],
       ['a return figure', (c: any) => { c.beats[0].caption = 'This fund gives 15% returns every year.'; }],
       ['a named bank', (c: any) => { c.beats[0].caption = 'Your SBI card charges this every month.'; }],
-      ['a worked sum with no numbers', (c: any) => { c.beats[1].visual.result = 'a lot more'; }],
-      ['a missing caption', (c: any) => { c.beats[2].caption = ''; }],
+      // Found by KIND, not by index. These were written against a script whose
+      // second beat happened to be the worked one; the moment another topic
+      // took first place in the file the mutation landed on a `compare`, broke
+      // nothing, and the assertion failed for a reason that had nothing to do
+      // with the rule it was testing.
+      ['a worked sum with no numbers', (c: any) => {
+        const w = c.beats.find((b: any) => b.visual?.kind === 'worked');
+        if (w) w.visual.result = 'a lot more';
+      }],
+      ['a missing caption', (c: any) => { c.beats[c.beats.length - 1].caption = ''; }],
     ] as [string, (c: any) => void][]) {
       check(`a written script with ${label} is rejected`, bend(mutate));
     }

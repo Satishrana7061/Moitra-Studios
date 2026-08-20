@@ -19,7 +19,7 @@ import { execFileSync, spawnSync } from 'child_process';
 
 import { masterVoiceover, measureLoudness, ffmpegBin } from '../services/audioMixService.js';
 import { buildMoneyStoryboard } from '../services/moneyStoryboardBuilder.js';
-import { voiceoverText, structuralIssues, languageIssues, type MoneyScript } from '../services/moneyScriptGenerator.js';
+import { voiceoverText, structuralIssues, languageIssues, getStoredScript, storedScriptIssues, type MoneyScript } from '../services/moneyScriptGenerator.js';
 import { getAllTopics } from '../services/moneyCurriculum.js';
 import type { WordTiming } from '../services/beatTimingAligner.js';
 
@@ -71,6 +71,34 @@ async function main() {
     // Flagged, because the fixture exercises a compound beat and the gate would
     // otherwise refuse it — which is the gate working, not a fixture problem.
     const topic = { ...base, illustrativeReturns: true };
+
+    // A REAL stored script, rendered end to end.
+    //
+    // The hardcoded fixture above deliberately crams all six visual kinds into
+    // one episode, which no real script does — good for coverage, useless as
+    // evidence that the production path works. Since scripts moved into the
+    // curriculum, the path an actual episode takes is
+    // getStoredScript -> storyboard -> render, and nothing was exercising it.
+    // A fixture that tests a shape nothing in production has is a fixture that
+    // can pass while the real thing is broken.
+    const realTopic = getAllTopics().find((t) => getStoredScript(t) && t.id !== script.topicId);
+    if (!realTopic) throw new Error('No topic carries a stored script; the production path is untested.');
+    const realScript = getStoredScript(realTopic)!;
+    check(`a real stored script exists to test (${realTopic.id})`, true);
+    check('...and it passes its own gates', storedScriptIssues(realTopic).length === 0,
+        storedScriptIssues(realTopic).join('; '));
+    const realBoard = buildMoneyStoryboard({
+        script: realScript,
+        topic: realTopic,
+        episode: 998,
+        audioSrc: 'money/episode-998.wav',
+        audioDurationSec: 20,
+        wordTimings: fakeTimings(voiceoverText(realScript)),
+    });
+    check('...and builds a storyboard with every beat matched', realBoard.fullyMatched);
+    check('...whose beats are ordered and non-overlapping',
+        realBoard.storyboard.beats.every((b, i) =>
+            b.endSec > b.startSec && (i === 0 || b.startSec >= realBoard.storyboard.beats[i - 1].endSec)));
 
     console.log('script passes its own gates:');
     check('no structural issues', structuralIssues(script, topic).length === 0, structuralIssues(script, topic).join('; '));

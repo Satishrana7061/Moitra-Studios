@@ -3234,8 +3234,8 @@
                 }
               }
             ],
-            "cta": "Has this happened to you?",
-            "ctaSaid": "आपको ये अनुभव हुआ है? कमेंट में बताओ।",
+            "cta": "What did your policy not pay?",
+            "ctaSaid": "आपकी पॉलिसी ने क्या नहीं दिया? कमेंट में बताओ।",
             "numericClaims": [
               "₹2,00,000",
               "₹20,000"
@@ -3462,8 +3462,8 @@
                 }
               }
             ],
-            "cta": "Where did your last bonus go?",
-            "ctaSaid": "पिछला बोनस कहाँ गया? कमेंट में बताओ।",
+            "cta": "Where does yours usually go?",
+            "ctaSaid": "आपका बोनस आमतौर पर कहाँ जाता है? कमेंट में बताओ।",
             "numericClaims": [
               "₹50,000",
               "₹25,000"
@@ -3702,7 +3702,7 @@
           "cta": "आपके सिंकिंग फंड कौन से हैं?",
           "script": {
             "hook": "Emergency fund vs sinking fund",
-            "hookSaid": "इमरजेंसी फंड... और सिंकिंग फंड।",
+            "hookSaid": "जो खर्च पता है... उसके लिए अलग बचत।",
             "beats": [
               {
                 "onScreen": "Known costs are not emergencies",
@@ -4576,8 +4576,8 @@
                 }
               }
             ],
-            "cta": "How many are you paying for?",
-            "ctaSaid": "आपके कितने subscription चल रहे हैं? कमेंट में बताओ।",
+            "cta": "Which one would you cancel?",
+            "ctaSaid": "इनमें से कौन सा बंद करेंगे? कमेंट में बताओ।",
             "numericClaims": [
               "₹1,500",
               "₹3,60,000",

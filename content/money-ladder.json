@@ -38,7 +38,64 @@
           "facts": [
             "Indian credit cards charge about 3.5% per MONTH on unpaid balances — roughly 42% a year",
             "That rate applies from the transaction date once you miss paying in full, not from the due date"
-          ]
+          ],
+          "script": {
+            "hook": "Before you invest anything",
+            "hookSaid": "निवेश से पहले, एक काम करो।",
+            "beats": [
+              {
+                "onScreen": "Ten thousand first",
+                "say": "सबसे पहले दस हज़ार रुपये... अलग रखो।",
+                "caption": "Put ten thousand rupees aside before you invest a single rupee.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹10,000",
+                  "label": "Your first buffer"
+                }
+              },
+              {
+                "onScreen": "Without it, the card pays",
+                "say": "बफर नहीं है, तो हर छोटी दिक्कत, कार्ड पर चली जाती है।",
+                "caption": "With no buffer, every small problem ends up on your credit card.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "₹10,000 saved",
+                  "b": "Card at 42%",
+                  "aLabel": "Costs you nothing",
+                  "bLabel": "Costs you every month"
+                }
+              },
+              {
+                "onScreen": "What that card costs",
+                "say": "पचास हज़ार के बकाया पर... साल भर में इक्कीस हज़ार ब्याज लगता है।",
+                "caption": "A fifty thousand rupee card balance costs twenty one thousand in a year.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹50,000",
+                  "baseLabel": "Card balance",
+                  "op": "× 42% a year",
+                  "result": "₹21,000",
+                  "resultLabel": "Interest, in one year"
+                }
+              },
+              {
+                "onScreen": "Safety, then growth",
+                "say": "पहले सुरक्षा, फिर बढ़त। यही क्रम है।",
+                "caption": "Safety first, growth after. That is the order that works.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 1
+                }
+              }
+            ],
+            "cta": "How big is your buffer?",
+            "ctaSaid": "आपके पास अभी कितना बफर है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹10,000",
+              "₹50,000",
+              "₹21,000"
+            ]
+          }
         },
         {
           "id": "s1-02",
@@ -53,7 +110,67 @@
           "facts": [
             "A savings account pays about 2.5-4% a year at most large Indian banks",
             "Money in a savings account is available the same day; that availability is the whole point of a buffer"
-          ]
+          ],
+          "script": {
+            "hook": "Not in your salary account",
+            "hookSaid": "इसे सैलरी वाले खाते में, मत रखो।",
+            "beats": [
+              {
+                "onScreen": "What you see, you spend",
+                "say": "जो पैसा दिखता रहेगा... वो खर्च हो ही जाएगा।",
+                "caption": "Money you can see in your main account is money you will eventually spend.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Separate account",
+                  "b": "Salary account",
+                  "aLabel": "Stays untouched",
+                  "bLabel": "Quietly disappears"
+                }
+              },
+              {
+                "onScreen": "A separate savings account",
+                "say": "एक अलग सेविंग खाता खोलो, और बफर वहीं रखो।",
+                "caption": "Open a separate savings account and keep your buffer only there.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Open a second savings account",
+                    "Move the buffer there",
+                    "Do not link it to UPI"
+                  ]
+                }
+              },
+              {
+                "onScreen": "What it earns you",
+                "say": "साल भर में करीब तीन सौ रुपये... और यही ठीक है।",
+                "caption": "It earns you about three hundred rupees a year, and that is fine.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹10,000",
+                  "baseLabel": "Your buffer",
+                  "op": "× 3% a year",
+                  "result": "₹300",
+                  "resultLabel": "This is not the point"
+                }
+              },
+              {
+                "onScreen": "Same day access",
+                "say": "ज़रूरत पड़े तो... उसी दिन निकाल सकते हो।",
+                "caption": "You can still withdraw it the same day you need it.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹10,000",
+                  "label": "Out of sight, still yours"
+                }
+              }
+            ],
+            "cta": "Is your buffer separate?",
+            "ctaSaid": "आपका बफर अलग खाते में है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹10,000",
+              "₹300"
+            ]
+          }
         },
         {
           "id": "s1-03",
@@ -66,7 +183,66 @@
           "facts": [
             "A credit card's interest-free period only exists if the FULL bill is paid; paying the minimum voids it entirely",
             "The 'minimum due' on an Indian card is typically 5% of the outstanding"
-          ]
+          ],
+          "script": {
+            "hook": "Is this really an emergency?",
+            "hookSaid": "रुको। ये सच में इमरजेंसी है?",
+            "beats": [
+              {
+                "onScreen": "Three tests",
+                "say": "अचानक, ज़रूरी, और टाला न जा सके। तीनों सही हों, तभी।",
+                "caption": "Sudden, necessary, and cannot be postponed. All three, or it is not an emergency.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Is it sudden?",
+                    "Is it necessary?",
+                    "Can it wait a month?"
+                  ]
+                }
+              },
+              {
+                "onScreen": "A sale is not one",
+                "say": "सेल लगी है, ये इमरजेंसी नहीं है... ये खर्च है।",
+                "caption": "A sale is not an emergency. It is just spending with a deadline on it.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Hospital bill",
+                  "b": "Festival sale",
+                  "aLabel": "Emergency",
+                  "bLabel": "Just spending"
+                }
+              },
+              {
+                "onScreen": "What a sale costs",
+                "say": "पंद्रह हज़ार का सामान कार्ड पर... हर महीने पाँच सौ पच्चीस ब्याज।",
+                "caption": "Fifteen thousand on a card costs you five hundred and twenty five every month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹15,000",
+                  "baseLabel": "Sale purchase",
+                  "op": "× 3.5% a month",
+                  "result": "₹525",
+                  "resultLabel": "Every month it stays"
+                }
+              },
+              {
+                "onScreen": "Break it once, it breaks twice",
+                "say": "एक बार तोड़ा, तो दोबारा तोड़ना आसान हो जाता है।",
+                "caption": "Break the rule once and breaking it again becomes much easier.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 1
+                }
+              }
+            ],
+            "cta": "When did you last break it?",
+            "ctaSaid": "पिछली बार आपने इसे कब तोड़ा? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹15,000",
+              "₹525"
+            ]
+          }
         },
         {
           "id": "s1-04",
@@ -82,7 +258,55 @@
           "cta": "रोज़ ₹334 निकाल सकते हैं?",
           "facts": [
             "₹334 a day for 30 days is ₹10,020"
-          ]
+          ],
+          "script": {
+            "hook": "Ten thousand in thirty days",
+            "hookSaid": "तीस दिन में दस हज़ार। मुमकिन है।",
+            "beats": [
+              {
+                "onScreen": "Break it down",
+                "say": "बड़ा नंबर डराता है... छोटा नंबर करने लायक लगता है।",
+                "caption": "A big target frightens you. A daily number feels like something you can do.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹10,000",
+                  "label": "The target"
+                }
+              },
+              {
+                "onScreen": "Three hundred a day",
+                "say": "रोज़ के तीन सौ चौंतीस रुपये, तीस दिन तक।",
+                "caption": "Three hundred and thirty four rupees a day, for thirty days.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹334",
+                  "baseLabel": "Every day",
+                  "op": "× 30 days",
+                  "result": "₹10,020",
+                  "resultLabel": "In one month"
+                }
+              },
+              {
+                "onScreen": "One skipped order",
+                "say": "एक ऑनलाइन खाना, या दो कॉफ़ी... बस इतना ही।",
+                "caption": "That is one food delivery, or two coffees. Nothing more than that.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "₹334 saved",
+                  "b": "₹334 ordered",
+                  "aLabel": "Becomes your buffer",
+                  "bLabel": "Gone in ten minutes"
+                }
+              }
+            ],
+            "cta": "Can you find ₹334 a day?",
+            "ctaSaid": "रोज़ के तीन सौ चौंतीस निकाल सकते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹334",
+              "₹10,020",
+              "₹10,000"
+            ]
+          }
         },
         {
           "id": "s1-05",
@@ -93,7 +317,56 @@
             "₹10,000"
           ],
           "visual": "steps",
-          "cta": "सबसे पहले क्या बेचेंगे?"
+          "cta": "सबसे पहले क्या बेचेंगे?",
+          "script": {
+            "hook": "Your first ₹2,000 is at home",
+            "hookSaid": "आपका पहला पैसा, घर में ही पड़ा है।",
+            "beats": [
+              {
+                "onScreen": "The drawer nobody opens",
+                "say": "पुराना फोन, चार्जर, कपड़े... जो सालों से इस्तेमाल नहीं हुए।",
+                "caption": "An old phone, chargers, clothes you have not worn in years.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Old phone or laptop",
+                    "Chargers and cables",
+                    "Clothes unworn for a year"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Sell three things",
+                "say": "तीन चीज़ें बेचो, और वो पैसा सीधे बफर में डालो।",
+                "caption": "Sell three of them and put that money straight into your buffer.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹2,000",
+                  "label": "A realistic start"
+                }
+              },
+              {
+                "onScreen": "A fifth of the way",
+                "say": "दो हज़ार मतलब... दस हज़ार का पाँचवाँ हिस्सा, पहले हफ़्ते में।",
+                "caption": "Two thousand is a fifth of your ten thousand target, in week one.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹10,000",
+                  "baseLabel": "The target",
+                  "op": "− ₹2,000 sold",
+                  "result": "₹8,000",
+                  "resultLabel": "Left to save"
+                }
+              }
+            ],
+            "cta": "What would you sell first?",
+            "ctaSaid": "सबसे पहले क्या बेचेंगे? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,000",
+              "₹10,000",
+              "₹8,000"
+            ]
+          }
         },
         {
           "id": "s1-06",
@@ -175,7 +448,46 @@
           "teaches": "बिना बफर के निवेश गलत समय पर तोड़ना पड़ता है — पहले सुरक्षा, फिर बढ़त।",
           "keyNumbers": [],
           "visual": "ladder",
-          "cta": "आपने कभी निवेश जल्दी तोड़ा है?"
+          "cta": "आपने कभी निवेश जल्दी तोड़ा है?",
+          "script": {
+            "hook": "Why not invest first?",
+            "hookSaid": "बफर से पहले निवेश क्यों नहीं?",
+            "beats": [
+              {
+                "onScreen": "You will break it",
+                "say": "बिना बफर के निवेश... गलत वक़्त पर तोड़ना पड़ता है।",
+                "caption": "Without a buffer you end up breaking your investment at the worst time.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Buffer first",
+                  "b": "Invest first",
+                  "aLabel": "You choose when",
+                  "bLabel": "The emergency chooses"
+                }
+              },
+              {
+                "onScreen": "Sold in a panic",
+                "say": "जिस दिन ज़रूरत पड़ी, उसी दिन बेचना पड़ा।",
+                "caption": "The day you need money is the day you are forced to sell.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Emergencies do not wait"
+                }
+              },
+              {
+                "onScreen": "Safety, then growth",
+                "say": "पहले सुरक्षा... उसके बाद ही बढ़त।",
+                "caption": "Safety first, and only then growth. Never the other way round.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 1
+                }
+              }
+            ],
+            "cta": "Have you broken one early?",
+            "ctaSaid": "आपने कभी निवेश जल्दी तोड़ा है? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s1-08",
@@ -190,7 +502,55 @@
           "facts": [
             "A personal loan in India typically runs 10.5-24% a year; a credit card runs about 42%",
             "The gap between what a buffer earns and what debt costs is why the expensive debt is dealt with first"
-          ]
+          ],
+          "script": {
+            "hook": "Loan first or buffer first?",
+            "hookSaid": "पहले लोन चुकाएँ, या बफर बनाएँ?",
+            "beats": [
+              {
+                "onScreen": "A small buffer first",
+                "say": "पहले छोटा बफर... वरना अगली दिक्कत में फिर उधार।",
+                "caption": "Build a small buffer first, or the next problem puts you back in debt.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹10,000",
+                  "label": "Then attack the loan"
+                }
+              },
+              {
+                "onScreen": "Card costs the most",
+                "say": "पर्सनल लोन दस से चौबीस प्रतिशत... कार्ड बयालीस।",
+                "caption": "A personal loan runs ten to twenty four percent. A card runs about forty two.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Personal loan",
+                  "b": "Credit card",
+                  "aLabel": "10-24% a year",
+                  "bLabel": "About 42% a year"
+                }
+              },
+              {
+                "onScreen": "One year of waiting",
+                "say": "एक लाख कार्ड बकाया पर... साल भर में बयालीस हज़ार।",
+                "caption": "One lakh on a card costs forty two thousand in a single year.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,00,000",
+                  "baseLabel": "Card balance",
+                  "op": "× 42% a year",
+                  "result": "₹42,000",
+                  "resultLabel": "Interest, one year"
+                }
+              }
+            ],
+            "cta": "Which one are you in?",
+            "ctaSaid": "आप किस स्थिति में हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹10,000",
+              "₹1,00,000",
+              "₹42,000"
+            ]
+          }
         },
         {
           "id": "s1-09",
@@ -199,7 +559,57 @@
           "teaches": "सैलरी आते ही अलग खाते में ऑटो-ट्रांसफर — बचत पहले, खर्च बाद में।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपकी बचत ऑटोमेटिक है या मैनुअल?"
+          "cta": "आपकी बचत ऑटोमेटिक है या मैनुअल?",
+          "script": {
+            "hook": "Save before you spend",
+            "hookSaid": "सैलरी आते ही, पहला काम ये करो।",
+            "beats": [
+              {
+                "onScreen": "Salary day, same hour",
+                "say": "सैलरी आई... उसी दिन ऑटो-ट्रांसफर लग जाए।",
+                "caption": "The day your salary lands, an automatic transfer should already be set.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Open your bank app",
+                    "Set a standing instruction",
+                    "Date it for salary day"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Willpower is not a plan",
+                "say": "जो अपने आप होता है... वही हर महीने होता है।",
+                "caption": "What happens automatically is what actually happens every month.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Automatic",
+                  "b": "When I remember",
+                  "aLabel": "Happens every month",
+                  "bLabel": "Happens sometimes"
+                }
+              },
+              {
+                "onScreen": "Two thousand a month",
+                "say": "महीने के दो हज़ार... पाँच महीने में दस हज़ार।",
+                "caption": "Two thousand a month becomes ten thousand in five months.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹2,000",
+                  "baseLabel": "Every salary day",
+                  "op": "× 5 months",
+                  "result": "₹10,000",
+                  "resultLabel": "Buffer complete"
+                }
+              }
+            ],
+            "cta": "Automatic or manual?",
+            "ctaSaid": "आपकी बचत ऑटोमेटिक है या मैनुअल? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,000",
+              "₹10,000"
+            ]
+          }
         },
         {
           "id": "s1-10",
@@ -212,7 +622,54 @@
           "facts": [
             "Cash withdrawn on a credit card has NO interest-free period — interest starts the same day",
             "A cash-advance fee of about 2.5% of the amount is charged on top, with a floor of roughly ₹500"
-          ]
+          ],
+          "script": {
+            "hook": "A card limit is not savings",
+            "hookSaid": "कार्ड की लिमिट, आपकी बचत नहीं है।",
+            "beats": [
+              {
+                "onScreen": "It is borrowed",
+                "say": "वो पैसा आपका नहीं है... उधार है।",
+                "caption": "That money is not yours. It is borrowed, and it is priced.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "₹10,000 saved",
+                  "b": "₹10,000 limit",
+                  "aLabel": "Yours",
+                  "bLabel": "Borrowed"
+                }
+              },
+              {
+                "onScreen": "Cash starts the clock",
+                "say": "कार्ड से कैश निकाला... तो ब्याज उसी दिन से शुरू।",
+                "caption": "Take cash on a card and interest starts the very same day.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "No interest-free days on cash"
+                }
+              },
+              {
+                "onScreen": "What one withdrawal costs",
+                "say": "बीस हज़ार कैश निकाला... महीने में सात सौ ब्याज।",
+                "caption": "Twenty thousand withdrawn costs seven hundred in interest that month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹20,000",
+                  "baseLabel": "Cash withdrawn",
+                  "op": "× 3.5% a month",
+                  "result": "₹700",
+                  "resultLabel": "From day one"
+                }
+              }
+            ],
+            "cta": "Do you agree with this?",
+            "ctaSaid": "आप इससे सहमत हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹10,000",
+              "₹20,000",
+              "₹700"
+            ]
+          }
         },
         {
           "id": "s1-11",
@@ -224,7 +681,68 @@
           "cta": "आपका अनुभव क्या रहा?",
           "facts": [
             "A late payment fee attracts 18% GST on top of the fee itself"
-          ]
+          ],
+          "script": {
+            "hook": "Borrowing from family",
+            "hookSaid": "घरवालों से उधार, सबसे महँगा होता है।",
+            "beats": [
+              {
+                "onScreen": "No interest, real cost",
+                "say": "ब्याज नहीं लगता... पर कीमत रिश्ते चुकाते हैं।",
+                "caption": "There is no interest, but the relationship pays the price instead.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Your own buffer",
+                  "b": "Family loan",
+                  "aLabel": "Costs nothing",
+                  "bLabel": "Costs the relationship"
+                }
+              },
+              {
+                "onScreen": "Every meeting remembers",
+                "say": "हर मुलाकात में... वो बात याद रहती है।",
+                "caption": "Every family gathering after that quietly remembers the loan.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "The awkward first ask",
+                    "The reminder you never wanted",
+                    "The favour you now owe"
+                  ]
+                }
+              },
+              {
+                "onScreen": "The other option costs too",
+                "say": "पाँच सौ की लेट फीस पर... अठारह प्रतिशत जीएसटी भी लगता है।",
+                "caption": "A five hundred rupee late fee carries eighteen percent GST on top.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹500",
+                  "baseLabel": "Late payment fee",
+                  "op": "+ 18% GST",
+                  "result": "₹590",
+                  "resultLabel": "What you actually pay"
+                }
+              },
+              {
+                "onScreen": "Ten thousand buys peace",
+                "say": "दस हज़ार का बफर... ये पूरी बातचीत बचा लेता है।",
+                "caption": "A ten thousand rupee buffer saves you that entire conversation.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹10,000",
+                  "label": "Buys back your dignity"
+                }
+              }
+            ],
+            "cta": "What was your experience?",
+            "ctaSaid": "आपका अनुभव क्या रहा? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹500",
+              "₹590",
+              "₹10,000"
+            ]
+          }
         },
         {
           "id": "s1-12",
@@ -239,7 +757,55 @@
           "facts": [
             "CIBIL scores run 300-900; most Indian lenders treat 750+ as good",
             "You are entitled to one free credit report a year from each bureau"
-          ]
+          ],
+          "script": {
+            "hook": "You used the buffer. Now what?",
+            "hookSaid": "बफर इस्तेमाल हो गया। अब क्या?",
+            "beats": [
+              {
+                "onScreen": "Using it is correct",
+                "say": "फंड इस्तेमाल हुआ, मतलब... उसने अपना काम किया।",
+                "caption": "If you used the fund, it did exactly what it was built to do.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹0",
+                  "label": "Not a failure"
+                }
+              },
+              {
+                "onScreen": "Refill it first",
+                "say": "अगला काम सिर्फ़ एक है... उसे तुरंत वापस भरना।",
+                "caption": "The next job is only one thing: refill it, starting immediately.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Restart the auto-transfer",
+                    "Pause other goals",
+                    "Refill before anything else"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Six weeks back",
+                "say": "महीने के ढाई हज़ार... चार महीने में वापस पूरा।",
+                "caption": "Two and a half thousand a month puts it back in four months.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹2,500",
+                  "baseLabel": "Every month",
+                  "op": "× 4 months",
+                  "result": "₹10,000",
+                  "resultLabel": "Buffer restored"
+                }
+              }
+            ],
+            "cta": "When did you last refill it?",
+            "ctaSaid": "आपने आखिरी बार कब भरा? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,500",
+              "₹10,000"
+            ]
+          }
         },
         {
           "id": "s1-13",

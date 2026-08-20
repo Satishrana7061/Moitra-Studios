@@ -2891,7 +2891,57 @@
             "6"
           ],
           "visual": "bigNumber",
-          "cta": "आपका नंबर कितना बना?"
+          "cta": "आपका नंबर कितना बना?",
+          "script": {
+            "hook": "Work out your real number",
+            "hookSaid": "आपका असली नंबर... कैसे निकालें?",
+            "beats": [
+              {
+                "onScreen": "Essentials only",
+                "say": "सिर्फ़ ज़रूरी खर्च गिनो... शौक नहीं।",
+                "caption": "Count only essential spending. Not hobbies, not subscriptions.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Rent and utilities",
+                    "Food and medicine",
+                    "EMIs and school fees"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Multiply by six",
+                "say": "उस नंबर को... छह से गुणा करो।",
+                "caption": "Take that monthly number and multiply it by six.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Monthly essentials",
+                  "op": "× 6 months",
+                  "result": "₹1,50,000",
+                  "resultLabel": "Your fund target"
+                }
+              },
+              {
+                "onScreen": "Not your salary",
+                "say": "ये सैलरी का नहीं... ज़रूरी खर्च का नंबर है।",
+                "caption": "This is based on essential spending, not on your salary.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Essentials × 6",
+                  "b": "Salary × 6",
+                  "aLabel": "Achievable",
+                  "bLabel": "Needlessly huge"
+                }
+              }
+            ],
+            "cta": "What is your number?",
+            "ctaSaid": "आपका नंबर कितना बना? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹1,50,000"
+            ]
+          }
         },
         {
           "id": "s3-02",
@@ -2903,7 +2953,54 @@
             "6"
           ],
           "visual": "clock",
-          "cta": "आपको कितना समय लगा था?"
+          "cta": "आपको कितना समय लगा था?",
+          "script": {
+            "hook": "Why three months is not enough",
+            "hookSaid": "तीन महीने... काफ़ी क्यों नहीं?",
+            "beats": [
+              {
+                "onScreen": "Job hunts take longer",
+                "say": "नई नौकरी में... अक्सर तीन महीने से ज़्यादा लगते हैं।",
+                "caption": "Finding a new job usually takes longer than three months.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Often four to six months"
+                }
+              },
+              {
+                "onScreen": "Notice period eats one",
+                "say": "नोटिस पीरियड, इंटरव्यू, ऑफ़र... सब वक़्त लेते हैं।",
+                "caption": "Notice periods, interviews and offer letters all take their own time.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Applying and waiting",
+                    "Rounds of interviews",
+                    "Notice and joining"
+                  ]
+                }
+              },
+              {
+                "onScreen": "The extra three",
+                "say": "पच्चीस हज़ार महीने पर... तीन महीने मतलब पचहत्तर हज़ार और।",
+                "caption": "At twenty five thousand a month, three extra months is seventy five thousand.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Monthly essentials",
+                  "op": "× 3 extra months",
+                  "result": "₹75,000",
+                  "resultLabel": "The difference"
+                }
+              }
+            ],
+            "cta": "How long did yours take?",
+            "ctaSaid": "आपको कितना समय लगा था? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹75,000"
+            ]
+          }
         },
         {
           "id": "s3-03",
@@ -2912,7 +3009,57 @@
           "teaches": "इमरजेंसी फंड की पहली शर्त है तुरंत निकाल पाना — ज़्यादा रिटर्न नहीं।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपका फंड कितनी जल्दी मिल सकता है?"
+          "cta": "आपका फंड कितनी जल्दी मिल सकता है?",
+          "script": {
+            "hook": "Where this money should sit",
+            "hookSaid": "ये पैसा... कहाँ रखना चाहिए?",
+            "beats": [
+              {
+                "onScreen": "Speed beats returns",
+                "say": "सबसे ज़रूरी है... तुरंत मिल जाना।",
+                "caption": "The most important thing is that you can get it immediately.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Available today",
+                  "b": "Higher return",
+                  "aLabel": "What matters here",
+                  "bLabel": "Not the job of this money"
+                }
+              },
+              {
+                "onScreen": "Same day, no penalty",
+                "say": "उसी दिन निकले... और कोई जुर्माना न लगे।",
+                "caption": "Same day access, with no penalty for taking it out.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Same-day withdrawal",
+                    "No exit penalty",
+                    "No market risk"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Split it if it is large",
+                "say": "बड़ा फंड है... तो दो जगह बाँट दो।",
+                "caption": "If the fund is large, split it across two places.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,50,000",
+                  "baseLabel": "Your fund",
+                  "op": "÷ 2 places",
+                  "result": "₹75,000",
+                  "resultLabel": "In each"
+                }
+              }
+            ],
+            "cta": "How fast can you reach yours?",
+            "ctaSaid": "आपका फंड कितनी जल्दी मिल सकता है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,50,000",
+              "₹75,000"
+            ]
+          }
         },
         {
           "id": "s3-04",
@@ -2923,7 +3070,57 @@
             "3"
           ],
           "visual": "compare",
-          "cta": "आप कौन सा इस्तेमाल करते हैं?"
+          "cta": "आप कौन सा इस्तेमाल करते हैं?",
+          "script": {
+            "hook": "Savings, FD or liquid fund",
+            "hookSaid": "सेविंग, FD, लिक्विड फंड... फ़र्क क्या है?",
+            "beats": [
+              {
+                "onScreen": "Three different jobs",
+                "say": "तीनों... अलग काम के लिए बने हैं।",
+                "caption": "These three are built for three genuinely different jobs.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Savings: instant, lowest return",
+                    "FD: fixed term, penalty to break",
+                    "Liquid: a day or two, market linked"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Access is the difference",
+                "say": "फ़र्क सिर्फ़ रिटर्न का नहीं... पहुँच का भी है।",
+                "caption": "The difference is not only the return. It is how fast you can reach it.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Savings account",
+                  "b": "Fixed deposit",
+                  "aLabel": "Instant, no penalty",
+                  "bLabel": "Penalty if broken early"
+                }
+              },
+              {
+                "onScreen": "What breaking an FD costs",
+                "say": "एक लाख की FD जल्दी तोड़ी... तो एक प्रतिशत जुर्माना।",
+                "caption": "Break a one lakh FD early and a one percent penalty typically applies.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,00,000",
+                  "baseLabel": "FD broken early",
+                  "op": "× 1% penalty",
+                  "result": "₹1,000",
+                  "resultLabel": "Gone, plus lost interest"
+                }
+              }
+            ],
+            "cta": "Which one do you use?",
+            "ctaSaid": "आप कौन सा इस्तेमाल करते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,00,000",
+              "₹1,000"
+            ]
+          }
         },
         {
           "id": "s3-05",
@@ -2934,7 +3131,57 @@
             "2"
           ],
           "visual": "compare",
-          "cta": "आप कैसे बाँटेंगे?"
+          "cta": "आप कैसे बाँटेंगे?",
+          "script": {
+            "hook": "Split the fund in two",
+            "hookSaid": "फंड को... दो हिस्सों में बाँटो।",
+            "beats": [
+              {
+                "onScreen": "Small problems, quick money",
+                "say": "छोटी दिक्कत के लिए... तुरंत मिलने वाला हिस्सा।",
+                "caption": "A portion you can reach instantly, for the small problems.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,50,000",
+                  "baseLabel": "Total fund",
+                  "op": "× one third",
+                  "result": "₹50,000",
+                  "resultLabel": "Instantly available"
+                }
+              },
+              {
+                "onScreen": "The rest sits further away",
+                "say": "बाकी थोड़ा दूर... ताकि आसानी से न टूटे।",
+                "caption": "The rest sits slightly further away so it does not get broken easily.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "One third",
+                  "b": "Two thirds",
+                  "aLabel": "Same day",
+                  "bLabel": "A day or two"
+                }
+              },
+              {
+                "onScreen": "Friction protects the bulk",
+                "say": "बड़ा हिस्सा... थोड़ी मेहनत के पीछे रहे।",
+                "caption": "The larger share should sit behind a little bit of effort.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Small share instantly reachable",
+                    "Large share one step away",
+                    "Neither in a wallet app"
+                  ]
+                }
+              }
+            ],
+            "cta": "How would you split yours?",
+            "ctaSaid": "आप कैसे बाँटेंगे? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,50,000",
+              "₹50,000"
+            ]
+          }
         },
         {
           "id": "s3-06",
@@ -2943,7 +3190,57 @@
           "teaches": "कमरे की सीमा, कुछ खर्च और इंतज़ार की अवधि — फंड इन्हीं के लिए है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपको ये अनुभव हुआ है?"
+          "cta": "आपको ये अनुभव हुआ है?",
+          "script": {
+            "hook": "What insurance will not pay",
+            "hookSaid": "बीमा है... फिर भी पैसे भरने पड़ते हैं।",
+            "beats": [
+              {
+                "onScreen": "Room rent caps",
+                "say": "कमरे के किराए की सीमा... पूरा बिल काट देती है।",
+                "caption": "A room rent cap reduces your entire bill in proportion, not just the room.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Within the cap",
+                  "b": "Above the cap",
+                  "aLabel": "Fully covered",
+                  "bLabel": "Whole bill cut down"
+                }
+              },
+              {
+                "onScreen": "Consumables are excluded",
+                "say": "दस्ताने, सिरिंज, ऑक्सीजन मास्क... ये अक्सर नहीं मिलते।",
+                "caption": "Gloves, syringes, oxygen masks are often not covered at all.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Non-medical consumables",
+                    "Room rent above the cap",
+                    "Anything in the waiting period"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Ten percent of a big bill",
+                "say": "दो लाख के बिल पर... बीस हज़ार आपकी जेब से।",
+                "caption": "On a two lakh bill, twenty thousand often comes from your own pocket.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹2,00,000",
+                  "baseLabel": "Hospital bill",
+                  "op": "× 10% not covered",
+                  "result": "₹20,000",
+                  "resultLabel": "You pay this"
+                }
+              }
+            ],
+            "cta": "Has this happened to you?",
+            "ctaSaid": "आपको ये अनुभव हुआ है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,00,000",
+              "₹20,000"
+            ]
+          }
         },
         {
           "id": "s3-07",
@@ -2955,7 +3252,53 @@
             "12"
           ],
           "visual": "bigNumber",
-          "cta": "आपकी आय नियमित है?"
+          "cta": "आपकी आय नियमित है?",
+          "script": {
+            "hook": "Self-employed? Save more",
+            "hookSaid": "अपना काम है... तो फंड बड़ा रखो।",
+            "beats": [
+              {
+                "onScreen": "Income is not flat",
+                "say": "फ्रीलांस या दुकान में... आय ऊपर नीचे होती है।",
+                "caption": "In freelance work or a shop, income moves up and down every month.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Some months are simply thin"
+                }
+              },
+              {
+                "onScreen": "Nine months, not six",
+                "say": "छह नहीं... नौ महीने का लक्ष्य रखो।",
+                "caption": "Aim for nine months of essentials rather than six.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Monthly essentials",
+                  "op": "× 9 months",
+                  "result": "₹2,25,000",
+                  "resultLabel": "Your target"
+                }
+              },
+              {
+                "onScreen": "No notice period either",
+                "say": "और यहाँ... नोटिस पीरियड भी नहीं मिलता।",
+                "caption": "And there is no notice period to cushion the fall either.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Salaried",
+                  "b": "Self-employed",
+                  "aLabel": "Six months",
+                  "bLabel": "Nine months"
+                }
+              }
+            ],
+            "cta": "Is your income regular?",
+            "ctaSaid": "आपकी आय नियमित है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹2,25,000"
+            ]
+          }
         },
         {
           "id": "s3-08",
@@ -2964,7 +3307,53 @@
           "teaches": "अकेली आय वाले घर में फंड की ज़रूरत ज़्यादा होती है, कम नहीं।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपके घर में कितनी आय हैं?"
+          "cta": "आपके घर में कितनी आय हैं?",
+          "script": {
+            "hook": "One earner, bigger fund",
+            "hookSaid": "घर में एक ही कमाने वाला है?",
+            "beats": [
+              {
+                "onScreen": "No second income to lean on",
+                "say": "दूसरी आय नहीं है... तो पूरा भार एक पर है।",
+                "caption": "With no second income, the entire weight sits on one person.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Two earners",
+                  "b": "One earner",
+                  "aLabel": "One salary cushions",
+                  "bLabel": "Nothing cushions"
+                }
+              },
+              {
+                "onScreen": "Nine months here too",
+                "say": "यहाँ भी... नौ महीने का फंड सही रहता है।",
+                "caption": "Here too, nine months of essentials is the sensible target.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹30,000",
+                  "baseLabel": "Family essentials",
+                  "op": "× 9 months",
+                  "result": "₹2,70,000",
+                  "resultLabel": "Your target"
+                }
+              },
+              {
+                "onScreen": "Insurance matters more",
+                "say": "और बीमा... और भी ज़रूरी हो जाता है।",
+                "caption": "And insurance becomes even more important in this situation.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 3
+                }
+              }
+            ],
+            "cta": "How many earners at home?",
+            "ctaSaid": "आपके घर में कितने कमाने वाले हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹30,000",
+              "₹2,70,000"
+            ]
+          }
         },
         {
           "id": "s3-09",
@@ -2973,7 +3362,54 @@
           "teaches": "थोड़ी छूट रखने वाला धीमा प्लान, बहुत सख्त तेज़ प्लान से ज़्यादा चलता है।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपका प्लान कितना सख्त है?"
+          "cta": "आपका प्लान कितना सख्त है?",
+          "script": {
+            "hook": "Do not stop living",
+            "hookSaid": "फंड बनाओ... पर ज़िंदगी बंद मत करो।",
+            "beats": [
+              {
+                "onScreen": "Strict plans break",
+                "say": "बहुत सख्त प्लान... दो महीने में टूट जाता है।",
+                "caption": "A very strict plan usually collapses within about two months.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Slow with room",
+                  "b": "Strict and fast",
+                  "aLabel": "Still going in month six",
+                  "bLabel": "Abandoned in month two"
+                }
+              },
+              {
+                "onScreen": "Keep a small allowance",
+                "say": "थोड़ा खर्च अपने लिए रखो... वही प्लान बचाता है।",
+                "caption": "Keep a small amount for yourself. That is what keeps the plan alive.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹8,000",
+                  "baseLabel": "Monthly saving",
+                  "op": "− ₹1,000 for you",
+                  "result": "₹7,000",
+                  "resultLabel": "Still reaches the target"
+                }
+              },
+              {
+                "onScreen": "Finishing beats speed",
+                "say": "जो प्लान पूरा हो... वही सबसे तेज़ है।",
+                "caption": "The plan you actually finish is the fastest one there is.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 3
+                }
+              }
+            ],
+            "cta": "How strict is your plan?",
+            "ctaSaid": "आपका प्लान कितना सख्त है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹8,000",
+              "₹1,000",
+              "₹7,000"
+            ]
+          }
         },
         {
           "id": "s3-10",
@@ -2982,7 +3418,57 @@
           "teaches": "अनियमित बड़ी रकम फंड को सबसे तेज़ बढ़ाती है — इसे खर्च में न मिलाएँ।",
           "keyNumbers": [],
           "visual": "bigNumber",
-          "cta": "पिछला बोनस कहाँ गया?"
+          "cta": "पिछला बोनस कहाँ गया?",
+          "script": {
+            "hook": "Use the irregular money",
+            "hookSaid": "बड़ी रकम आए... तो फंड में डालो।",
+            "beats": [
+              {
+                "onScreen": "Bonus, refund, gift",
+                "say": "बोनस, रिफंड, गिफ्ट... ये सबसे तेज़ रास्ता है।",
+                "caption": "A bonus, a refund, a gift. These build the fund fastest.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Tax refund",
+                    "Annual bonus",
+                    "Anything unplanned"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Never mix it in",
+                "say": "इसे रोज़ के खाते में... मत मिलाओ।",
+                "caption": "Never let it land in your everyday account and mix in.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Straight to the fund",
+                  "b": "Into daily account",
+                  "aLabel": "Still there next month",
+                  "bLabel": "Gone without a trace"
+                }
+              },
+              {
+                "onScreen": "Months in one go",
+                "say": "पचास हज़ार का बोनस... दो महीने का फंड एक दिन में।",
+                "caption": "A fifty thousand bonus is two months of fund in a single day.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹50,000",
+                  "baseLabel": "Bonus",
+                  "op": "÷ ₹25,000 a month",
+                  "result": "2",
+                  "resultLabel": "Months of fund"
+                }
+              }
+            ],
+            "cta": "Where did your last bonus go?",
+            "ctaSaid": "पिछला बोनस कहाँ गया? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹50,000",
+              "₹25,000"
+            ]
+          }
         },
         {
           "id": "s3-11",
@@ -2993,7 +3479,50 @@
             "3"
           ],
           "visual": "steps",
-          "cta": "पिछली बार तीनों हाँ थे?"
+          "cta": "पिछली बार तीनों हाँ थे?",
+          "script": {
+            "hook": "When to use the fund",
+            "hookSaid": "फंड कब इस्तेमाल करें... कब नहीं?",
+            "beats": [
+              {
+                "onScreen": "Same three tests",
+                "say": "अचानक, ज़रूरी, टाला न जा सके... तीनों हाँ।",
+                "caption": "Sudden, necessary, cannot be postponed. All three must be yes.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Is it sudden?",
+                    "Is it necessary?",
+                    "Can it wait?"
+                  ]
+                }
+              },
+              {
+                "onScreen": "A wedding is not sudden",
+                "say": "शादी अचानक नहीं होती... वो प्लान की जाती है।",
+                "caption": "A wedding is not sudden. It is planned, sometimes for a year.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Job loss",
+                  "b": "A planned wedding",
+                  "aLabel": "Use the fund",
+                  "bLabel": "Save separately"
+                }
+              },
+              {
+                "onScreen": "Write the answer down",
+                "say": "तीनों का जवाब लिखो... फिर फ़ैसला करो।",
+                "caption": "Write down your answer to all three, then decide.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 3
+                }
+              }
+            ],
+            "cta": "Were all three yes last time?",
+            "ctaSaid": "पिछली बार तीनों हाँ थे? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s3-12",
@@ -3002,7 +3531,57 @@
           "teaches": "फंड टूटने के बाद बाकी लक्ष्य रोककर पहले उसे भरें।",
           "keyNumbers": [],
           "visual": "ladder",
-          "cta": "आपका फंड अभी पूरा है?"
+          "cta": "आपका फंड अभी पूरा है?",
+          "script": {
+            "hook": "Refill before anything else",
+            "hookSaid": "इस्तेमाल हुआ... तो पहले वापस भरो।",
+            "beats": [
+              {
+                "onScreen": "Pause the other goals",
+                "say": "बाकी सब लक्ष्य... कुछ महीने रुक जाएँ।",
+                "caption": "Every other goal pauses for a few months. This one comes first.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Pause other savings",
+                    "Restart the transfer",
+                    "Refill fully first"
+                  ]
+                }
+              },
+              {
+                "onScreen": "It protects everything",
+                "say": "यही फंड... बाकी सब कुछ बचाता है।",
+                "caption": "This fund is what protects every other plan you have.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Fund refilled",
+                  "b": "Fund empty",
+                  "aLabel": "Next problem is handled",
+                  "bLabel": "Next problem is a loan"
+                }
+              },
+              {
+                "onScreen": "Six months back",
+                "say": "महीने के पच्चीस हज़ार... छह महीने में पूरा।",
+                "caption": "Twenty five thousand a month restores it in six months.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Every month",
+                  "op": "× 6 months",
+                  "result": "₹1,50,000",
+                  "resultLabel": "Fund restored"
+                }
+              }
+            ],
+            "cta": "Is your fund full right now?",
+            "ctaSaid": "आपका फंड अभी पूरा है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹1,50,000"
+            ]
+          }
         },
         {
           "id": "s3-13",
@@ -3013,7 +3592,53 @@
             "1"
           ],
           "visual": "clock",
-          "cta": "आपने पिछली बार कब जाँचा?"
+          "cta": "आपने पिछली बार कब जाँचा?",
+          "script": {
+            "hook": "Your fund shrinks every year",
+            "hookSaid": "आपका फंड... हर साल छोटा हो रहा है।",
+            "beats": [
+              {
+                "onScreen": "Costs rise, fund does not",
+                "say": "खर्च बढ़ता है... और फंड वहीं का वहीं रहता है।",
+                "caption": "Your costs rise every year while the fund stays exactly the same.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Checked yearly",
+                  "b": "Set once, forgotten",
+                  "aLabel": "Still six months",
+                  "bLabel": "Quietly became four"
+                }
+              },
+              {
+                "onScreen": "Check it once a year",
+                "say": "साल में एक बार... नंबर दोबारा निकालो।",
+                "caption": "Once a year, work the number out again from scratch.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Essentials last year",
+                  "op": "+ 6% higher costs",
+                  "result": "₹26,500",
+                  "resultLabel": "Essentials now"
+                }
+              },
+              {
+                "onScreen": "Same month each year",
+                "say": "एक तारीख तय कर लो... हर साल वही।",
+                "caption": "Pick one month a year and always do it then.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Once a year is enough"
+                }
+              }
+            ],
+            "cta": "When did you last check?",
+            "ctaSaid": "आपने पिछली बार कब जाँचा? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹26,500"
+            ]
+          }
         },
         {
           "id": "s3-14",
@@ -3022,7 +3647,50 @@
           "teaches": "इस पैसे का काम सुरक्षा है — उतार-चढ़ाव वाली जगह पर ये अपना मकसद खो देता है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आप सहमत हैं?"
+          "cta": "आप सहमत हैं?",
+          "script": {
+            "hook": "This money is not for growth",
+            "hookSaid": "इमरजेंसी फंड... निवेश नहीं है।",
+            "beats": [
+              {
+                "onScreen": "Its job is being there",
+                "say": "इसका काम बढ़ना नहीं... मौजूद रहना है।",
+                "caption": "This money's job is not to grow. It is to be there.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Available on the day",
+                  "b": "Worth more someday",
+                  "aLabel": "The whole point",
+                  "bLabel": "Not this money's job"
+                }
+              },
+              {
+                "onScreen": "Down markets and layoffs arrive together",
+                "say": "नौकरी और बाज़ार... अक्सर एक साथ गिरते हैं।",
+                "caption": "Job losses and market falls have a habit of arriving together.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "The worst possible week"
+                }
+              },
+              {
+                "onScreen": "Small return, total access",
+                "say": "थोड़ा कम मिलेगा... पर जब चाहिए, तब मिलेगा।",
+                "caption": "You will earn a little less, and you will have it when you need it.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Same-day access",
+                    "No penalty",
+                    "No market risk"
+                  ]
+                }
+              }
+            ],
+            "cta": "Do you agree?",
+            "ctaSaid": "आप सहमत हैं? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s3-15",
@@ -3031,7 +3699,57 @@
           "teaches": "जो खर्च पता है उसके लिए अलग बचत बनाएँ — इमरजेंसी फंड सिर्फ अनजान के लिए।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपके सिंकिंग फंड कौन से हैं?"
+          "cta": "आपके सिंकिंग फंड कौन से हैं?",
+          "script": {
+            "hook": "Emergency fund vs sinking fund",
+            "hookSaid": "इमरजेंसी फंड... और सिंकिंग फंड।",
+            "beats": [
+              {
+                "onScreen": "Known costs are not emergencies",
+                "say": "जो खर्च पता है... वो इमरजेंसी नहीं है।",
+                "caption": "A cost you already know is coming is not an emergency.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Emergency fund",
+                  "b": "Sinking fund",
+                  "aLabel": "For the unknown",
+                  "bLabel": "For the known"
+                }
+              },
+              {
+                "onScreen": "Save monthly for the known",
+                "say": "स्कूल फीस, बीमा, त्यौहार... इनके लिए अलग जोड़ो।",
+                "caption": "School fees, insurance renewals, festivals. Save monthly for these.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "List next year's big costs",
+                    "Divide by twelve",
+                    "Save that much monthly"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Twelve small instead of one big",
+                "say": "चौबीस हज़ार की फीस... महीने के दो हज़ार।",
+                "caption": "Twenty four thousand of fees becomes two thousand a month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹24,000",
+                  "baseLabel": "Annual school fee",
+                  "op": "÷ 12 months",
+                  "result": "₹2,000",
+                  "resultLabel": "Every month"
+                }
+              }
+            ],
+            "cta": "What are your sinking funds?",
+            "ctaSaid": "आपके सिंकिंग फंड कौन से हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹24,000",
+              "₹2,000"
+            ]
+          }
         },
         {
           "id": "s3-16",
@@ -3040,7 +3758,54 @@
           "teaches": "डिपॉज़िट, ब्रोकरेज और शिफ्टिंग मिलाकर बड़ा एकमुश्त खर्च बनता है — इसे अलग गिनें।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपका आखिरी शिफ्ट कितने का पड़ा?"
+          "cta": "आपका आखिरी शिफ्ट कितने का पड़ा?",
+          "script": {
+            "hook": "Moving house costs a fortune",
+            "hookSaid": "घर बदलना... सोच से ज़्यादा महँगा है।",
+            "beats": [
+              {
+                "onScreen": "Three costs at once",
+                "say": "डिपॉज़िट, ब्रोकरेज, शिफ्टिंग... तीनों एक साथ।",
+                "caption": "Deposit, brokerage and moving all land in the same week.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Security deposit",
+                    "Broker fee",
+                    "Packers and movers"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Deposit is the big one",
+                "say": "कई शहरों में... दो से छह महीने का किराया।",
+                "caption": "In many Indian cities that is two to six months of rent.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹18,000",
+                  "baseLabel": "Monthly rent",
+                  "op": "× 3 months deposit",
+                  "result": "₹54,000",
+                  "resultLabel": "Before you move in"
+                }
+              },
+              {
+                "onScreen": "The old deposit comes late",
+                "say": "पुराना डिपॉज़िट... अक्सर देर से मिलता है।",
+                "caption": "Your old deposit usually arrives weeks after you have already paid.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Often 30 to 60 days late"
+                }
+              }
+            ],
+            "cta": "What did your last move cost?",
+            "ctaSaid": "आपका आखिरी शिफ्ट कितने का पड़ा? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹18,000",
+              "₹54,000"
+            ]
+          }
         },
         {
           "id": "s3-17",
@@ -3049,7 +3814,53 @@
           "teaches": "मरम्मत तय है, तारीख अनजान — इसलिए अलग छोटा रिज़र्व रखें।",
           "keyNumbers": [],
           "visual": "clock",
-          "cta": "आपका आखिरी बड़ा रिपेयर कब था?"
+          "cta": "आपका आखिरी बड़ा रिपेयर कब था?",
+          "script": {
+            "hook": "Repairs are certain",
+            "hookSaid": "मरम्मत तय है... तारीख नहीं पता।",
+            "beats": [
+              {
+                "onScreen": "Not if, when",
+                "say": "गाड़ी और घर... कभी न कभी मरम्मत माँगते ही हैं।",
+                "caption": "A vehicle and a home will both need repair. It is only a question of when.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "A small reserve",
+                  "b": "No reserve",
+                  "aLabel": "An annoyance",
+                  "bLabel": "An emergency"
+                }
+              },
+              {
+                "onScreen": "A small separate reserve",
+                "say": "थोड़ा अलग रखो... इमरजेंसी फंड से नहीं।",
+                "caption": "Keep a small separate reserve so this never touches the emergency fund.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,500",
+                  "baseLabel": "Every month",
+                  "op": "× 12 months",
+                  "result": "₹18,000",
+                  "resultLabel": "Repair reserve"
+                }
+              },
+              {
+                "onScreen": "Then it is just a bill",
+                "say": "फिर मरम्मत... सिर्फ़ एक बिल रह जाती है।",
+                "caption": "Then a repair is just a bill, not a crisis.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 3
+                }
+              }
+            ],
+            "cta": "When was your last big repair?",
+            "ctaSaid": "आपका आखिरी बड़ा रिपेयर कब था? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,500",
+              "₹18,000"
+            ]
+          }
         },
         {
           "id": "s3-18",
@@ -3058,7 +3869,50 @@
           "teaches": "खाते या लक्ष्य को नाम देने से उसे तोड़ना मानसिक रूप से मुश्किल हो जाता है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आप अपने फंड को क्या नाम देंगे?"
+          "cta": "आप अपने फंड को क्या नाम देंगे?",
+          "script": {
+            "hook": "Give the account a name",
+            "hookSaid": "अपने फंड को... एक नाम दो।",
+            "beats": [
+              {
+                "onScreen": "Named money is harder to spend",
+                "say": "जिस पैसे का नाम हो... उसे तोड़ना मुश्किल लगता है।",
+                "caption": "Money with a name attached is psychologically harder to break into.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "\"Emergency fund\"",
+                  "b": "\"Savings account 2\"",
+                  "aLabel": "You hesitate",
+                  "bLabel": "You do not"
+                }
+              },
+              {
+                "onScreen": "Most banks allow it",
+                "say": "ज़्यादातर बैंक ऐप में... खाते का नाम बदल सकते हो।",
+                "caption": "Most bank apps let you rename an account or a goal.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Open your bank app",
+                    "Rename the account",
+                    "Make it specific"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Make it uncomfortable",
+                "say": "नाम ऐसा हो... कि तोड़ते वक़्त बुरा लगे।",
+                "caption": "Pick a name that makes you feel something when you break it.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 3
+                }
+              }
+            ],
+            "cta": "What would you name yours?",
+            "ctaSaid": "आप अपने फंड को क्या नाम देंगे? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s3-19",
@@ -3067,7 +3921,50 @@
           "teaches": "पैसा कहाँ है ये किसी भरोसेमंद को पता होना चाहिए — वरना इमरजेंसी में वो बेकार है।",
           "keyNumbers": [],
           "visual": "steps",
-          "cta": "आपके घर में किसे पता है?"
+          "cta": "आपके घर में किसे पता है?",
+          "script": {
+            "hook": "Someone else should know",
+            "hookSaid": "आपके अलावा... किसी को पता होना चाहिए।",
+            "beats": [
+              {
+                "onScreen": "Emergencies happen to you too",
+                "say": "इमरजेंसी... आपके साथ भी हो सकती है।",
+                "caption": "The emergency might be happening to you, not around you.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Someone knows",
+                  "b": "Only you know",
+                  "aLabel": "Family can act",
+                  "bLabel": "Money sits unreachable"
+                }
+              },
+              {
+                "onScreen": "Tell one trusted person",
+                "say": "एक भरोसेमंद इंसान को... बता दो।",
+                "caption": "Tell one person you trust where the money is.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Which bank",
+                    "Roughly how much",
+                    "How to reach it"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Update the nominee",
+                "say": "और नॉमिनी... ज़रूर अपडेट रखो।",
+                "caption": "And keep the nominee on that account updated.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Check it once a year"
+                }
+              }
+            ],
+            "cta": "Who knows about yours?",
+            "ctaSaid": "आपके घर में किसे पता है? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s3-20",
@@ -3078,7 +3975,54 @@
             "6"
           ],
           "visual": "ladder",
-          "cta": "आप किस कदम पर हैं?"
+          "cta": "आप किस कदम पर हैं?",
+          "script": {
+            "hook": "Six months of choices",
+            "hookSaid": "छह महीने का फंड... आज़ादी देता है।",
+            "beats": [
+              {
+                "onScreen": "Not money. Choice.",
+                "say": "ये पैसा नहीं देता... चुनने की ताकत देता है।",
+                "caption": "This does not give you money. It gives you the ability to choose.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "6",
+                  "label": "Months of saying no"
+                }
+              },
+              {
+                "onScreen": "You can leave a bad job",
+                "say": "बुरी नौकरी छोड़ सकते हो... क्योंकि छह महीने हैं।",
+                "caption": "You can walk away from a bad job, because six months exist.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "With the fund",
+                  "b": "Without it",
+                  "aLabel": "You can say no",
+                  "bLabel": "You must say yes"
+                }
+              },
+              {
+                "onScreen": "That is what it buys",
+                "say": "डेढ़ लाख... छह महीने की शांति।",
+                "caption": "One and a half lakh buys six months of not being afraid.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Monthly essentials",
+                  "op": "× 6 months",
+                  "result": "₹1,50,000",
+                  "resultLabel": "Six months of choice"
+                }
+              }
+            ],
+            "cta": "Which step are you on?",
+            "ctaSaid": "आप किस कदम पर हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹1,50,000"
+            ]
+          }
         }
       ]
     },

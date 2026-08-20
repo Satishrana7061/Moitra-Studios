@@ -816,7 +816,55 @@
             "4"
           ],
           "visual": "steps",
-          "cta": "आप हिसाब रखते हैं?"
+          "cta": "आप हिसाब रखते हैं?",
+          "script": {
+            "hook": "Four lines is a budget",
+            "hookSaid": "पूरा बजट नहीं... सिर्फ़ चार लाइनें।",
+            "beats": [
+              {
+                "onScreen": "Income, needs, EMI, saving",
+                "say": "आय, ज़रूरी खर्च, EMI, और बचत... बस।",
+                "caption": "Income, essential spending, EMIs, and saving. That is the whole thing.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "What came in",
+                    "What had to go out",
+                    "What is left"
+                  ]
+                }
+              },
+              {
+                "onScreen": "One page, once a month",
+                "say": "महीने में एक बार... एक पन्ने पर।",
+                "caption": "Once a month, on a single page. It takes ten minutes.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Ten minutes a month"
+                }
+              },
+              {
+                "onScreen": "The gap is the truth",
+                "say": "आय में से सब घटाओ... जो बचा, वही सच है।",
+                "caption": "Subtract everything from your income. What remains is the real number.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹40,000",
+                  "baseLabel": "Income",
+                  "op": "− ₹34,000 out",
+                  "result": "₹6,000",
+                  "resultLabel": "Your actual room"
+                }
+              }
+            ],
+            "cta": "Do you track it?",
+            "ctaSaid": "आप हिसाब रखते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹40,000",
+              "₹34,000",
+              "₹6,000"
+            ]
+          }
         },
         {
           "id": "s1-14",
@@ -827,7 +875,54 @@
             "₹2,000"
           ],
           "visual": "compare",
-          "cta": "आप घर में कैश रखते हैं?"
+          "cta": "आप घर में कैश रखते हैं?",
+          "script": {
+            "hook": "Cash at home, or bank?",
+            "hookSaid": "कैश घर पर रखें... या बैंक में?",
+            "beats": [
+              {
+                "onScreen": "Mostly bank",
+                "say": "ज़्यादातर बैंक में... और थोड़ा कैश घर पर।",
+                "caption": "Most of it in the bank, and a small amount as cash at home.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "In the bank",
+                  "b": "At home",
+                  "aLabel": "Safe, earns a little",
+                  "bLabel": "For the day nothing works"
+                }
+              },
+              {
+                "onScreen": "Networks do fail",
+                "say": "नेटवर्क बंद, कार्ड फेल... ऐसा होता है।",
+                "caption": "Networks go down and cards get declined. It happens.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Usually the worst day"
+                }
+              },
+              {
+                "onScreen": "About two thousand",
+                "say": "दो हज़ार घर पर काफ़ी है... बाकी बैंक में।",
+                "caption": "About two thousand at home is enough. The rest belongs in the bank.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹10,000",
+                  "baseLabel": "Your buffer",
+                  "op": "− ₹2,000 cash",
+                  "result": "₹8,000",
+                  "resultLabel": "Stays in the bank"
+                }
+              }
+            ],
+            "cta": "Do you keep cash at home?",
+            "ctaSaid": "आप घर में कैश रखते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,000",
+              "₹10,000",
+              "₹8,000"
+            ]
+          }
         },
         {
           "id": "s1-15",
@@ -836,7 +931,50 @@
           "teaches": "बफर वहाँ रखें जहाँ पहुँचने में थोड़ी मेहनत लगे — घर्षण ही बचाव है।",
           "keyNumbers": [],
           "visual": "compare",
-          "cta": "आपका पैसा कितना 'आसान' है?"
+          "cta": "आपका पैसा कितना 'आसान' है?",
+          "script": {
+            "hook": "Not in a wallet app",
+            "hookSaid": "बफर को वॉलेट ऐप में... मत रखो।",
+            "beats": [
+              {
+                "onScreen": "Too easy to spend",
+                "say": "जो एक टैप में खर्च हो सकता है... वो बचत नहीं है।",
+                "caption": "Money you can spend in one tap is not really savings.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Separate account",
+                  "b": "Wallet app",
+                  "aLabel": "Takes a minute",
+                  "bLabel": "Takes one tap"
+                }
+              },
+              {
+                "onScreen": "Friction is the feature",
+                "say": "थोड़ी मेहनत लगे... यही बचाव है।",
+                "caption": "A little effort to reach it is the protection, not an inconvenience.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Different bank",
+                    "No UPI link",
+                    "No card issued"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Sixty seconds is enough",
+                "say": "एक मिनट की देरी... आधे फ़ैसले बदल देती है।",
+                "caption": "A sixty second delay changes about half of your spending decisions.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "One minute of friction"
+                }
+              }
+            ],
+            "cta": "How easy is your money to spend?",
+            "ctaSaid": "आपका पैसा कितना आसान है? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s1-16",
@@ -845,7 +983,51 @@
           "teaches": "पहला छोटा लक्ष्य पूरा होने पर भरोसा बनता है — यही अगले कदम का ईंधन है।",
           "keyNumbers": [],
           "visual": "ladder",
-          "cta": "आपकी पहली जीत कौन सी थी?"
+          "cta": "आपकी पहली जीत कौन सी थी?",
+          "script": {
+            "hook": "Why small wins matter",
+            "hookSaid": "छोटी जीत... सबसे ज़रूरी होती है।",
+            "beats": [
+              {
+                "onScreen": "The first thousand",
+                "say": "पहला हज़ार सबसे मुश्किल है... और सबसे ज़रूरी।",
+                "caption": "The first thousand is the hardest, and by far the most important.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹1,000",
+                  "label": "Where belief starts"
+                }
+              },
+              {
+                "onScreen": "Proof beats willpower",
+                "say": "ये साबित करता है... कि आप कर सकते हो।",
+                "caption": "It proves you can do this, which willpower alone never does.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,000",
+                  "baseLabel": "First win",
+                  "op": "× 10 repeats",
+                  "result": "₹10,000",
+                  "resultLabel": "Buffer complete"
+                }
+              },
+              {
+                "onScreen": "Ten times, not once",
+                "say": "एक बार नहीं... दस बार वही काम।",
+                "caption": "Not one big effort. The same small one, ten times over.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 1
+                }
+              }
+            ],
+            "cta": "What was your first win?",
+            "ctaSaid": "आपकी पहली जीत कौन सी थी? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,000",
+              "₹10,000"
+            ]
+          }
         },
         {
           "id": "s1-17",
@@ -856,7 +1038,57 @@
             "₹25,000"
           ],
           "visual": "bigNumber",
-          "cta": "आपका शुरुआती नंबर क्या है?"
+          "cta": "आपका शुरुआती नंबर क्या है?",
+          "script": {
+            "hook": "₹10,000 is not enough for you",
+            "hookSaid": "परिवार है... तो दस हज़ार कम है।",
+            "beats": [
+              {
+                "onScreen": "Dependants change the number",
+                "say": "जिन पर लोग निर्भर हैं... उनका बफर बड़ा होना चाहिए।",
+                "caption": "If people depend on you, your starting buffer has to be bigger.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Living alone",
+                  "b": "Family of four",
+                  "aLabel": "₹10,000 to start",
+                  "bLabel": "One month of essentials"
+                }
+              },
+              {
+                "onScreen": "One month of essentials",
+                "say": "एक महीने का ज़रूरी खर्च... यही आपका पहला नंबर है।",
+                "caption": "One month of essential spending. That is your real starting number.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹22,000",
+                  "baseLabel": "Monthly essentials",
+                  "op": "× 1 month",
+                  "result": "₹22,000",
+                  "resultLabel": "Your starting buffer"
+                }
+              },
+              {
+                "onScreen": "Essentials only",
+                "say": "किराया, राशन, दवाई, स्कूल... शौक नहीं।",
+                "caption": "Rent, groceries, medicine, school fees. Not entertainment.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Rent and utilities",
+                    "Food and medicine",
+                    "School and transport"
+                  ]
+                }
+              }
+            ],
+            "cta": "What is your starting number?",
+            "ctaSaid": "आपका शुरुआती नंबर क्या है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹10,000",
+              "₹22,000"
+            ]
+          }
         },
         {
           "id": "s1-18",
@@ -868,7 +1100,53 @@
             "30%"
           ],
           "visual": "compare",
-          "cta": "आप बोनस का क्या करते हैं?"
+          "cta": "आप बोनस का क्या करते हैं?",
+          "script": {
+            "hook": "The bonus rule",
+            "hookSaid": "बोनस आया... तो क्या करें?",
+            "beats": [
+              {
+                "onScreen": "Split it, do not spend it",
+                "say": "पूरा खर्च मत करो... और पूरा बचाओ भी मत।",
+                "caption": "Do not spend all of it, and do not save all of it either.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "70% to the buffer",
+                  "b": "30% to enjoy",
+                  "aLabel": "Builds the base",
+                  "bLabel": "Keeps you going"
+                }
+              },
+              {
+                "onScreen": "Seventy, thirty",
+                "say": "सत्तर प्रतिशत बफर में... तीस प्रतिशत खुशी में।",
+                "caption": "Seventy percent into the buffer, thirty percent into something you enjoy.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹30,000",
+                  "baseLabel": "Bonus",
+                  "op": "× 70%",
+                  "result": "₹21,000",
+                  "resultLabel": "Straight to the buffer"
+                }
+              },
+              {
+                "onScreen": "All-or-nothing fails",
+                "say": "पूरा बचाने वाला प्लान... अगली बार चलता नहीं।",
+                "caption": "A plan that saves all of it never survives to the next bonus.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 1
+                }
+              }
+            ],
+            "cta": "What do you do with a bonus?",
+            "ctaSaid": "आप बोनस का क्या करते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹30,000",
+              "₹21,000"
+            ]
+          }
         },
         {
           "id": "s1-19",
@@ -879,7 +1157,54 @@
             "7 दिन"
           ],
           "visual": "clock",
-          "cta": "चैलेंज लेंगे?"
+          "cta": "चैलेंज लेंगे?",
+          "script": {
+            "hook": "Seven days of tracking",
+            "hookSaid": "सात दिन... बस इतना करके देखो।",
+            "beats": [
+              {
+                "onScreen": "Write down everything",
+                "say": "हर खर्च लिखो... चाय भी, रिक्शा भी।",
+                "caption": "Write down every single spend. The tea, the auto, all of it.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Note every spend",
+                    "Do not judge it",
+                    "Just seven days"
+                  ]
+                }
+              },
+              {
+                "onScreen": "No budget needed",
+                "say": "बजट मत बनाओ... सिर्फ़ देखो।",
+                "caption": "You do not need a budget. You just need to look.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Seven days only"
+                }
+              },
+              {
+                "onScreen": "The leak shows itself",
+                "say": "हफ़्ते के तीन सौ... महीने के बारह सौ बन जाते हैं।",
+                "caption": "Three hundred a week quietly becomes twelve hundred a month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹300",
+                  "baseLabel": "A week of small spends",
+                  "op": "× 4 weeks",
+                  "result": "₹1,200",
+                  "resultLabel": "Every month"
+                }
+              }
+            ],
+            "cta": "Will you take the challenge?",
+            "ctaSaid": "सात दिन का चैलेंज लेंगे? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹300",
+              "₹1,200"
+            ]
+          }
         },
         {
           "id": "s1-20",
@@ -890,7 +1215,63 @@
             "₹10,000"
           ],
           "visual": "ladder",
-          "cta": "कदम 1 पूरा हुआ? कमेंट में बताओ"
+          "cta": "कदम 1 पूरा हुआ? कमेंट में बताओ",
+          "script": {
+            "hook": "Step one is done",
+            "hookSaid": "पहला कदम पूरा... अब क्या बदला?",
+            "beats": [
+              {
+                "onScreen": "It is not about the money",
+                "say": "दस हज़ार से... ज़िंदगी नहीं बदलती।",
+                "caption": "Ten thousand rupees does not change your life. That is not the point.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹10,000",
+                  "label": "Not life-changing"
+                }
+              },
+              {
+                "onScreen": "It is about the phone call",
+                "say": "बदलता ये है... कि अब किसी से माँगना नहीं पड़ता।",
+                "caption": "What changes is that you no longer have to ask anyone for help.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "With a buffer",
+                  "b": "Without one",
+                  "aLabel": "You handle it",
+                  "bLabel": "You make a phone call"
+                }
+              },
+              {
+                "onScreen": "What it saved you",
+                "say": "एक बार कार्ड से बचे... तो चार हज़ार दो सौ ब्याज बच गया।",
+                "caption": "Avoiding the card just once saved you four thousand two hundred in interest.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹10,000",
+                  "baseLabel": "Handled from savings",
+                  "op": "× 42% avoided",
+                  "result": "₹4,200",
+                  "resultLabel": "Interest you never paid"
+                }
+              },
+              {
+                "onScreen": "Now the debt",
+                "say": "अगला कदम... कर्ज़ खत्म करना है।",
+                "caption": "The next step is clearing your debt, and it is the bigger one.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Is step one done for you?",
+            "ctaSaid": "आपका कदम एक पूरा हुआ? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹10,000",
+              "₹4,200"
+            ]
+          }
         }
       ]
     },
@@ -2206,7 +2587,54 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "An education loan is different",
+            "hookSaid": "एजुकेशन लोन... बाकी कर्ज़ से अलग है।",
+            "beats": [
+              {
+                "onScreen": "Repayment starts later",
+                "say": "पढ़ाई खत्म होने के... एक साल बाद शुरू होता है।",
+                "caption": "Repayment usually begins a year after the course finishes.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "One year of breathing room"
+                }
+              },
+              {
+                "onScreen": "But interest still builds",
+                "say": "उस दौरान भी... ब्याज चुपचाप जुड़ता रहता है।",
+                "caption": "But interest keeps accruing quietly during that whole period.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Interest accrues in the moratorium",
+                    "It is added to the principal",
+                    "Your EMI is fixed on the larger amount"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Pay the interest early",
+                "say": "उस दौरान थोड़ा भी भरो... तो मूल नहीं बढ़ेगा।",
+                "caption": "Pay even part of it during study and the principal stops growing.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹5,00,000",
+                  "baseLabel": "Loan",
+                  "op": "+ 4 years at 9%",
+                  "result": "₹6,80,000",
+                  "resultLabel": "If you pay nothing"
+                }
+              }
+            ],
+            "cta": "Are you repaying one?",
+            "ctaSaid": "आप एजुकेशन लोन चुका रहे हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹5,00,000",
+              "₹6,80,000"
+            ]
+          }
         },
         {
           "id": "s2-18",
@@ -2237,7 +2665,54 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Put every extra rupee here",
+            "hookSaid": "जो भी अतिरिक्त आए... सीधा कर्ज़ पर।",
+            "beats": [
+              {
+                "onScreen": "Bonus, refund, gift",
+                "say": "बोनस, टैक्स रिफंड, शादी का गिफ्ट... सब यहीं।",
+                "caption": "A bonus, a tax refund, wedding money. All of it goes here.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Bonus",
+                    "Tax refund",
+                    "Anything unplanned"
+                  ]
+                }
+              },
+              {
+                "onScreen": "It skips the interest",
+                "say": "जो अभी चुकाया... उस पर ब्याज कभी लगेगा ही नहीं।",
+                "caption": "Money repaid today never gets charged interest at all.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹25,000",
+                  "baseLabel": "Bonus paid in",
+                  "op": "× 42% avoided",
+                  "result": "₹10,500",
+                  "resultLabel": "Saved this year"
+                }
+              },
+              {
+                "onScreen": "Do it the same day",
+                "say": "उसी दिन करो... वरना वो पैसा खर्च हो जाएगा।",
+                "caption": "Do it the same day it arrives, or it will simply get spent.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Where did your last bonus go?",
+            "ctaSaid": "आपका पिछला बोनस कहाँ गया? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹25,000",
+              "₹10,500"
+            ]
+          }
         },
         {
           "id": "s2-19",
@@ -2268,7 +2743,57 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Close the card, or keep it?",
+            "hookSaid": "कार्ड चुकाने के बाद... बंद करें या रखें?",
+            "beats": [
+              {
+                "onScreen": "Keeping it usually helps",
+                "say": "आमतौर पर... खुला रखना बेहतर होता है।",
+                "caption": "In most cases keeping it open is the better choice.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Keep it open",
+                  "b": "Close it",
+                  "aLabel": "Longer history, lower usage",
+                  "bLabel": "Both get worse"
+                }
+              },
+              {
+                "onScreen": "Usage ratio matters",
+                "say": "कुल लिमिट का तीस प्रतिशत से कम... इस्तेमाल रखो।",
+                "caption": "Keep your usage under about thirty percent of the total limit.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹2,00,000",
+                  "baseLabel": "Total limit",
+                  "op": "× 30%",
+                  "result": "₹60,000",
+                  "resultLabel": "Stay under this"
+                }
+              },
+              {
+                "onScreen": "Close it only if it costs",
+                "say": "सालाना फीस लगती है... तभी बंद करने की सोचो।",
+                "caption": "Only consider closing it if it charges an annual fee you never recover.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Check the annual fee",
+                    "Check how old the card is",
+                    "Close the newest, not the oldest"
+                  ]
+                }
+              }
+            ],
+            "cta": "Have you closed one?",
+            "ctaSaid": "आपने कोई कार्ड बंद किया है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹2,00,000",
+              "₹60,000"
+            ]
+          }
         },
         {
           "id": "s2-20",
@@ -2299,7 +2824,54 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "The last EMI",
+            "hookSaid": "आखिरी EMI... सबसे अच्छा दिन है।",
+            "beats": [
+              {
+                "onScreen": "Get it in writing",
+                "say": "चुकाने के बाद... नो ड्यूज़ सर्टिफिकेट ज़रूर लो।",
+                "caption": "Once it is cleared, always collect a no-dues certificate.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Ask for the no-dues letter",
+                    "Check CIBIL after 45 days",
+                    "Collect any pledged documents"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Check the report",
+                "say": "पैंतालीस दिन बाद... CIBIL पर बंद दिखना चाहिए।",
+                "caption": "After about forty five days it should show as closed on your report.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Check after 45 days"
+                }
+              },
+              {
+                "onScreen": "Now redirect the EMI",
+                "say": "जो सात हज़ार EMI जाती थी... अब वो आपकी है।",
+                "caption": "The seven thousand that was leaving every month is now yours.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹7,000",
+                  "baseLabel": "Old EMI",
+                  "op": "× 12 months",
+                  "result": "₹84,000",
+                  "resultLabel": "Yours, every year"
+                }
+              }
+            ],
+            "cta": "When is your last EMI?",
+            "ctaSaid": "आपकी आखिरी EMI कब है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹7,000",
+              "₹84,000"
+            ]
+          }
         }
       ]
     },

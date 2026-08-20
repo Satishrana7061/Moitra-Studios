@@ -585,7 +585,17 @@ export function checkableClaims(claims: string[]): string[] {
  * nobody has to remember to update a list.
  */
 export const hasNumericMaterial = (topic?: ScheduledTopic): boolean =>
-    [...(topic?.facts ?? []), ...(topic?.keyNumbers ?? [])].some((f) => /\d/.test(f ?? ''));
+    [...(topic?.facts ?? []), ...(topic?.keyNumbers ?? [])].some((f) =>
+        // MONEY or a RATE, not merely a digit.
+        //
+        // "any digit" was too blunt and it showed up on the recovery-agent
+        // topic, whose facts are about when an agent may telephone you — "not
+        // before 8:00 a.m. or after 7:00 p.m." Those are clock times. Demanding
+        // visible arithmetic there would have forced an invented sum onto a
+        // topic that is entirely about rights, which is exactly the failure the
+        // gate was written to prevent in the other direction.
+        /[₹%]|\d+(?:\.\d+)?\s*(?:per\s?cent|percent)|\b(?:lakh|crore|thousand|hazaar|हज़ार|लाख|करोड़)\b/i.test(f ?? ''),
+    );
 
 /** Structural problems that make a script unrenderable. */
 export function structuralIssues(script: MoneyScript, topic?: ScheduledTopic): string[] {

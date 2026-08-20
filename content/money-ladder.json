@@ -930,7 +930,64 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Write every debt on paper",
+            "hookSaid": "आपको अपना पूरा नंबर पता है?",
+            "beats": [
+              {
+                "onScreen": "Most people guess",
+                "say": "ज़्यादातर लोगों को... अपना कुल कर्ज़ पता ही नहीं होता।",
+                "caption": "Most people genuinely do not know what their total debt adds up to.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Every card balance",
+                    "Every EMI",
+                    "Every personal loan"
+                  ]
+                }
+              },
+              {
+                "onScreen": "One page, one number",
+                "say": "एक कागज़ पर सब लिखो... और जोड़ दो।",
+                "caption": "Write all of it on one page and add it up. That number is your real position.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹0",
+                  "label": "Write yours down"
+                }
+              },
+              {
+                "onScreen": "Add the interest too",
+                "say": "अस्सी हज़ार कार्ड पर... साल भर में तैंतीस हज़ार छह सौ ब्याज।",
+                "caption": "Eighty thousand on a card costs thirty three thousand six hundred a year.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹80,000",
+                  "baseLabel": "Card balance",
+                  "op": "× 42% a year",
+                  "result": "₹33,600",
+                  "resultLabel": "Interest alone"
+                }
+              },
+              {
+                "onScreen": "You cannot fix a blur",
+                "say": "जो नंबर दिखता नहीं... वो ठीक भी नहीं होता।",
+                "caption": "A number you cannot see is a number you will never fix.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Do you know your total?",
+            "ctaSaid": "आपका कुल कर्ज़ पता है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹80,000",
+              "₹33,600"
+            ]
+          }
         },
         {
           "id": "s2-02",
@@ -961,7 +1018,57 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Smallest first or costliest?",
+            "hookSaid": "छोटा पहले, या महँगा पहले?",
+            "beats": [
+              {
+                "onScreen": "Two real methods",
+                "say": "दो तरीके हैं... और दोनों काम करते हैं।",
+                "caption": "There are two methods, and both of them genuinely work.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Costliest first",
+                  "b": "Smallest first",
+                  "aLabel": "Saves more money",
+                  "bLabel": "Feels better sooner"
+                }
+              },
+              {
+                "onScreen": "The maths says costliest",
+                "say": "गणित कहता है... सबसे ऊँचे ब्याज वाला पहले।",
+                "caption": "The arithmetic says clear the highest interest rate first, always.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹60,000",
+                  "baseLabel": "On a 42% card",
+                  "op": "vs 14% loan",
+                  "result": "₹16,800",
+                  "resultLabel": "Extra cost per year"
+                }
+              },
+              {
+                "onScreen": "But quitting costs most",
+                "say": "पर जो तरीका आप छोड़ देंगे... वो सबसे महँगा है।",
+                "caption": "But the method you abandon halfway is the most expensive one of all.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Pick one method",
+                    "Write the order down",
+                    "Do not switch midway"
+                  ]
+                }
+              }
+            ],
+            "cta": "Which one suits you?",
+            "ctaSaid": "आपके लिए कौन सा तरीका सही है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹60,000",
+              "₹16,800"
+            ]
+          }
         },
         {
           "id": "s2-03",
@@ -988,7 +1095,54 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "The minimum due trap",
+            "hookSaid": "मिनिमम ड्यू, सबसे बड़ा जाल है।",
+            "beats": [
+              {
+                "onScreen": "It looks like relief",
+                "say": "स्क्रीन पर छोटा नंबर दिखता है... राहत लगती है।",
+                "caption": "The small number on screen looks like relief. It is the opposite.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Pay in full",
+                  "b": "Pay the minimum",
+                  "aLabel": "Interest-free",
+                  "bLabel": "Interest on everything"
+                }
+              },
+              {
+                "onScreen": "It voids the free period",
+                "say": "मिनिमम भरते ही... ब्याज-मुक्त दिन खत्म हो जाते हैं।",
+                "caption": "Paying the minimum ends your interest-free period completely.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "Interest-free days: gone"
+                }
+              },
+              {
+                "onScreen": "What stays behind",
+                "say": "बारह हज़ार के बिल पर... सिर्फ़ चार हज़ार भरा, तो आठ हज़ार आगे चला।",
+                "caption": "Pay four thousand of a twelve thousand bill and eight thousand rolls forward.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹12,000",
+                  "baseLabel": "Your bill",
+                  "op": "− ₹4,000 minimum",
+                  "result": "₹8,000",
+                  "resultLabel": "Now earning interest"
+                }
+              }
+            ],
+            "cta": "Have you paid only the minimum?",
+            "ctaSaid": "आपने कभी सिर्फ़ मिनिमम भरा है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹12,000",
+              "₹4,000",
+              "₹8,000"
+            ]
+          }
         },
         {
           "id": "s2-04",
@@ -1022,7 +1176,55 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "3.5% a month is not small",
+            "hookSaid": "साढ़े तीन प्रतिशत... महीने का।",
+            "beats": [
+              {
+                "onScreen": "Per month, not per year",
+                "say": "ये दर महीने की है... साल की नहीं।",
+                "caption": "That rate is per month, not per year. That is the whole trick.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "3.5%",
+                  "label": "Every single month"
+                }
+              },
+              {
+                "onScreen": "Twelve times over",
+                "say": "बारह महीने जोड़ो... बयालीस प्रतिशत सालाना।",
+                "caption": "Multiply by twelve months and it becomes forty two percent a year.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "3.5%",
+                  "baseLabel": "Per month",
+                  "op": "× 12 months",
+                  "result": "42%",
+                  "resultLabel": "Per year"
+                }
+              },
+              {
+                "onScreen": "Ask for the yearly figure",
+                "say": "कोई भी दर सुनो... तो सालाना पूछो।",
+                "caption": "Whenever you hear a monthly rate, ask what it is per year.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Hear a monthly rate",
+                    "Multiply by twelve",
+                    "Then decide"
+                  ]
+                }
+              }
+            ],
+            "cta": "Did you know it was 42%?",
+            "ctaSaid": "आपको बयालीस प्रतिशत पता था? कमेंट में बताओ।",
+            "numericClaims": [
+              "3.5%",
+              "42%"
+            ]
+          }
         },
         {
           "id": "s2-05",
@@ -1053,7 +1255,55 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "What that phone EMI costs",
+            "hookSaid": "फोन की EMI, दिखती से ज़्यादा महँगी है।",
+            "beats": [
+              {
+                "onScreen": "The sticker is not the price",
+                "say": "बीस हज़ार का फोन... बीस हज़ार में नहीं आता।",
+                "caption": "A twenty thousand rupee phone does not cost twenty thousand.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹20,000",
+                  "label": "The sticker price"
+                }
+              },
+              {
+                "onScreen": "Interest on a reducing balance",
+                "say": "सत्रह प्रतिशत सालाना... चौबीस महीने तक।",
+                "caption": "Seventeen percent a year, charged over twenty four months.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹20,000",
+                  "baseLabel": "Phone price",
+                  "op": "+ 17% a year, 24 months",
+                  "result": "₹23,700",
+                  "resultLabel": "What you actually pay"
+                }
+              },
+              {
+                "onScreen": "Plus a processing fee",
+                "say": "और ऊपर से... प्रोसेसिंग फीस अलग।",
+                "caption": "And a processing fee sits on top of that, separately.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Ask the total repayable",
+                    "Not the monthly EMI",
+                    "Then compare"
+                  ]
+                }
+              }
+            ],
+            "cta": "Do you know your EMI total?",
+            "ctaSaid": "आपकी EMI का कुल कितना है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹20,000",
+              "₹23,700"
+            ]
+          }
         },
         {
           "id": "s2-06",
@@ -1084,7 +1334,53 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Buy now, pay later is debt",
+            "hookSaid": "Buy now pay later... कर्ज़ ही है।",
+            "beats": [
+              {
+                "onScreen": "It never feels like it",
+                "say": "ना कार्ड लगता है, ना लोन... इसलिए ध्यान नहीं जाता।",
+                "caption": "It does not feel like a card or a loan, so nobody keeps count.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "A loan you track",
+                  "b": "BNPL you forget",
+                  "aLabel": "You see it",
+                  "bLabel": "It stacks quietly"
+                }
+              },
+              {
+                "onScreen": "Four of them at once",
+                "say": "चार ऐप, चार किस्तें... एक ही महीने में।",
+                "caption": "Four apps, four instalments, all landing in the same month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,250",
+                  "baseLabel": "Each instalment",
+                  "op": "× 4 apps",
+                  "result": "₹5,000",
+                  "resultLabel": "Out of one salary"
+                }
+              },
+              {
+                "onScreen": "Missing one costs more",
+                "say": "एक चूकी... तो फीस और स्कोर, दोनों पर असर।",
+                "caption": "Miss one and it costs you a fee and your credit score together.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "How many BNPL apps do you use?",
+            "ctaSaid": "आप कितने ऐप इस्तेमाल करते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,250",
+              "₹5,000"
+            ]
+          }
         },
         {
           "id": "s2-07",
@@ -1115,7 +1411,53 @@
               "checkedOn": "2026-08-19",
               "volatile": true
             }
-          ]
+          ],
+          "script": {
+            "hook": "Stop using the card first",
+            "hookSaid": "चुकाते वक़्त, कार्ड बंद रखो।",
+            "beats": [
+              {
+                "onScreen": "The unpaid balance spreads",
+                "say": "पिछला बकाया बचा है... तो नई खरीद पर भी ब्याज।",
+                "caption": "If any old balance remains, even new purchases start earning interest.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "No free days while a balance sits"
+                }
+              },
+              {
+                "onScreen": "You lose the free window",
+                "say": "बीस से पचास दिन का ब्याज-मुक्त समय... खत्म।",
+                "caption": "The twenty to fifty interest-free days you normally get simply vanish.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Zero balance",
+                  "b": "Any balance",
+                  "aLabel": "20-50 free days",
+                  "bLabel": "Interest from day one"
+                }
+              },
+              {
+                "onScreen": "What a new purchase costs",
+                "say": "उस हालत में तीन हज़ार की खरीद... सौ रुपये महीना ब्याज।",
+                "caption": "In that state a three thousand rupee purchase adds a hundred a month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹3,000",
+                  "baseLabel": "New purchase",
+                  "op": "× 3.5% a month",
+                  "result": "₹105",
+                  "resultLabel": "From the day you swipe"
+                }
+              }
+            ],
+            "cta": "Can you park the card?",
+            "ctaSaid": "क्या आप कार्ड कुछ महीने रख सकते हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹3,000",
+              "₹105"
+            ]
+          }
         },
         {
           "id": "s2-08",
@@ -1146,7 +1488,54 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "When a balance transfer helps",
+            "hookSaid": "बैलेंस ट्रांसफर... कब फ़ायदे का है?",
+            "beats": [
+              {
+                "onScreen": "Only if you finish in time",
+                "say": "सिर्फ़ तभी... जब आप तय समय में चुका दो।",
+                "caption": "Only if you actually clear it inside the low-rate window.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Check the processing fee",
+                    "Check the window length",
+                    "Be honest about finishing"
+                  ]
+                }
+              },
+              {
+                "onScreen": "The fee is real money",
+                "say": "एक लाख पर दो प्रतिशत फीस... दो हज़ार रुपये।",
+                "caption": "A two percent fee on one lakh is two thousand rupees, paid upfront.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,00,000",
+                  "baseLabel": "Transferred",
+                  "op": "× 2% fee",
+                  "result": "₹2,000",
+                  "resultLabel": "Paid before you start"
+                }
+              },
+              {
+                "onScreen": "Miss the window, lose it all",
+                "say": "समय निकला... तो पुरानी दर वापस आ जाती है।",
+                "caption": "Miss the deadline and the old rate comes straight back.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Have you tried one?",
+            "ctaSaid": "आपने कभी बैलेंस ट्रांसफर किया है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,00,000",
+              "₹2,000"
+            ]
+          }
         },
         {
           "id": "s2-09",
@@ -1177,7 +1566,54 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Call the bank. Really.",
+            "hookSaid": "बैंक से बात करने में, डर कैसा?",
+            "beats": [
+              {
+                "onScreen": "They prefer you pay",
+                "say": "बैंक को भी वसूली चाहिए... इसलिए बात सुनी जाती है।",
+                "caption": "The bank wants to recover the money, so it will usually listen.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Call before you default",
+                    "Ask what options exist",
+                    "Get it in writing"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Ask for a lower rate",
+                "say": "मौजूदा ग्राहक हो... तो दर घटाने को कहो।",
+                "caption": "If you have been a customer a while, ask them to reduce the rate.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹80,000",
+                  "baseLabel": "Balance",
+                  "op": "42% → 30% a year",
+                  "result": "₹9,600",
+                  "resultLabel": "Saved in a year"
+                }
+              },
+              {
+                "onScreen": "Silence is the worst option",
+                "say": "चुप रहना... सबसे बुरा रास्ता है।",
+                "caption": "Going silent is the one option that makes everything worse.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Have you ever negotiated?",
+            "ctaSaid": "आपने कभी बैंक से बात की है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹80,000",
+              "₹9,600"
+            ]
+          }
         },
         {
           "id": "s2-10",
@@ -1208,7 +1644,55 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Find your debt-free date",
+            "hookSaid": "आपकी कर्ज़-मुक्त तारीख, कौन सी है?",
+            "beats": [
+              {
+                "onScreen": "A date changes everything",
+                "say": "एक तारीख तय हो जाए... तो लड़ाई का अंत दिखता है।",
+                "caption": "Once there is a date, the fight has a visible finish line.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "₹0",
+                  "label": "Pick your month"
+                }
+              },
+              {
+                "onScreen": "Balance divided by payment",
+                "say": "बकाया को... महीने की किस्त से भाग दो।",
+                "caption": "Divide what you owe by what you can pay each month.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹90,000",
+                  "baseLabel": "Total owed",
+                  "op": "÷ ₹7,500 a month",
+                  "result": "12",
+                  "resultLabel": "Months to free"
+                }
+              },
+              {
+                "onScreen": "Write it on the wall",
+                "say": "वो तारीख लिखकर... सामने चिपका दो।",
+                "caption": "Write that date down and stick it somewhere you see daily.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Add up every balance",
+                    "Divide by your monthly payment",
+                    "Mark that month"
+                  ]
+                }
+              }
+            ],
+            "cta": "What is your date?",
+            "ctaSaid": "आपकी कर्ज़-मुक्त तारीख क्या है? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹90,000",
+              "₹7,500"
+            ]
+          }
         },
         {
           "id": "s2-11",
@@ -1241,7 +1725,53 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Pause investing while in debt",
+            "hookSaid": "कर्ज़ चुकाते वक़्त, निवेश क्यों रोकें?",
+            "beats": [
+              {
+                "onScreen": "Two rates, one comparison",
+                "say": "एक तरफ़ बयालीस प्रतिशत... दूसरी तरफ़ उम्मीद।",
+                "caption": "On one side a certain forty two percent. On the other, only hope.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Debt cleared",
+                  "b": "Money invested",
+                  "aLabel": "Certain 42% saved",
+                  "bLabel": "Uncertain, and taxed"
+                }
+              },
+              {
+                "onScreen": "Clearing debt is guaranteed",
+                "say": "कर्ज़ चुकाना... एक पक्की बचत है।",
+                "caption": "Clearing a debt is the one saving that is completely guaranteed.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹50,000",
+                  "baseLabel": "Cleared today",
+                  "op": "× 42% a year",
+                  "result": "₹21,000",
+                  "resultLabel": "Guaranteed saving"
+                }
+              },
+              {
+                "onScreen": "Keep the buffer, pause the rest",
+                "say": "बफर रखो... बाकी सब कुछ महीने रुक जाए।",
+                "caption": "Keep your buffer. Pause everything else for a few months.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Are you doing both at once?",
+            "ctaSaid": "आप दोनों एक साथ कर रहे हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹50,000",
+              "₹21,000"
+            ]
+          }
         },
         {
           "id": "s2-12",
@@ -1272,7 +1802,57 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "When a gold loan makes sense",
+            "hookSaid": "गोल्ड लोन... कब समझदारी है?",
+            "beats": [
+              {
+                "onScreen": "It is cheaper than a card",
+                "say": "सोने पर लोन... कार्ड से काफ़ी सस्ता पड़ता है।",
+                "caption": "A loan against gold is considerably cheaper than a credit card.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Gold loan",
+                  "b": "Credit card",
+                  "aLabel": "Around 9-15%",
+                  "bLabel": "About 42%"
+                }
+              },
+              {
+                "onScreen": "The gap is the point",
+                "say": "एक लाख पर... सालाना सत्ताईस हज़ार का फ़र्क।",
+                "caption": "On one lakh, that gap is twenty seven thousand rupees a year.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹1,00,000",
+                  "baseLabel": "Same amount owed",
+                  "op": "42% → 15%",
+                  "result": "₹27,000",
+                  "resultLabel": "Saved in a year"
+                }
+              },
+              {
+                "onScreen": "But the gold is at risk",
+                "say": "पर याद रखो... ना चुकाया तो सोना चला जाता है।",
+                "caption": "But remember: if you cannot repay, the gold is gone.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Only for existing debt",
+                    "Never for a purchase",
+                    "Have a repayment date"
+                  ]
+                }
+              }
+            ],
+            "cta": "Would you use one?",
+            "ctaSaid": "आप गोल्ड लोन लेंगे? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹1,00,000",
+              "₹27,000"
+            ]
+          }
         },
         {
           "id": "s2-13",
@@ -1303,7 +1883,56 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Before you guarantee a loan",
+            "hookSaid": "किसी का गारंटर बनने से पहले... ये सुन लो।",
+            "beats": [
+              {
+                "onScreen": "It is your loan too",
+                "say": "गारंटर बनना मतलब... वो कर्ज़ आपका भी है।",
+                "caption": "Standing guarantor means that loan is legally yours as well.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "You think",
+                  "b": "The bank thinks",
+                  "aLabel": "I am just a witness",
+                  "bLabel": "You owe the full amount"
+                }
+              },
+              {
+                "onScreen": "It sits on your score",
+                "say": "आपके CIBIL पर... वो पूरा अमाउंट दिखता है।",
+                "caption": "The entire amount shows up on your own credit report.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹5,00,000",
+                  "baseLabel": "Their loan",
+                  "op": "appears on your report",
+                  "result": "₹5,00,000",
+                  "resultLabel": "Against your name"
+                }
+              },
+              {
+                "onScreen": "Your own loan gets harder",
+                "say": "अपना लोन लेने जाओगे... तो यही आड़े आएगा।",
+                "caption": "When you apply for your own loan, this is what blocks it.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Ask why a guarantor is needed",
+                    "Assume you will repay it",
+                    "Then decide"
+                  ]
+                }
+              }
+            ],
+            "cta": "Have you been asked?",
+            "ctaSaid": "आपसे कभी गारंटर बनने को कहा गया? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹5,00,000"
+            ]
+          }
         },
         {
           "id": "s2-14",
@@ -1336,7 +1965,55 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "Five signs of a debt trap",
+            "hookSaid": "कर्ज़ के जाल के, पाँच संकेत।",
+            "beats": [
+              {
+                "onScreen": "Borrowing to repay",
+                "say": "एक कर्ज़ चुकाने के लिए... दूसरा ले रहे हो।",
+                "caption": "You are taking one loan to repay another one.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Borrowing to repay",
+                    "Only paying minimums",
+                    "Cash on the credit card"
+                  ]
+                }
+              },
+              {
+                "onScreen": "The balance never moves",
+                "say": "हर महीने भरते हो... पर बकाया वहीं का वहीं।",
+                "caption": "You pay every month but the balance never seems to move.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹60,000",
+                  "baseLabel": "Balance",
+                  "op": "− ₹2,100 interest first",
+                  "result": "₹900",
+                  "resultLabel": "Of a ₹3,000 payment"
+                }
+              },
+              {
+                "onScreen": "Three or more, act now",
+                "say": "तीन या ज़्यादा मिलें... तो आज ही शुरू करो।",
+                "caption": "If three or more of these are true, start today, not next month.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "How many apply to you?",
+            "ctaSaid": "इनमें से कितने आप पर लागू हैं? कमेंट में बताओ।",
+            "numericClaims": [
+              "₹60,000",
+              "₹2,100",
+              "₹900"
+            ]
+          }
         },
         {
           "id": "s2-15",
@@ -1367,7 +2044,55 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "What a CIBIL score really is",
+            "hookSaid": "CIBIL स्कोर... असल में है क्या?",
+            "beats": [
+              {
+                "onScreen": "Three hundred to nine hundred",
+                "say": "तीन सौ से नौ सौ के बीच... एक नंबर।",
+                "caption": "It is a single number between three hundred and nine hundred.",
+                "visual": {
+                  "kind": "bigNumber",
+                  "value": "300-900",
+                  "label": "Your range"
+                }
+              },
+              {
+                "onScreen": "Above 750 is good",
+                "say": "साढ़े सात सौ से ऊपर... ज़्यादातर बैंक अच्छा मानते हैं।",
+                "caption": "Most Indian lenders treat seven fifty and above as good.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "750 and above",
+                  "b": "Below 650",
+                  "aLabel": "Better rates offered",
+                  "bLabel": "Higher rates, or refused"
+                }
+              },
+              {
+                "onScreen": "It costs real money",
+                "say": "कम स्कोर मतलब... ऊँची दर, और ज़्यादा ब्याज।",
+                "caption": "A low score means a higher rate, and that is real money.",
+                "visual": {
+                  "kind": "worked",
+                  "base": "₹5,00,000",
+                  "baseLabel": "Home loan",
+                  "op": "9% vs 10.5%",
+                  "result": "₹7,500",
+                  "resultLabel": "Extra, every year"
+                }
+              }
+            ],
+            "cta": "Do you know your score?",
+            "ctaSaid": "आपका स्कोर आपको पता है? कमेंट में बताओ।",
+            "numericClaims": [
+              "300-900",
+              "₹5,00,000",
+              "₹7,500"
+            ]
+          }
         },
         {
           "id": "s2-16",
@@ -1398,7 +2123,59 @@
               "checkedOn": "2026-08-19",
               "volatile": false
             }
-          ]
+          ],
+          "script": {
+            "hook": "What a recovery agent cannot do",
+            "hookSaid": "रिकवरी एजेंट, ये नहीं कर सकता।",
+            "beats": [
+              {
+                "onScreen": "Not before 8, not after 7",
+                "say": "सुबह आठ से पहले... और शाम सात के बाद, कॉल नहीं।",
+                "caption": "RBI rules: no calls before eight in the morning or after seven at night.",
+                "visual": {
+                  "kind": "clock",
+                  "label": "8am to 7pm only"
+                }
+              },
+              {
+                "onScreen": "They must identify themselves",
+                "say": "पहचान पत्र और बैंक का पत्र... दोनों साथ होने चाहिए।",
+                "caption": "They must carry the bank's authorisation letter and an identity card.",
+                "visual": {
+                  "kind": "steps",
+                  "items": [
+                    "Ask for the authorisation letter",
+                    "Ask for the ID card",
+                    "Note the name and time"
+                  ]
+                }
+              },
+              {
+                "onScreen": "Threats are not allowed",
+                "say": "धमकी, अपमान, या पड़ोसियों से बात... सब मना है।",
+                "caption": "Threats, humiliation and contacting your neighbours are all prohibited.",
+                "visual": {
+                  "kind": "compare",
+                  "a": "Allowed",
+                  "b": "Not allowed",
+                  "aLabel": "A polite call in hours",
+                  "bLabel": "Threats or public shaming"
+                }
+              },
+              {
+                "onScreen": "Complain to the bank first",
+                "say": "पहले बैंक में शिकायत... फिर लोकपाल के पास।",
+                "caption": "Complain to the bank first, then escalate to the banking ombudsman.",
+                "visual": {
+                  "kind": "ladder",
+                  "highlightStep": 2
+                }
+              }
+            ],
+            "cta": "Has this happened to you?",
+            "ctaSaid": "क्या आपके साथ ऐसा हुआ है? कमेंट में बताओ।",
+            "numericClaims": []
+          }
         },
         {
           "id": "s2-17",

@@ -90,8 +90,9 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = () => {
                         <Section id="rajneeti" icon={Landmark} title="3. Rajneeti (the game)">
                             <p>Rajneeti collects very little. We do not collect your name or email unless you contact support.</p>
                             <ul className="list-disc pl-5 space-y-1">
-                                <li><strong>Device information</strong> (device model, OS version) and <strong>anonymous usage statistics</strong>, to fix bugs and balance the game.</li>
-                                <li><strong>Advertising:</strong> Rajneeti shows ads through Google AdMob, which may use your device's advertising ID to show and measure ads. You can reset or limit it in your phone's settings.</li>
+                                <li><strong>Crash logs</strong> (the error, device model and OS version), to find and fix crashes.</li>
+                                <li><strong>Advertising:</strong> Rajneeti shows ads through Google AdMob. Your device's advertising ID is shared with Google to show and measure ads. You can reset or limit it in your phone's settings.</li>
+                                <li>Rajneeti keeps no account on our servers. To ask about or delete any data, write to <span className="select-all">{STUDIO_INFO.email}</span>.</li>
                             </ul>
                         </Section>
 

@@ -64,7 +64,8 @@
 .st-side { position: absolute; inset: 0; isolation: isolate; z-index: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: clamp(18px, 3vw, 40px); color: #fff; text-decoration: none; }
 .st-side.gp { background: var(--gp-bg) url(/site/map.jpg) 62% 30% / cover; }
 .st-side.gp::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(4,17,27,.95), rgba(4,17,27,.2) 60%); }
-.st-side.rj { z-index: 2; background: #ffd9a8 url(/site/rj_play-screen.jpg) 60% center / cover; clip-path: inset(0 0 0 var(--cut, 55%)); }
+/* White text here: the Rajneeti page's own .rj rule (dark ink) also matches this half. */
+.st-side.rj { color: #fff; font-family: var(--f-body); z-index: 2; background: #ffd9a8 url(/site/rj_play-screen.jpg) 60% center / cover; clip-path: inset(0 0 0 var(--cut, 55%)); }
 .st-side.rj::after { content: ""; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(42,20,6,.92), rgba(42,20,6,.05) 60%); }
 .st-lbl { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 8px; max-width: 440px; }
 .st-side.rj .st-lbl { margin-left: auto; text-align: right; align-items: flex-end; }

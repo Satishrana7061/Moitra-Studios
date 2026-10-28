@@ -6,6 +6,8 @@ import Footer from './components/Footer';
 
 // Code-split heavy pages for faster initial load
 import RajneetiMap from './components/RajneetiMap';
+import StudioHome from './components/StudioHome';
+const GeoPoliticsPage = lazy(() => import('./components/GeoPoliticsPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const ContactSection = lazy(() => import('./components/ContactSection'));
 const RajneetiNetworkTV = lazy(() => import('./components/RajneetiNetworkTV'));
@@ -41,7 +43,8 @@ const ScrollToTop = ({ mainRef }: { mainRef: React.RefObject<HTMLElement> }) => 
 const App: React.FC = () => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
-  const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
+  // The Rajneeti map fills the screen; the studio home ('/') is a normal scrolling page.
+  const isMapPage = location.pathname === '/indian-politics-game-home' || location.pathname === '/rajneeti';
 
   // Global SEO Defaults
   useSEO({});
@@ -58,7 +61,9 @@ const App: React.FC = () => {
       >
         <Suspense fallback={<PageLoader />}>
           <Routes>
-            <Route path="/" element={<RajneetiMap />} />
+            <Route path="/" element={<StudioHome />} />
+            <Route path="/geopolitics" element={<GeoPoliticsPage />} />
+            <Route path="/rajneeti" element={<RajneetiMap />} />
             <Route path="/indian-politics-game-home" element={<RajneetiMap />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy onBack={() => window.history.back()} />} />
             <Route path="/contact-us" element={<ContactSection />} />
@@ -71,7 +76,7 @@ const App: React.FC = () => {
             <Route path="/prime-ministers-promises" element={<ManifestoHub />} />
             <Route path="/prime-ministers-promises/:slug" element={<PromiseDetail />} />
 
-            <Route path="*" element={<RajneetiMap />} />
+            <Route path="*" element={<StudioHome />} />
           </Routes>
         </Suspense>
         <Footer />

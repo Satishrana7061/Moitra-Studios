@@ -35,7 +35,7 @@ const Footer: React.FC = () => {
               </div>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed text-center md:text-left normal-case">
-              Crafting immersive Indian political strategy games. Experience the thrill of election campaigns and political simulations.
+              Strategy games about politics and the world: GeoPolitics and Rajneeti.
             </p>
           </div>
 
@@ -43,7 +43,9 @@ const Footer: React.FC = () => {
           <div className="flex flex-col items-center">
             <h2 className="text-[10px] font-black text-gameOrange uppercase tracking-[0.3em] mb-4">Quick Links</h2>
             <div className="flex flex-col items-center gap-2">
-              <Link to="/indian-politics-game-home" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Home</Link>
+              <Link to="/" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Home</Link>
+              <Link to="/geopolitics" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">GeoPolitics</Link>
+              <Link to="/indian-politics-game-home" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Rajneeti</Link>
               <Link to="/rajneeti-tv-network" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Rajneeti TV Network</Link>
               <Link to="/privacy-policy" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Privacy Policy</Link>
               <Link to="/terms-of-service" className="text-slate-400 hover:text-white text-xs transition-colors uppercase tracking-wider">Terms of Service</Link>

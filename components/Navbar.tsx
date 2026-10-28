@@ -9,12 +9,13 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isMapPage = location.pathname === '/' || location.pathname === '/indian-politics-game-home';
+  const isMapPage = location.pathname === '/indian-politics-game-home' || location.pathname === '/rajneeti';
 
   // Determine active link
   const getIsActive = (href: string) => {
+    if (href === '/') return location.pathname === '/';
     if (href === '/indian-politics-game-home') {
-      return location.pathname === '/' || location.pathname === '/indian-politics-game-home';
+      return location.pathname === '/indian-politics-game-home' || location.pathname === '/rajneeti';
     }
     return location.pathname.startsWith(href);
   };

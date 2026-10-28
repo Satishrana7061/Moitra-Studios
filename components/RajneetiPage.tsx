@@ -1,11 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { GAMES_DATA } from '../constants';
+import { GAMES_DATA, STUDIO_INFO } from '../constants';
 import './redesign/redesign.css';
 
 // Rajneeti's own page (redesign approved 28 Oct 2026): bright like the game, with the Lok Sabha's
-// 543 seats filling in the player's saffron until the count passes the 272 majority. The full
-// state-by-state map stays at /indian-politics-game-home.
+// 543 seats filling in the player's saffron until the count passes the 272 majority.
 const TOTAL = 543, MAJORITY = 272, YOURS = 301, RIVAL = 190;
 const PLAY_URL = GAMES_DATA.find(g => g.id === 'rajneeti')?.playStoreLink ?? 'https://play.google.com/store/apps/details?id=com.rajneeti';
 
@@ -95,7 +93,6 @@ const RajneetiPage: React.FC = () => {
             <p>Start a party, raise funds, give speeches and build HQs across every state. Turn by turn, the Lok Sabha fills with your colour.</p>
             <div className="rj-row">
               <a className="rj-btn" href={PLAY_URL} target="_blank" rel="noopener noreferrer">▶ Get it on Google Play</a>
-              <Link className="rj-btn alt" to="/indian-politics-game-home">Open the state map</Link>
             </div>
           </div>
           <LokSabha />
@@ -105,13 +102,9 @@ const RajneetiPage: React.FC = () => {
             <div key={f.title} className="rj-feat"><img src={f.img} alt={`Rajneeti: ${f.title.toLowerCase()} screen`} loading="lazy" /><div><h2>{f.title}</h2><p>{f.text}</p></div></div>
           ))}
         </div>
-        <div className="rj-band">
-          <div><h2><span className="rj-live">LIVE</span>Rajneeti TV Network</h2><p>Daily political news as short cartoon bulletins.</p></div>
-          <Link className="rj-btn alt" to="/rajneeti-tv-network">Open Rajneeti TV</Link>
-        </div>
-        <div className="rj-band light" style={{ marginBottom: 40 }}>
-          <div><h2>Promises and interviews</h2><p>Track the Prime Ministers' promises, or sit the PM interview.</p></div>
-          <div className="rj-row"><Link className="rj-btn alt" to="/prime-ministers-promises">PM Promises</Link><Link className="rj-btn alt" to="/pm-interview">PM Interview</Link></div>
+        <div className="rj-band" style={{ marginBottom: 40 }}>
+          <div><h2>Free on Google Play</h2><p>Rajneeti: Indian Strategy Game, by {STUDIO_INFO.name}.</p></div>
+          <a className="rj-btn" href={PLAY_URL} target="_blank" rel="noopener noreferrer">▶ Get it on Google Play</a>
         </div>
       </div>
     </div>

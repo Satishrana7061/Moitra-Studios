@@ -13,8 +13,8 @@ export const useSEO = ({
   canonical,
   ogType = 'website' 
 }: SEOProps) => {
-  const siteName = 'Rajneeti | Moitra Studios';
-  const defaultDesc = 'Master Indian elections in Rajneeti. Build alliances, manage your party, and win the political battlefield.';
+  const siteName = 'Moitra Studios';
+  const defaultDesc = 'Moitra Studios makes strategy games about how power works: GeoPolitics and Rajneeti.';
   const baseUrl = 'https://moitrastudios.com';
 
   useEffect(() => {

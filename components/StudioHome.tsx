@@ -82,19 +82,12 @@ const StudioHome: React.FC = () => {
             <p>Lead one of 20 countries. 104 cards. Daily missions from the world news.</p>
           </Link>
           <Link className="st-gcard" to="/rajneeti">
-            <img src="/site/rj_play-screen.jpg" alt="" loading="lazy" />
+            <img src="/site/rj_headquarter-builder-screen.jpg" alt="" loading="lazy" />
             <span className="st-pill">ON GOOGLE PLAY</span>
             <h2>Rajneeti</h2>
             <p>Raise funds, give speeches, build HQs and take the Lok Sabha.</p>
           </Link>
         </div>
-        <nav className="st-links" aria-label="Studio links">
-          <span>{STUDIO_INFO.email}</span>
-          <Link to="/privacy-policy">Privacy Policy</Link>
-          <Link to="/terms-of-service">Terms of Service</Link>
-          <Link to="/geopolitics#player-information">Delete my data</Link>
-          <Link to="/contact-us">Contact</Link>
-        </nav>
       </div>
     </div>
   );

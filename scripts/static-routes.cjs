@@ -6,7 +6,8 @@ const path = require('path');
 
 const routes = [
   'privacy-policy', 'terms-of-service', 'contact-us', 'geopolitics', 'rajneeti',
-  'indian-politics-game-home', 'pm-interview', 'prime-ministers-promises', 'rajneeti-tv-network',
+  // The old Rajneeti address, kept so existing links still land on the Rajneeti page.
+  'indian-politics-game-home',
 ];
 const index = path.join('dist', 'index.html');
 for (const route of routes) {

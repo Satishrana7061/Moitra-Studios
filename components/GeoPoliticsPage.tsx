@@ -48,6 +48,14 @@ const HeroStage: React.FC = () => {
     let deckN = 12, k = 0;
 
     const playOne = async () => {
+      // Each round of three plays starts from the same strengths, so the bars never drift to the top.
+      if (k % PLAYS.length === 0) {
+        stage.querySelectorAll('.gp-hud').forEach((hud, s) => hud.querySelectorAll('.gp-meter').forEach((m, i) => {
+          const v = s === 0 ? METERS[i][1] : METERS[i][2];
+          (m.lastElementChild as HTMLElement).textContent = String(v);
+          (m.querySelector('i') as HTMLElement).style.setProperty('--v', `${v}%`);
+        }));
+      }
       const p = PLAYS[k % PLAYS.length], pin = pins[p.at]; k++;
       const W = stage.clientWidth, H = stage.clientHeight;
       await anim(turn, [{ opacity: 0, transform: 'translate(-50%,-30%)' }, { opacity: 1, transform: 'translate(-50%,-50%)', offset: .2 }, { opacity: 1, offset: .8 }, { opacity: 0, transform: 'translate(-50%,-70%)' }], { duration: 1500, easing: 'ease-out' });

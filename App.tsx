@@ -8,6 +8,7 @@ import Footer from './components/Footer';
 import RajneetiMap from './components/RajneetiMap';
 import StudioHome from './components/StudioHome';
 const GeoPoliticsPage = lazy(() => import('./components/GeoPoliticsPage'));
+const RajneetiPage = lazy(() => import('./components/RajneetiPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const ContactSection = lazy(() => import('./components/ContactSection'));
 const RajneetiNetworkTV = lazy(() => import('./components/RajneetiNetworkTV'));
@@ -44,7 +45,7 @@ const App: React.FC = () => {
   const location = useLocation();
   const mainRef = useRef<HTMLElement>(null);
   // The Rajneeti map fills the screen; the studio home ('/') is a normal scrolling page.
-  const isMapPage = location.pathname === '/indian-politics-game-home' || location.pathname === '/rajneeti';
+  const isMapPage = location.pathname === '/indian-politics-game-home';
 
   // Global SEO Defaults
   useSEO({});
@@ -63,7 +64,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<StudioHome />} />
             <Route path="/geopolitics" element={<GeoPoliticsPage />} />
-            <Route path="/rajneeti" element={<RajneetiMap />} />
+            <Route path="/rajneeti" element={<RajneetiPage />} />
             <Route path="/indian-politics-game-home" element={<RajneetiMap />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy onBack={() => window.history.back()} />} />
             <Route path="/contact-us" element={<ContactSection />} />

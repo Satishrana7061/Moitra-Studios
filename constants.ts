@@ -4,7 +4,7 @@ import { Game } from './types';
 export const NAV_LINKS = [
   { label: 'Home', href: '/', page: 'home' },
   { label: 'GeoPolitics', href: '/geopolitics', page: 'geopolitics' },
-  { label: 'Rajneeti', href: '/indian-politics-game-home', page: 'rajneeti' },
+  { label: 'Rajneeti', href: '/rajneeti', page: 'rajneeti' },
   { label: 'Rajneeti TV Network', href: '/rajneeti-tv-network', page: 'tv' },
   { label: 'PM Promises', href: '/prime-ministers-promises', page: 'promises' },
   { label: 'PM Interview', href: '/pm-interview', page: 'interview' },

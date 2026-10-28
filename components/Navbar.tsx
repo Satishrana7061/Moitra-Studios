@@ -9,12 +9,12 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isMapPage = location.pathname === '/indian-politics-game-home' || location.pathname === '/rajneeti';
+  const isMapPage = location.pathname === '/indian-politics-game-home';
 
   // Determine active link
   const getIsActive = (href: string) => {
     if (href === '/') return location.pathname === '/';
-    if (href === '/indian-politics-game-home') {
+    if (href === '/rajneeti') {
       return location.pathname === '/indian-politics-game-home' || location.pathname === '/rajneeti';
     }
     return location.pathname.startsWith(href);

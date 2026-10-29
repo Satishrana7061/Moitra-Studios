@@ -72,13 +72,32 @@ const FEATURES = [
   { img: '/site/rj_war-card-screen.jpg', title: 'Play war cards', text: 'Swing a close seat at the last turn.' },
 ];
 
+// Delhi, the game's city: real footage from the game (recorded 28 Oct 2026 in a Delhi story battle),
+// each clip a card played and the street answering it.
+const DELHI_CLIPS = [
+  { name: 'rj_delhi_parliament', title: 'Students block the road to Parliament', text: 'Thousands fill the roundabout outside the old Parliament House. A fact-check lands, and the crowd stays.' },
+  { name: 'rj_delhi_jantar_mantar', title: 'Farmers march on Jantar Mantar', text: 'The crowd gathers beside the observatory. Police arrive by bus, TV crews follow, shops shut.' },
+  { name: 'rj_delhi_smoke', title: 'Campus gates sealed', text: 'Smoke rises over the crowd while buses and traffic jam the roads around it.' },
+];
+
+const DelhiClip: React.FC<{ name: string; title: string; text: string }> = ({ name, title, text }) => {
+  const still = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  return (
+    <figure className="rj-clip">
+      <video src={`/site/${name}.mp4`} poster={`/site/${name}.jpg`} autoPlay={!still} controls={still}
+        muted loop playsInline preload="metadata" aria-label={`Rajneeti gameplay in Delhi: ${title}`} />
+      <figcaption><h3>{title}</h3><p>{text}</p></figcaption>
+    </figure>
+  );
+};
+
 const RajneetiPage: React.FC = () => {
   useEffect(() => {
     const t = setTimeout(() => {
       document.title = 'Rajneeti | Indian political strategy game | Moitra Studios';
-      document.querySelector('meta[name="description"]')?.setAttribute('content', 'Rajneeti is the Indian political strategy game: start a party, raise funds, give speeches, build HQs across every state and win 272 seats in the Lok Sabha.');
+      document.querySelector('meta[name="description"]')?.setAttribute('content', 'Rajneeti is the Indian political strategy game: start a party, raise funds, fight for the news on the streets of Delhi, build HQs across every state and win 272 seats in the Lok Sabha.');
       document.querySelector('meta[property="og:title"]')?.setAttribute('content', 'Rajneeti | Indian political strategy game | Moitra Studios');
-      document.querySelector('meta[property="og:description"]')?.setAttribute('content', 'Rajneeti is the Indian political strategy game: start a party, raise funds, give speeches, build HQs across every state and win 272 seats in the Lok Sabha.');
+      document.querySelector('meta[property="og:description"]')?.setAttribute('content', 'Rajneeti is the Indian political strategy game: start a party, raise funds, fight for the news on the streets of Delhi, build HQs across every state and win 272 seats in the Lok Sabha.');
     }, 0);
     return () => clearTimeout(t);
   }, []);
@@ -97,6 +116,16 @@ const RajneetiPage: React.FC = () => {
           </div>
           <LokSabha />
         </div>
+        <section className="rj-delhi" aria-labelledby="rj-delhi-h">
+          <div className="rj-delhi-intro">
+            <h2 id="rj-delhi-h">Delhi is the battlefield</h2>
+            <p>The whole of New Delhi, mapped street by street. Pick a story from the news, play your cards, and watch the city answer: crowds march, police block the roads, TV vans arrive.</p>
+          </div>
+          <img className="rj-delhi-city" src="/site/rj_delhi_city.jpg" alt="Rajneeti's Delhi from above: Lutyens' Delhi, Kartavya Path, the India Gate hexagon and the Yamuna" loading="lazy" />
+          <div className="rj-clips">
+            {DELHI_CLIPS.map(c => <DelhiClip key={c.name} {...c} />)}
+          </div>
+        </section>
         <div className="rj-feats">
           {FEATURES.map(f => (
             <div key={f.title} className="rj-feat"><img src={f.img} alt={`Rajneeti: ${f.title.toLowerCase()} screen`} loading="lazy" /><div><h2>{f.title}</h2><p>{f.text}</p></div></div>

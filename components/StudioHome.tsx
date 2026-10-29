@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { STUDIO_INFO } from '../constants';
 import './redesign/redesign.css';
+import MoitraSeal from './redesign/MoitraSeal';
 
 // The studio's front page (redesign approved 28 Oct 2026): both games in one hero, split by a
 // seam the visitor can drag; a news strip; then what the studio is and a card for each game.
@@ -71,7 +72,7 @@ const StudioHome: React.FC = () => {
 
       <div className="rd-wrap">
         <div className="st-thesis">
-          <h1>We make games about <em>how power works.</em></h1>
+          <div className="st-thesis-h"><MoitraSeal size={132} /><h1>We make games about <em>how power works.</em></h1></div>
           <p>{STUDIO_INFO.name} is a small independent studio. Our games run on real places, real numbers and the day's news, kept neutral and simplified so anyone can play.</p>
         </div>
         <div className="st-games">

@@ -1,7 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-5 -5 34 34">
-  <rect x="0" y="0" width="24" height="24" fill="#FF6B00" fill-opacity="0.2" stroke="#FF6B00" stroke-opacity="0.6" stroke-width="1.5" transform="rotate(45 12 12)" />
-  <g transform="translate(12, 12) scale(0.85) translate(-12, -12)" fill="#FF6B00">
-    <path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fill-opacity="0.3" />
-    <path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Moitra Studios seal">
+  <defs>
+    <radialGradient id="wax" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#d4452c"/><stop offset=".6" stop-color="#8e1f17"/><stop offset="1" stop-color="#4f0d0a"/></radialGradient>
+  </defs>
+  <path d="M100 6 C116 10 124 4 138 14 C152 22 162 18 172 32 C182 46 194 50 194 68 C194 84 200 94 194 110 C188 126 196 138 184 152 C172 166 170 178 152 186 C136 194 126 200 108 196 C92 192 80 200 64 190 C48 182 36 184 26 168 C16 154 6 148 6 130 C6 114 0 102 6 86 C12 70 6 58 18 44 C30 30 32 18 50 12 C66 6 82 2 100 6 Z" fill="url(#wax)"/>
+  <circle cx="100" cy="100" r="70" fill="none" stroke="#f6c66a" stroke-width="2" opacity=".7"/>
+  <g transform="translate(0 10)">
+    <path d="M100 30 V42 M64 40 L70 50 M136 40 L130 50 M40 64 L50 70 M160 64 L150 70" stroke="#ffd18a" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+    <path d="M58 92 A42 42 0 0 1 142 92" fill="none" stroke="#ffd18a" stroke-width="5" stroke-linecap="round"/>
+    <path d="M52 132 C62 118 74 112 92 112 L106 112 C112 112 112 120 106 120 L92 120" fill="none" stroke="#ffe7b8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M148 132 C138 118 124 112 112 116 L96 124 C90 127 92 134 98 132 L110 128" fill="none" stroke="#ffd18a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
 </svg>

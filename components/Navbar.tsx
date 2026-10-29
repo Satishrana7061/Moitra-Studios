@@ -3,6 +3,7 @@ import { Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { NAV_LINKS } from '../constants';
 import './redesign/redesign.css';
+import MoitraSeal from './redesign/MoitraSeal';
 
 // The studio's bar (28 Oct 2026): Moitra Studios on the left, its two games and the home page on
 // the right. On phones the links open in a full, solid panel.
@@ -27,9 +28,7 @@ const Navbar: React.FC = () => {
     <nav className={`st-nav${scrolled || open ? ' solid' : ''}`} aria-label="Main">
       <div className="st-nav-in">
         <Link to="/" className="st-brand" aria-label="Moitra Studios home">
-          <span className="st-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7V17L12 22L22 17V7L12 2ZM12 19.5L4 15.5V8.5L12 4.5L20 8.5V15.5L12 19.5Z" fillOpacity="0.35" /><path d="M12 6L8 9V15L12 18L16 15V9L12 6Z" /></svg>
-          </span>
+          <MoitraSeal size={46} label="" />
           <span className="st-word">MOITRA<small>STUDIOS</small></span>
         </Link>
         <div className="st-navlinks">

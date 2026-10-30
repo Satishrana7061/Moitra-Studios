@@ -45,7 +45,8 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = () => {
                 <div className="flex flex-col items-center mb-4 border-b-2 border-black/20 pb-4 flex-shrink-0">
                     <Shield className="w-8 h-8 text-gameOrange mb-2 drop-shadow-[0_0_10px_rgba(255,107,0,0.3)]" />
                     <h1 className="text-xl md:text-2xl font-cinzel font-black text-white mb-1 drop-shadow-[2px_2px_0px_rgba(0,0,0,1)] uppercase tracking-wider text-center">Privacy Policy</h1>
-                    <p className="text-gameOrange/70 text-[9px] uppercase tracking-[0.3em] font-black">Last updated: 27 October 2026</p>
+                    <p className="text-gameOrange/70 text-[9px] uppercase tracking-[0.3em] font-black">Last updated: 30 October 2026</p>
+                    <p className="mt-2 text-[11px] text-slate-400 normal-case">Plain text version: <a className="underline" href="/privacy.html">moitrastudios.com/privacy.html</a></p>
                     <nav className="mt-3 flex flex-wrap justify-center gap-4 text-[10px] uppercase tracking-[0.2em]">
                         <a href="#website" className="text-slate-300 hover:text-white underline">Website</a>
                         <a href="#geopolitics" className="text-slate-300 hover:text-white underline">GeoPolitics</a>
@@ -88,18 +89,21 @@ const PrivacyPolicy: React.FC<PrivacyPolicyProps> = () => {
                         </Section>
 
                         <Section id="rajneeti" icon={Landmark} title="3. Rajneeti (the game)">
-                            <p>Rajneeti collects very little. We do not collect your name or email unless you contact support.</p>
                             <ul className="list-disc pl-5 space-y-1">
-                                <li><strong>Crash logs</strong> (the error, device model and OS version), to find and fix crashes.</li>
-                                <li><strong>Advertising:</strong> Rajneeti shows ads through Google AdMob. Your device's advertising ID is shared with Google to show and measure ads. You can reset or limit it in your phone's settings.</li>
-                                <li>Rajneeti keeps no account on our servers. To ask about or delete any data, write to <span className="select-all">{STUDIO_INFO.email}</span>.</li>
+                                <li><strong>The player name you choose</strong> (or the one the game suggests): shown to other players in online matches.</li>
+                                <li><strong>Online match data</strong>: your moves, chosen candidate, player name, and the connection data (such as IP address) needed to connect players, handled by Photon (Exit Games) only for the match.</li>
+                                <li><strong>Game progress</strong> (campaign, week, votes, in-game money and gold, cards, decks, settings) is kept <strong>only on your device</strong>. Rajneeti keeps no account for you on our servers.</li>
+                                <li><strong>News stories</strong>: the game downloads public news headlines from our server (Supabase); it receives only the connection data any download needs, which we do not use to identify you.</li>
+                                <li><strong>Advertising:</strong> Rajneeti shows ads through Google AdMob. Your advertising ID, device type, approximate location from IP address and ad interactions are used to show and measure ads. You can reset or limit your advertising ID in your phone's settings.</li>
+                                <li><strong>Purchases</strong> of in-game gold go through Google Play; we never see card or bank details. Google Play may share crash reports (error, device model, OS version) with us.</li>
                             </ul>
+                            <p>Rajneeti does not collect your real name, email, contacts, photos, precise location, microphone or camera. To delete your data, uninstall the game or clear its storage; for anything else write to <span className="select-all">{STUDIO_INFO.email}</span>.</p>
                         </Section>
 
                         <Section icon={Users} title="4. Who processes data for us">
                             <ul className="list-disc pl-5 space-y-1">
                                 <li><strong>Supabase, Inc.</strong> - accounts, cloud save, website data (<a className="underline" href="https://supabase.com/privacy" target="_blank" rel="noreferrer">privacy</a>)</li>
-                                <li><strong>Exit Games GmbH (Photon)</strong> - online matches (<a className="underline" href="https://www.photonengine.com/privacy" target="_blank" rel="noreferrer">privacy</a>)</li>
+                                <li><strong>Exit Games GmbH (Photon)</strong> - online matches in Rajneeti and GeoPolitics (<a className="underline" href="https://www.photonengine.com/privacy" target="_blank" rel="noreferrer">privacy</a>)</li>
                                 <li><strong>Unity Technologies</strong> - LevelPlay ads and crash reports in GeoPolitics (<a className="underline" href="https://unity.com/legal/game-player-and-app-user-privacy-policy" target="_blank" rel="noreferrer">privacy</a>)</li>
                                 <li><strong>Google</strong> - AdMob in Rajneeti, AdSense and YouTube on the website, Google Play (<a className="underline" href="https://policies.google.com/privacy" target="_blank" rel="noreferrer">privacy</a>)</li>
                                 <li><strong>Monetag</strong> - website ads</li>

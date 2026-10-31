@@ -32,7 +32,6 @@ import requests
 
 # ── Configuration ────────────────────────────────────────────────
 OPENAI_API_KEY     = os.environ.get("OPENAI_API_KEY", "")
-GEMINI_API_KEY     = os.environ.get("GEMINI_API_KEY", "")
 SUPABASE_URL       = os.environ.get("SUPABASE_URL", os.environ.get("VITE_SUPABASE_URL", ""))
 SUPABASE_SERVICE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
 
@@ -49,10 +48,10 @@ DAY_OF_WEEK = NOW.strftime("%A")  # "Monday", "Tuesday", etc.
 CAMPAIGN_DURATION_DAYS = 7
 
 RSS_FEEDS = [
+    # ndtv.com/rss/india answers 403 and the Indian Express politics feed is not valid XML
+    # (31 Oct 2026); NDTV still comes in through its feedburner feed below.
     "https://timesofindia.indiatimes.com/rssfeeds/66023901.cms",
-    "https://www.ndtv.com/rss/india",
     "https://www.thehindu.com/news/national/feeder/default.rss",
-    "https://indianexpress.com/section/india/politics/feed/",
     "https://www.livemint.com/rss/politics",
     "https://www.hindustantimes.com/feeds/rss/india/rssfeed.xml",
     "https://timesofindia.indiatimes.com/rssfeeds/1221656.cms",  # India News TOI
@@ -155,7 +154,7 @@ def fetch_rss_articles():
 
 
 # ═══════════════════════════════════════════════════════════════
-# AI CALL (OpenAI primary, Gemini fallback)
+# AI CALL (OpenAI gpt-5.4-mini only)
 # Model: gpt-5.4 (flagship, released March 2026)
 # ═══════════════════════════════════════════════════════════════
 # AI Model: gpt-5.4-mini (OpenAI cost-effective flagship)
@@ -172,7 +171,9 @@ def call_openai(prompt, model="gpt-5.4-mini"):
                 {"role": "system", "content": "You output only valid JSON. No markdown, no commentary."},
                 {"role": "user", "content": prompt},
             ],
-            "temperature": 0.7,
+            # gpt-5.4-mini takes no custom temperature (a 400 otherwise); low effort keeps the
+            # reasoning cheap against the owner's 2.5M-tokens-a-day allowance.
+            "reasoning_effort": "low",
             "max_completion_tokens": 8000,
         },
         timeout=180,   # gpt-5.4-mini is very fast but allow up to 3 minutes for big outputs
@@ -184,59 +185,33 @@ def call_openai(prompt, model="gpt-5.4-mini"):
         except Exception:
             error_detail = resp.text[:200]
         print(f"  ⚠  OpenAI {model} → {resp.status_code}: {error_detail}", file=sys.stderr)
+        # A wrong key or a refused model fails every batch the same way: stop asking.
+        if resp.status_code in (401, 403, 404) or "insufficient_quota" in resp.text:
+            raise AIUnavailable(f"OpenAI {model} → {resp.status_code}: {error_detail}")
         return None
     return resp.json()["choices"][0]["message"]["content"].strip()
 
 
-def call_gemini(prompt):
-    # Using gemini-2.0-flash — much faster than 1.5-flash, generous free quota
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
-    resp = requests.post(
-        url,
-        headers={"Content-Type": "application/json"},
-        json={
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {
-                "maxOutputTokens": 8192,  # Enough for 5 items × 9 states with full content
-                "temperature": 0.6,
-            },
-        },
-        timeout=120,  # Gemini can handle longer; it's our primary model now
-    )
-    resp.raise_for_status()
-    return resp.json().get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+class AIUnavailable(Exception):
+    """OpenAI refused the key or the model; no batch can succeed this run."""
 
 
 def call_ai(prompt):
-    """Call gpt-5.4-mini via OpenAI. Fallback to Gemini if it fails or quota is exceeded."""
-    result = None
-    
-    if OPENAI_API_KEY:
-        try:
-            result = call_openai(prompt, model="gpt-5.4-mini")
-            if result:
-                print("  ✅ AI response (gpt-5.4-mini)")
-                return result
-            print("  ⚠  gpt-5.4-mini returned empty response.", file=sys.stderr)
-        except Exception as exc:
-            print(f"  ❌ gpt-5.4-mini failed: {exc}", file=sys.stderr)
-    else:
-        print("  ⚠  OPENAI_API_KEY not set. Skipping OpenAI attempt.", file=sys.stderr)
-        
-    # Fallback to Gemini
-    if GEMINI_API_KEY:
-        print("  🔄 Falling back to Gemini...")
-        try:
-            result = call_gemini(prompt)
-            if result:
-                print("  ✅ AI response (Gemini)")
-                return result
-            print("  ⚠  Gemini returned empty response.", file=sys.stderr)
-        except Exception as exc:
-            print(f"  ❌ Gemini failed: {exc}", file=sys.stderr)
-    else:
-        print("  ⚠  GEMINI_API_KEY not set. Cannot use fallback.", file=sys.stderr)
-        
+    """gpt-5.4-mini via OpenAI, and no other model: the owner's rule (30 Oct 2026) is this
+    model only, and if it is not working, nothing else. The Gemini fallback is gone."""
+    if not OPENAI_API_KEY:
+        raise AIUnavailable("OPENAI_API_KEY is not set")
+    try:
+        result = call_openai(prompt, model="gpt-5.4-mini")
+    except AIUnavailable:
+        raise
+    except Exception as exc:
+        print(f"  ❌ gpt-5.4-mini failed: {exc}", file=sys.stderr)
+        return ""
+    if result:
+        print("  ✅ AI response (gpt-5.4-mini)")
+        return result
+    print("  ⚠  gpt-5.4-mini returned empty response.", file=sys.stderr)
     return ""
 
 
@@ -387,7 +362,11 @@ def generate_daily_news(articles):
         # Give variety to each batch by sliding the article window
         offset = (batch_num - 1) * 8
         batch_articles = articles[offset : offset + 30] or articles[:30]
-        raw = call_ai(build_news_prompt(batch_articles, target_states, batch_num=batch_num))
+        try:
+            raw = call_ai(build_news_prompt(batch_articles, target_states, batch_num=batch_num))
+        except AIUnavailable as exc:
+            print(f"  ❌ {exc}. No news today; fix the key in the repo's GitHub secrets (OPENAI_API_KEY).")
+            return None
         if not raw:
             print(f"  ❌ No AI response for batch {batch_num}. Skipping.")
             continue
@@ -400,7 +379,7 @@ def generate_daily_news(articles):
             print(f"  ❌ Failed to parse batch {batch_num} JSON: {exc}\n  Raw: {raw[:300]}", file=sys.stderr)
 
     if not all_events:
-        print("  ❌ All batches failed. Set OPENAI_API_KEY or GEMINI_API_KEY.")
+        print("  ❌ All batches failed.")
         return None
 
     # Deduplicate by headline (in case both batches picked the same article)
